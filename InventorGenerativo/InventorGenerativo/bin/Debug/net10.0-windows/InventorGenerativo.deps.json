@@ -1,0 +1,39 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v10.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v10.0": {
+      "InventorGenerativo/1.0.0": {
+        "dependencies": {
+          "autodesk.inventor.interop": "30.0.17501.5"
+        },
+        "runtime": {
+          "InventorGenerativo.dll": {}
+        }
+      },
+      "autodesk.inventor.interop/30.0.17501.5": {
+        "runtime": {
+          "autodesk.inventor.interop.dll": {
+            "assemblyVersion": "30.0.17501.5",
+            "fileVersion": "30.0.17501.5"
+          }
+        }
+      }
+    }
+  },
+  "libraries": {
+    "InventorGenerativo/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "autodesk.inventor.interop/30.0.17501.5": {
+      "type": "reference",
+      "serviceable": false,
+      "sha512": ""
+    }
+  }
+}

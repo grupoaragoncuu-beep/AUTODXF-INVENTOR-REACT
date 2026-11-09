@@ -1,0 +1,61 @@
+AWIS INVENTOR BRIDGE - COLLISION GEOMETRY V0.2.0
+==================================================
+
+Base:
+- V0.1.1 estable.
+- Conserva AABB + OBB + Tank Frame + trazabilidad por occurrence/body.
+
+NUEVO EN V0.2.0
+----------------
+1. Fill ratio por cuerpo
+   - ObbVolumeMm3
+   - FillRatio = VolumeMm3 / ObbVolumeMm3
+   - Clases: VERY_TIGHT / TIGHT / MODERATE / LOOSE / VERY_LOOSE
+
+2. Perfil topologico ligero
+   - TotalFaceCount
+   - PlanarFaceCount
+   - CylindricalFaceCount
+   - OtherFaceCount
+   - HasCylindricalFaces
+   - LooksLikeSimpleCylinder
+
+3. Seleccion adaptativa de narrow phase
+   - OBB_BOX: fill ratio >= 0.80
+   - CYLINDER: cuerpos cilindricos simples con envelope finito resuelto
+   - MESH_REQUIRED: OBB < 0.80 y no es cilindro simple
+   - AABB_FALLBACK: si Inventor no entrega OBB
+
+4. Cilindro finito conservador
+   - Detecta topologia simple: 1-2 caras cilindricas, <=2 planas, sin otras superficies.
+   - Verifica dos dimensiones OBB aproximadamente iguales.
+   - Usa el mayor radio cilindrico como envolvente exterior.
+   - Calcula StartCenter / EndCenter / AxisDirection / RadiusMm / HeightMm.
+   - La altura se obtiene proyectando las 8 esquinas del OBB sobre el eje del cilindro.
+   - Se exporta tanto AssemblyCylinderMm como TankFrameCylinderMm.
+
+5. Estadisticas nuevas
+   - ObbPreferredBodies
+   - CylinderBodies
+   - MeshRequiredBodies
+   - AabbFallbackBodies
+   - BodiesWithoutVolumeAssessment
+
+REGLA DE SEGURIDAD
+------------------
+V0.2 NO elimina las representaciones conservadoras existentes.
+Incluso cuando un cuerpo queda MESH_REQUIRED, el OBB/AABB sigue presente
+como fallback hasta que se implemente la exportacion de malla exacta.
+
+OBJETIVO DE PRUEBA
+------------------
+Procesar al menos:
+- 1 VANTRAN ya validado
+- 1 OTC cargado
+
+y revisar especialmente:
+- soleras/prismas -> OBB_BOX
+- cuerpos cilindricos simples -> CYLINDER
+- soportes/perfiles irregulares -> MESH_REQUIRED
+- BodyFailures = 0
+- Warnings = [] o warnings explicables

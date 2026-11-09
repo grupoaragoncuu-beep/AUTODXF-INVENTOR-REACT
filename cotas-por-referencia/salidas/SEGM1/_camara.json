@@ -1,0 +1,42 @@
+{
+  "cara": "SEGM1",
+  "look": [
+    1.0,
+    -0.0,
+    -0.0
+  ],
+  "u_axis": [
+    -0.0,
+    0.0,
+    -1.0
+  ],
+  "v_axis": [
+    0.0,
+    1.0,
+    -0.0
+  ],
+  "ox": -29.875,
+  "oy": -32.875000000000014,
+  "span_u": 59.75,
+  "span_v": 65.75,
+  "origen": "IL",
+  "hijos": 15,
+  "piezas": 14,
+  "modo": "alambrico",
+  "tipos": [
+    "Pipe Flange 1",
+    "Ground Pad, 316LSS, 2X3",
+    "Ground Pad, 316LSS, 2X3",
+    "261503_Tap Changer Patch",
+    "261503_VT-5676-H",
+    "261503_VT-5676-H",
+    "261503_VT-5676-H",
+    "261503_Brace Front",
+    "261503_Brace Front",
+    "Ground Pad, 316LSS, 2X3",
+    "261503_Pipe Nipple 1",
+    "Pipe Nipple 1",
+    "261503_VT-5676-H",
+    "261503_VT-5676-H"
+  ]
+}

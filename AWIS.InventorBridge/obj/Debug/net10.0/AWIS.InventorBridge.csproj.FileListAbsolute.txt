@@ -1,0 +1,12 @@
+C:\Users\ricardo_cano\source\repos\AWIS.InventorBridge\AWIS.InventorBridge\bin\Debug\net10.0\AWIS.InventorBridge.deps.json
+C:\Users\ricardo_cano\source\repos\AWIS.InventorBridge\AWIS.InventorBridge\bin\Debug\net10.0\AWIS.InventorBridge.dll
+C:\Users\ricardo_cano\source\repos\AWIS.InventorBridge\AWIS.InventorBridge\bin\Debug\net10.0\AWIS.InventorBridge.pdb
+C:\Users\ricardo_cano\source\repos\AWIS.InventorBridge\AWIS.InventorBridge\obj\Debug\net10.0\AWIS.InventorBridge.csproj.AssemblyReference.cache
+C:\Users\ricardo_cano\source\repos\AWIS.InventorBridge\AWIS.InventorBridge\obj\Debug\net10.0\AWIS.InventorBridge.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\ricardo_cano\source\repos\AWIS.InventorBridge\AWIS.InventorBridge\obj\Debug\net10.0\AWIS.InventorBridge.AssemblyInfoInputs.cache
+C:\Users\ricardo_cano\source\repos\AWIS.InventorBridge\AWIS.InventorBridge\obj\Debug\net10.0\AWIS.InventorBridge.AssemblyInfo.cs
+C:\Users\ricardo_cano\source\repos\AWIS.InventorBridge\AWIS.InventorBridge\obj\Debug\net10.0\AWIS.InventorBridge.csproj.CoreCompileInputs.cache
+C:\Users\ricardo_cano\source\repos\AWIS.InventorBridge\AWIS.InventorBridge\obj\Debug\net10.0\AWIS.InventorBridge.dll
+C:\Users\ricardo_cano\source\repos\AWIS.InventorBridge\AWIS.InventorBridge\obj\Debug\net10.0\refint\AWIS.InventorBridge.dll
+C:\Users\ricardo_cano\source\repos\AWIS.InventorBridge\AWIS.InventorBridge\obj\Debug\net10.0\AWIS.InventorBridge.pdb
+C:\Users\ricardo_cano\source\repos\AWIS.InventorBridge\AWIS.InventorBridge\obj\Debug\net10.0\ref\AWIS.InventorBridge.dll

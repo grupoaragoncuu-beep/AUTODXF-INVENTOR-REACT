@@ -1,0 +1,60 @@
+{
+  "classes": [
+    {
+      "id": "almacen",
+      "name": "Almacén",
+      "color": "#166534",
+      "appearances": ["Dark Green", "Verde oscuro"],
+      "prop": "AutoDXF Almacén",
+      "level": "part"
+    },
+    {
+      "id": "corte",
+      "name": "Corte",
+      "color": "#EA580C",
+      "appearances": ["Rojo naranja"],
+      "prop": "AutoDXF Corte",
+      "level": "part"
+    },
+    {
+      "id": "doblado",
+      "name": "Doblado",
+      "color": "#7C3AED",
+      "appearances": ["Violeta"],
+      "prop": "AutoDXF Doblado",
+      "level": "part"
+    },
+    {
+      "id": "maquinados",
+      "name": "Maquinados",
+      "color": "#2563EB",
+      "appearances": ["Blue - Wall Paint - Glossy", "Azul - Pintura mural - Brillante"],
+      "prop": "AutoDXF Maquinados",
+      "level": "part"
+    },
+    {
+      "id": "accesorios",
+      "name": "Accesorios Sueltos",
+      "color": "#F97316",
+      "appearances": ["Orange", "Naranja", "Orange - Wall Paint - Glossy", "Naranja - Pintura mural - Brillante"],
+      "prop": "AutoDXF Accesorios Sueltos",
+      "level": "part"
+    },
+    {
+      "id": "assy_loose",
+      "name": "Assy Loose Accesories",
+      "color": "#A16207",
+      "appearances": ["Gold", "Amarillo oro", "Yellow", "Amarillo"],
+      "prop": "AutoDXF Assy Loose",
+      "level": "assembly"
+    },
+    {
+      "id": "assy_tanks",
+      "name": "Assy Tanks",
+      "color": "#0F766E",
+      "appearances": ["Pine", "Pine Green", "Verde pino"],
+      "prop": "AutoDXF Assy Tanks",
+      "level": "assembly"
+    }
+  ]
+}

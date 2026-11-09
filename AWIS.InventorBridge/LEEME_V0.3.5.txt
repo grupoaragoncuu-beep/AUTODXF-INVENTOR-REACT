@@ -1,0 +1,18 @@
+INSTALACION Y VALIDACION — V0.3.5
+
+1. Cerrar Inventor para liberar la DLL cargada.
+2. Extraer en una carpeta nueva. Abrir AWIS.InventorBridge.slnx en Visual Studio.
+3. Verificar AWIS.InventorBridge.csproj: el HintPath actual conserva C:\Inventor 2027\Bin\Autodesk.Inventor.Interop.dll. Si tu instalacion difiere, usar la ruta que ya funcionaba en tu PC.
+4. Compilar/Recompilar. Conservar el registro .addin que usabas y comprobar que su ruta de Assembly apunta a la DLL de esta carpeta/build, no a una version anterior.
+5. Abrir Inventor y el OTC 62223-1246-A01; volver a ejecutar la exportacion del Bridge.
+6. Verificar AWIS_WELD_INTERFACES_62223-1246-A01.json:
+   Version: 0.3.5
+   GeneratorVersion: Inventor Weld Interface Companion V0.3.5
+   Faces[AXIS_2_POSITIVE].ContactPlane.Resolved: true
+   ResolutionStatus: native_physical_wall_plane
+   TiltFromCanonicalDeg: aproximadamente 0.731425
+7. Buscar SP-788_137 por ComponentOccurrenceName (los numeros IF pueden cambiar). Revisar que el borde exterior llegue cerrado; si aplica la reconstruccion anular, PhysicalMemberType=ANNULAR_SECTION, PhysicalSideRole=OUTER_CIRCUMFERENCE y Closed=true.
+8. Copiar TODOS los JSON nuevos del mismo tanque a data/input de AWIS V5.6; recargar proyecto y regenerar candidatos/setup. No mezclar hashes/JSON viejos con los nuevos. Verificar visualmente los seis circulos y los braces.
+9. Si ContactPlane.Resolved=false o persisten segmentos, conservar Warnings y los JSON nuevos para revisar la ejecucion nativa; no ajustar tolerancias ni completar circulos a mano.
+
+Incluye codigo fuente y pruebas geometricas offline. NO incluye DLL compilada.

@@ -1,0 +1,13 @@
+{
+  "status": "PASS",
+  "scope": "OCCT geometric counterpart/contact checks; Inventor COM build/export pending",
+  "measured_thickness_mm": 9.524999999999888,
+  "outer_tilt_deg": 0.7314250499749552,
+  "inner_face_candidates": 1,
+  "p03_closed_contact_loop": true,
+  "p03_contact_area_mm2": 23790.274999999998,
+  "p03_outer_plane_distance_mm": -9.52499999999908,
+  "p03_inner_plane_distance_mm": -8.08242361927114e-13,
+  "p03_section_edge_count": 4,
+  "normals_dot": -1.0000000000000002
+}

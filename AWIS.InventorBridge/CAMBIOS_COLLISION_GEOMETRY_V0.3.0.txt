@@ -1,0 +1,70 @@
+AWIS INVENTOR BRIDGE - COLLISION GEOMETRY V0.3.0
+==================================================
+
+Base:
+- V0.2.0 validada con VANTRAN y OTC.
+- Conserva AABB + OBB + CYLINDER + fill ratio + Tank Frame + trazabilidad.
+
+NUEVO EN V0.3.0
+----------------
+1. Companion pesado separado
+   - AWIS_COLLISION_MESHES_<TANQUE>.json
+   - El JSON AWIS_COLLISION_GEOMETRY sigue siendo el índice espacial ligero.
+   - El mesh companion se escribe compacto (sin indentación) para reducir tamaño.
+
+2. Alcance de malla
+   - Solo cuerpos COLLISION_CANDIDATE con RecommendedNarrowPhase=MESH_REQUIRED.
+   - TANK_BOUNDARY_SOURCE se conserva en AABB/OBB y se marca SKIPPED_TANK_BOUNDARY_SOURCE.
+   - OBB/AABB nunca se eliminan: siempre quedan como fallback conservador.
+
+3. Política de tessellation
+   - Chord tolerance solicitada: 1.0 mm.
+   - Inventor recibe 0.1 cm, porque su API trabaja internamente en centímetros.
+   - Se intenta SurfaceBody.CalculateFacets.
+   - Si falla, se intenta el facet set existente de mayor fidelidad disponible.
+   - El método realmente usado queda guardado en GenerationMethod.
+
+4. Contrato de mesh
+   - MeshId estable por ComponentId + BodyIndex.
+   - VerticesMm: lista plana X,Y,Z en mm.
+   - TriangleVertexIndices: triples planos con índice base 0.
+   - No exporta normales porque no son necesarias para colisión.
+   - CoordinateSpace=TANK_FRAME cuando el frame está resuelto; si no, ASSEMBLY_MODEL_SPACE.
+   - BoundsMm de la propia malla para auditoría.
+
+5. Regla de seguridad
+   - La malla es una aproximación por chord tolerance, no un sólido conservador exacto.
+   - RequiredCollisionInflationMm = SourceChordToleranceMm.
+   - El Collision Engine deberá restar como mínimo esa tolerancia al clearance, además del margen físico de herramienta, antes de declarar SAFE.
+
+6. Validación de espacio de coordenadas
+   - Antes de aceptar una malla, su AABB faceteado en AssemblySpace se compara contra PreciseRangeBox.
+   - Si no coincide dentro de tolerancia, la malla se rechaza y se mantiene OBB fallback.
+   - Esto evita consumir silenciosamente vértices en un frame equivocado.
+
+7. Referencia desde el índice principal
+   - MeshReference contiene MeshId, estado, companion, coordinate space, tolerancia, conteo de vértices/triángulos y método.
+   - Si la escritura del companion falla, el índice se exporta con FILE_EXPORT_FAILED y fallback OBB/AABB.
+
+8. Estadísticas nuevas
+   - MeshExportedBodies
+   - MeshFailedBodies
+   - MeshSkippedBoundaryBodies
+   - ExistingFacetFallbackBodies
+   - MeshVertexCount
+   - MeshTriangleCount
+
+OBJETIVO DE PRUEBA
+------------------
+Procesar nuevamente:
+- VANTRAN 25435
+- OTC 62223-1246-A01
+
+Revisar en ambos:
+- Compilación limpia del módulo nuevo.
+- AWIS_COLLISION_GEOMETRY Version=0.3.0.
+- AWIS_COLLISION_MESHES generado.
+- MeshExportedBodies + MeshFailedBodies + MeshSkippedBoundaryBodies coherentes con MeshRequiredBodies.
+- BodyFailures=0.
+- Si aparecen warnings de faceting, conservarlos: no comprometen el índice porque OBB/AABB sigue disponible.
+- Registrar tamaño del mesh companion y tiempo aproximado de proceso.

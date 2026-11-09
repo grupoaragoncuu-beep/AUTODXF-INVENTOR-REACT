@@ -1,0 +1,14 @@
+---
+description: Weld Anotation en Python. Sin planos de Inventor.
+globs: python/weld_jpg.py,python/weld_anotation.py,ui/src/WeldAnotationPanel.tsx,soldadura/**
+alwaysApply: true
+---
+
+# Weld Anotation
+
+Leer `soldadura/FUNCIONAMIENTO.md`, `soldadura/CONTROL.md` y `soldadura/control.json` antes de cambiar soldadura.
+
+- El JPG lo dibuja Python (`python/weld_jpg.py`), un archivo por cordón, en `{job}/DOSSIER FILES/JPGS/Weld/`.
+- La geometría sale del ensamble abierto. No crear ni abrir un plano de Inventor (DWG, IDW, hoja, cajetín).
+- No usar el add-in de AWIS.
+- Inventor se queda abierto solo como fuente de geometría, igual que Acotación JPG.

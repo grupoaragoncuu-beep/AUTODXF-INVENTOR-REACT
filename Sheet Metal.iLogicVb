@@ -1,0 +1,273 @@
+﻿Imports Inventor
+Imports System.Text
+Imports System.Windows.Forms
+
+Class ResultadoComponente
+    Public Property Nombre As String
+    Public Property Espesor As String
+    Public Property ReglaSM As String
+    Public Property ReglaDesplegado As String
+    Public Property Estado As String
+End Class
+
+Sub Main()
+    Dim app As Inventor.Application = ThisApplication
+    Dim asmDoc As AssemblyDocument = TryCast(ThisDoc.Document, AssemblyDocument)
+
+    If asmDoc Is Nothing Then
+        MessageBox.Show("Ejecutar desde un ensamblaje (.iam)", "Error")
+        Return
+    End If
+
+    ' Catálogo de reglas por espesor (en pulgadas)
+    Dim catalogoReglas As New Dictionary(Of Double, (String, String)) From {
+        {1.0, ("1 1 M150 BD 1.737", "1/2") },
+		{1.25, ("1.25 M150 SIN BD", "1/2") },
+		{1.5, ("1.5 M100 BD 0", "1/2") },
+		{2.0, ("2 M150 SIN BD", "1/2") },
+        {0.5, ("1/2 0.5 M100 BD 937", "1/2")},
+        {0.2362, ("1/4 0.2362 0.469", "1/4")},
+        {0.25, ("1/4 0.25.469", "1/4")},
+        {0.1875, ("3/16 0.1875 M50 BD 397", "3/16")},
+        {0.75, ("3/4 0.75 M160 BD 1.441", "3/4")},
+        {0.375, ("3/8 0.375 M80 BD 721", "3/8")},
+        {0.3125, ("5/16 0.3125 M80 BD 650", "5/16")},
+        {0.625, ("5/8 0.6250 M120 BD 1.154", "5/8")},
+        {0.4378, ("7/16 0.4378 M80 BD 794", "7/16")},
+        {0.875, ("7/8 0.8750 M150 BD 1.587", "7/8") },
+		{0.125, ("1/8 0.231 0.125", "1/8")},
+        {0.1181, ("Cal. 11 0.1181 0.2", "Cal. 11")},
+        {0.1046, ("Cal. 12 0.1050 0.19", "Cal. 12")},
+        {0.1048, ("Cal. 12 0.1048 0.19", "Cal. 12") },
+		{0.101900, ("Cal. 12 0.1046 0.19", "Cal. 12")},
+        {0.1083, ("Cal. 12 0.1083 0.19", "Cal. 12")},
+        {0.0689, ("Cal. 14 0.0689 0.148", "Cal. 14")},
+        {0.0747, ("Cal. 14 0.0747 0.148", "Cal. 14")},
+        {0.069, ("Cal. 14 0.069 0.148", "Cal. 14")}
+    }
+
+    Dim resultados As New List(Of ResultadoComponente)
+    Dim log As New StringBuilder
+    log.AppendLine("===== APLICACIÓN DE REGLAS AUTOMÁTICA =====" & vbCrLf)
+
+    ' Recolectar todas las ocurrencias
+    Dim todasOcurrencias As New List(Of ComponentOccurrence)
+    RecorrerOcurrencias(asmDoc.ComponentDefinition.Occurrences, todasOcurrencias)
+
+    For Each occ As ComponentOccurrence In todasOcurrencias
+        If occ.Suppressed Then Continue For
+
+        Dim result As New ResultadoComponente With {
+            .Nombre = occ.Name,
+            .ReglaSM = "-",
+            .ReglaDesplegado = "-",
+            .Estado = "❌ No aplicado"
+        }
+
+        Try
+            Dim partDoc As PartDocument = TryCast(occ.Definition.Document, PartDocument)
+            If partDoc Is Nothing Then
+                result.Estado = "❌ No es un archivo de pieza válido."
+                resultados.Add(result)
+                Continue For
+            End If
+
+            Dim smDef As SheetMetalComponentDefinition = Nothing
+
+            Try
+                smDef = TryCast(partDoc.ComponentDefinition, SheetMetalComponentDefinition)
+            Catch ex As Exception
+                result.Estado = "❌ Error al obtener definición del componente"
+                resultados.Add(result)
+                Continue For
+            End Try
+
+            ' Convertir si no es Sheet Metal
+            If smDef Is Nothing Then
+                Try
+                    ThisApplication.CommandManager.ControlDefinitions("SheetMetalConvertToSheetMetalCmd").Execute()
+                    smDef = TryCast(partDoc.ComponentDefinition, SheetMetalComponentDefinition)
+                    If smDef Is Nothing Then
+                        result.Estado = "❌ No se pudo convertir a Sheet Metal"
+                        resultados.Add(result)
+                        Continue For
+                    End If
+                Catch ex As Exception
+                    result.Estado = "❌ Error al convertir: " & ex.Message
+                    resultados.Add(result)
+                    Continue For
+                End Try
+            End If
+
+            If smDef.SurfaceBodies.Count = 0 Then
+                result.Estado = "❌ Sin cuerpos válidos"
+                resultados.Add(result)
+                Continue For
+            End If
+
+            Dim dThickness As Double = 0
+            Try
+                dThickness = GetThickFromMaxFace(smDef.SurfaceBodies(1))
+            Catch ex As Exception
+                result.Estado = "❌ Error detectando espesor: " & ex.Message
+                resultados.Add(result)
+                Continue For
+            End Try
+
+            Dim thkInch As Double = Math.Round(dThickness * 0.393701, 4)
+            result.Espesor = thkInch & " in"
+
+            ' Buscar coincidencia en catálogo
+            Dim reglaSM As String = ""
+            Dim reglaUnfold As String = ""
+            Dim matchFound As Boolean = False
+
+            For Each kvp In catalogoReglas
+                If Math.Abs(thkInch - kvp.Key) < 0.001 Then
+                    reglaSM = kvp.Value.Item1
+                    reglaUnfold = kvp.Value.Item2
+                    matchFound = True
+                    Exit For
+                End If
+            Next
+
+            If matchFound Then
+                smDef.SheetMetalStyles.Item(reglaSM).Activate()
+                smDef.UseSheetMetalStyleThickness = True
+                smDef.UseSheetMetalStyleMaterial = True ' <- Aplica material desde la regla de chapa
+                result.ReglaSM = reglaSM
+
+                ' === NUEVO BLOQUE: Establecer Lado A y generar desarrollo ===
+                Try
+                    Dim maxFace As Face = GetMaxFace(smDef.SurfaceBodies(1).Faces)
+                    If maxFace IsNot Nothing Then
+                        ' Eliminar flat pattern si existe
+                        If smDef.HasFlatPattern Then smDef.FlatPattern.Delete()
+
+                        ' Eliminar lados A previos
+                        Dim aDefs As ASideDefinitions = smDef.ASideDefinitions
+                        If aDefs.Count > 0 Then
+                            For i As Integer = 1 To aDefs.Count
+                                aDefs.Item(i).Delete()
+                            Next
+                        End If
+
+                        ' Establecer nueva cara como lado A
+                        aDefs.Add(maxFace)
+
+                        ' Generar el desarrollo
+                        smDef.Unfold()
+                    Else
+                        result.Estado = "❌ No se encontró cara mayor válida"
+                        resultados.Add(result)
+                        Continue For
+                    End If
+                Catch ex As Exception
+                    result.Estado = "❌ Error al definir Lado A: " & ex.Message
+                    resultados.Add(result)
+                    Continue For
+                End Try
+                ' ============================================================
+
+                smDef.FlatPattern.FlatPatternStyle = reglaUnfold
+                result.ReglaDesplegado = reglaUnfold
+
+                partDoc.Update()
+                partDoc.Save()
+
+                result.Estado = "✔ Aplicado correctamente"
+            Else
+                result.Estado = "⚠ No hay regla para espesor detectado (" & thkInch & " in)"
+            End If
+
+        Catch ex As Exception
+            result.Estado = "❌ Error inesperado: " & ex.Message
+        End Try
+
+        resultados.Add(result)
+        log.AppendLine(result.Nombre & " | Espesor: " & result.Espesor & " | SM: " & result.ReglaSM & " | Unfold: " & result.ReglaDesplegado & " | Estado: " & result.Estado)
+    Next
+
+   ' Guardar log
+   ' Dim rutaLog As String = "C:\PlantillasEmpresa\LOG_Reglas.txt"
+   ' System.IO.File.WriteAllText(rutaLog, log.ToString())
+
+    MostrarResultados(resultados)
+    MessageBox.Show("Proceso completado." & vbCrLf & rutaLog, "Finalizado")
+End Sub
+
+' ------------------ FUNCIONES AUXILIARES ------------------
+
+Private Sub RecorrerOcurrencias(occs As ComponentOccurrences, ByRef lista As List(Of ComponentOccurrence))
+    For Each occ As ComponentOccurrence In occs
+        If occ.DefinitionDocumentType = DocumentTypeEnum.kPartDocumentObject Then
+            lista.Add(occ)
+        ElseIf occ.DefinitionDocumentType = DocumentTypeEnum.kAssemblyDocumentObject Then
+            RecorrerOcurrencias(occ.SubOccurrences, lista)
+        End If
+    Next
+End Sub
+
+Private Function GetThickFromMaxFace(ByVal oBody As SurfaceBody) As Double
+    If oBody Is Nothing OrElse oBody.Faces.Count = 0 Then
+        Throw New Exception("No hay caras válidas en el cuerpo.")
+    End If
+
+    Dim oMaxFace As Face = GetMaxFace(oBody.Faces)
+    If oMaxFace Is Nothing Then Throw New Exception("No se encontró cara mayor.")
+
+    Dim origin As Inventor.Point = oMaxFace.PointOnFace
+    Dim pt(2) As Double
+    pt(0) = origin.X : pt(1) = origin.Y : pt(2) = origin.Z
+    Dim n(2) As Double
+    Call oMaxFace.Evaluator.GetNormalAtPoint(pt, n)
+    Dim normal As Inventor.UnitVector = ThisApplication.TransientGeometry.CreateUnitVector(-n(0), -n(1), -n(2))
+    Dim objects As ObjectsEnumerator
+    Dim pts As ObjectsEnumerator
+    Call oBody.FindUsingRay(origin, normal, 0.001, objects, pts, True)
+    If objects.Count < 2 Then Throw New Exception("No se encontró cara opuesta.")
+    Return ThisApplication.MeasureTools.GetMinimumDistance(origin, objects.Item(2))
+End Function
+
+Private Function GetMaxFace(ByVal oFaces As Faces) As Face
+    Dim maxFace As Face = Nothing
+    Dim maxArea As Double = 0.0
+
+    For Each Face As Face In oFaces
+        Dim area As Double = Face.Evaluator.Area
+        If area > maxArea Then
+            maxArea = area
+            maxFace = Face
+        End If
+    Next
+
+    Return maxFace
+End Function
+
+Private Sub MostrarResultados(resultados As List(Of ResultadoComponente))
+    Dim Form As New Form With {
+        .Text = "Resumen de aplicación de reglas",
+        .Width = 850,
+        .Height = 500
+    }
+
+    Dim dgv As New DataGridView With {
+        .Dock = DockStyle.Fill,
+        .ReadOnly = True,
+        .AllowUserToAddRows = False,
+        .AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill
+    }
+
+    dgv.Columns.Add("Nombre", "Componente")
+    dgv.Columns.Add("Espesor", "Espesor")
+    dgv.Columns.Add("ReglaSM", "Regla Sheet Metal")
+    dgv.Columns.Add("ReglaDesplegado", "Regla Desplegado")
+    dgv.Columns.Add("Estado", "Estado")
+
+    For Each r In resultados
+        dgv.Rows.Add(r.Nombre, r.Espesor, r.ReglaSM, r.ReglaDesplegado, r.Estado)
+    Next
+
+    Form.Controls.Add(dgv)
+    Form.ShowDialog()
+End Sub

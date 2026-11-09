@@ -1,0 +1,39 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v10.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v10.0": {
+      "AutoDXF.AddIn/1.0.0.0": {
+        "dependencies": {
+          "AutoDXF.Core": "1.0.0"
+        },
+        "runtime": {
+          "AutoDXF.AddIn.dll": {}
+        }
+      },
+      "AutoDXF.Core/1.0.0": {
+        "runtime": {
+          "AutoDXF.Core.dll": {
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "1.0.0.0"
+          }
+        }
+      }
+    }
+  },
+  "libraries": {
+    "AutoDXF.AddIn/1.0.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "AutoDXF.Core/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    }
+  }
+}

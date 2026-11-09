@@ -1,0 +1,1990 @@
+Imports System.IO
+Imports System.Windows.Forms
+Imports System.Collections.Generic
+Imports System.ComponentModel
+Imports System.Text
+Imports System.Text.RegularExpressions
+'VERSION CON MAIN 
+' Clase para almacenar datos de componente
+Public Class ComponentePerfil
+    Public Property Nombre As String
+    Public Property Clasificacion As String
+    Public Property CodigoHerinox As String
+    Public Property PerfilHerinox As String
+    Public Property MaterialHerinox As String
+    Public Property Largo As Double
+    Public Property Cantidad As Integer
+    Public Property Proceso As String
+    Public Property Ocurrencias As List(Of ComponentOccurrence)
+End Class
+
+' Fila del catalogo React-Herinox (biblioteca embebida 1:1 con BD Plate LARGO)
+Public Class CatalogoHerinoxFila
+    Public Property Codigo As String
+    Public Property Clasificacion As String
+    Public Property Perfil As String
+    Public Property Material As String
+    Public Property LargoFt As Double
+    Public Property TextoComboLinea As String
+
+    Public Function TextoCombo() As String
+        ' Tarjetón Herinox: código | perfil | material | descripción (columna Clasificacion del TSV).
+        Dim perfilTxt As String = If(Perfil, "").Trim()
+        If perfilTxt <> "" AndAlso perfilTxt.IndexOf("perfil", StringComparison.OrdinalIgnoreCase) < 0 Then
+            perfilTxt = perfilTxt & " perfil"
+        End If
+        Dim desc As String = If(Clasificacion, "").Trim()
+        Return Codigo.Trim() & " | " & perfilTxt & " | " & Material.Trim() & " | " & desc
+    End Function
+End Class
+
+Public Class CatalogoHerinoxEstado
+    Public Shared FuenteUltimaCarga As String = ""
+End Class
+
+Sub Main()
+
+    If ThisDoc.Document.DocumentType <> kAssemblyDocumentObject Then
+        MessageBox.Show("Esta regla solo funciona en ensamblajes (.iam)")
+        Return
+    End If
+
+    Dim oAsmDoc As AssemblyDocument = ThisDoc.Document
+    Dim oAsmDef As AssemblyComponentDefinition = oAsmDoc.ComponentDefinition
+
+    ' Bootstrap Herinox (mismo puente que AutoDXF 2.0 -> herinox_sync.local.json)
+    Dim bridgeLog As String = ""
+    Dim jsonHerinoxRefrescado As String = ""
+    CatalogoHerinoxEstado.FuenteUltimaCarga = ""
+    Try
+        Dim asmDir As String = System.IO.Path.GetDirectoryName(oAsmDoc.FullFileName)
+        EnsureHerinoxJsonViaPython(asmDir, bridgeLog, jsonHerinoxRefrescado)
+    Catch ex As Exception
+        bridgeLog = ex.Message
+    End Try
+
+    Dim carpetaAutoDxf As String = ResolverCarpetaAutoDXF(oAsmDoc)
+    Dim catalogoPorCombo As Dictionary(Of String, CatalogoHerinoxFila) = Nothing
+    Dim opcionesCatalogo As List(Of String) = CargarCatalogoHerinox(catalogoPorCombo, jsonHerinoxRefrescado)
+
+    If CatalogoHerinoxEstado.FuenteUltimaCarga.StartsWith("FALLBACK", StringComparison.OrdinalIgnoreCase) Then
+        MessageBox.Show(
+            "No se pudo leer herinox_sync.local.json actualizado." & vbCrLf &
+            "Se uso el catalogo embebido (datos viejos)." & vbCrLf & vbCrLf &
+            "Revise que Python y Consulta_Herinox.py funcionen en AutoDXF 2.0." & vbCrLf &
+            If(String.IsNullOrEmpty(bridgeLog), "", "Detalle: " & bridgeLog),
+            "Lista de largos - catalogo",
+            MessageBoxButtons.OK,
+            MessageBoxIcon.Warning)
+    ElseIf Not String.IsNullOrEmpty(bridgeLog) AndAlso bridgeLog.IndexOf("OK", StringComparison.OrdinalIgnoreCase) < 0 Then
+        MessageBox.Show(
+            "Consulta_Herinox no actualizo el JSON en esta ejecucion." & vbCrLf &
+            "Se cargo: " & CatalogoHerinoxEstado.FuenteUltimaCarga & vbCrLf & vbCrLf &
+            "Detalle: " & bridgeLog,
+            "Lista de largos - aviso Herinox",
+            MessageBoxButtons.OK,
+            MessageBoxIcon.Information)
+    End If
+
+    Dim lista As List(Of ComponentePerfil) = Nothing
+    Dim aparienciasOriginales As New Dictionary(Of String, Asset)
+
+    Try
+    ' Quitar amarillo heredado de ejecuciones anteriores
+    LimpiarOverridesAmarilloEnEnsamble(oAsmDef)
+
+    Dim selectedComps As ObjectCollection = ThisApplication.TransientObjects.CreateObjectCollection()
+    Dim comp As ComponentOccurrence
+
+        Dim autoSelected As List(Of ComponentOccurrence) = AutoPreseleccionarPorClasificacion(oAsmDoc, oAsmDef, opcionesCatalogo, aparienciasOriginales)
+
+        For Each comp In autoSelected
+            selectedComps.Add(comp)
+        Next
+
+        Dim selector As New MiniToolbarSelector(ThisApplication, oAsmDoc, oAsmDef, aparienciasOriginales)
+        selector.Pick()
+
+        For Each comp In selector.SelectedOccurrences
+            FusionarOccurrenceEnSeleccion(selectedComps, comp)
+        Next
+
+    If selectedComps.Count = 0 Then
+        MessageBox.Show("No se selecciono ningun componente. El archivo CSV estara vacio.", "Sin seleccion")
+        Exit Try
+    End If
+
+    lista = New List(Of ComponentePerfil)
+    Dim seguirAnadiendo As Boolean = True
+
+    Do While seguirAnadiendo
+        Dim partsDict As Dictionary(Of String, List(Of ComponentOccurrence)) = AgruparPorArchivoIpt(selectedComps, oAsmDef)
+        lista = ConstruirListaPerfilesDesdeSeleccion(partsDict, lista)
+
+        Dim resultadoTabla As DialogResult = MostrarTablaClasificacion(lista, opcionesCatalogo, selectedComps, oAsmDef, aparienciasOriginales)
+
+        If resultadoTabla = DialogResult.OK Then
+            seguirAnadiendo = False
+        ElseIf resultadoTabla = DialogResult.Retry Then
+            Dim selectorExtra As New MiniToolbarSelector(ThisApplication, oAsmDoc, oAsmDef, aparienciasOriginales)
+            selectorExtra.Pick()
+            For Each comp In selectorExtra.SelectedOccurrences
+                FusionarOccurrenceEnSeleccion(selectedComps, comp)
+            Next
+            If selectedComps.Count = 0 Then
+                MessageBox.Show("No hay componentes seleccionados.", "Lista de largos")
+                Exit Try
+            End If
+        Else
+            Exit Try
+        End If
+    Loop
+
+    If lista Is Nothing OrElse lista.Count = 0 Then
+        MessageBox.Show("No quedaron perfiles en la lista.", "Lista de largos")
+        Exit Try
+    End If
+
+    Dim msgMaterialObligatorio As String = ValidarMaterialesHerinoxObligatorios(lista)
+    If msgMaterialObligatorio <> "" Then
+        MessageBox.Show(msgMaterialObligatorio, "Material Herinox obligatorio", MessageBoxButtons.OK, MessageBoxIcon.Warning)
+        Exit Try
+    End If
+
+    ' CSV: columnas consumidas por Nesting Suite + PDF piso
+    Dim csv As String = "Nombre,Clasificación,Largo (in),Cantidad,Proceso" & vbCrLf
+    For Each item In lista
+        csv &= EscaparCsvCampo(item.Nombre) & "," &
+               EscaparCsvCampo(item.Clasificacion.Trim()) & "," &
+               item.Largo.ToString(System.Globalization.CultureInfo.InvariantCulture) & "," &
+               item.Cantidad.ToString() & "," &
+               EscaparCsvCampo(If(item.Proceso, "").Trim()) & vbCrLf
+    Next
+
+    ' Exportar CSV en AutoDXF del job (lo consume lista_largos_importer)
+    If Not System.IO.Directory.Exists(carpetaAutoDxf) Then
+        System.IO.Directory.CreateDirectory(carpetaAutoDxf)
+    End If
+    Dim filePath As String = System.IO.Path.Combine(carpetaAutoDxf, "Lista_Perfiles_Clasificados.csv")
+    Dim errorGuardarCsv As String = GuardarCsvListaPerfiles(filePath, csv)
+    If errorGuardarCsv <> "" Then
+        MessageBox.Show(
+            "No se pudo guardar el CSV." & vbCrLf & vbCrLf &
+            "Cierra Excel u otro programa que tenga abierto:" & vbCrLf & filePath & vbCrLf & vbCrLf &
+            "Si OneDrive esta sincronizando esa carpeta, espera un momento e intenta de nuevo." & vbCrLf & vbCrLf &
+            errorGuardarCsv,
+            "Archivo en uso",
+            MessageBoxButtons.OK,
+            MessageBoxIcon.Warning)
+        Exit Try
+    End If
+
+    RestaurarAparienciasSeleccion(aparienciasOriginales, oAsmDef)
+
+    Dim detBridge As String = ""
+    If Not String.IsNullOrEmpty(bridgeLog) Then
+        detBridge = vbCrLf & "Bridge Herinox: " & bridgeLog
+    End If
+    Dim detCatalogo As String = ""
+    If Not String.IsNullOrEmpty(CatalogoHerinoxEstado.FuenteUltimaCarga) Then
+        detCatalogo = vbCrLf & "Fuente catalogo: " & CatalogoHerinoxEstado.FuenteUltimaCarga
+    End If
+    MessageBox.Show(
+        "CSV generado en AutoDXF del proyecto:" & vbCrLf & filePath & vbCrLf & vbCrLf &
+        "Catalogo Herinox: " & opcionesCatalogo.Count.ToString() & " opciones" & detCatalogo & detBridge,
+        "Lista de largos - listo")
+
+    Finally
+        RestaurarAparienciasSeleccion(aparienciasOriginales, oAsmDef)
+    End Try
+
+End Sub
+
+Function BuscarOCopiarAppearanceAlDocumento(nombreAppearance As String, oDoc As Document) As Asset
+    Dim oAsset As Asset = Nothing
+    Dim oLib As AssetLibrary
+    Dim oLibAsset As Asset = Nothing
+
+    ' 1) Primero buscar si ya existe en el documento
+    Try
+        For Each oAsset In oDoc.Assets
+            Try
+                If oAsset.AssetType = AssetTypeEnum.kAssetTypeAppearance Then
+                    If String.Compare(oAsset.DisplayName, nombreAppearance, True) = 0 Then
+                        Return oAsset
+                    End If
+
+                    If String.Compare(oAsset.Name, nombreAppearance, True) = 0 Then
+                        Return oAsset
+                    End If
+                End If
+            Catch ex As Exception
+            End Try
+        Next
+    Catch ex As Exception
+    End Try
+
+    ' 2) Si no existe en el documento, buscarlo en librerías y copiarlo
+    Try
+        For Each oLib In ThisApplication.AssetLibraries
+            Try
+                oLibAsset = oLib.AppearanceAssets.Item(nombreAppearance)
+                If oLibAsset IsNot Nothing Then
+                    Return oLibAsset.CopyTo(oDoc)
+                End If
+            Catch ex As Exception
+            End Try
+        Next
+    Catch ex As Exception
+    End Try
+
+    Return Nothing
+End Function
+
+Function ObtenerAppearanceAmarillo(oDoc As Document) As Asset
+    Dim a As Asset = BuscarOCopiarAppearanceAlDocumento("Yellow", oDoc)
+    If a Is Nothing Then
+        a = BuscarOCopiarAppearanceAlDocumento("Amarillo", oDoc)
+    End If
+    Return a
+End Function
+
+Sub PintarFamiliaAmarillo(occ As ComponentOccurrence,
+                          oAsmDoc As AssemblyDocument,
+                          oAsmDef As AssemblyComponentDefinition,
+                          aparienciasOriginales As Dictionary(Of String, Asset))
+
+    Dim appAmarillo As Asset = ObtenerAppearanceAmarillo(oAsmDoc)
+    If appAmarillo Is Nothing Then Exit Sub
+
+    Dim docKey As String = ObtenerDocKeyIpt(occ)
+    If docKey = "" Then Exit Sub
+
+    For Each occClone As ComponentOccurrence In ObtenerOcurrenciasMismoArchivo(oAsmDef, docKey)
+        GuardarAparienciaOriginal(occClone, aparienciasOriginales)
+        Try
+            occClone.AppearanceSourceType = AppearanceSourceTypeEnum.kOverrideAppearance
+            occClone.Appearance = appAmarillo
+        Catch
+            Try
+                occClone.Appearance = appAmarillo
+            Catch
+            End Try
+        End Try
+    Next
+
+    Try
+        ThisApplication.ActiveView.Update()
+    Catch
+    End Try
+End Sub
+
+Sub RestaurarAparienciaOccDesdeBackup(occ As ComponentOccurrence, aparienciasOriginales As Dictionary(Of String, Asset))
+    Try
+        Dim clave As String = ClaveAparienciaOcc(occ)
+        If aparienciasOriginales.ContainsKey(clave) Then
+            Dim original As Asset = aparienciasOriginales(clave)
+            If original IsNot Nothing AndAlso Not EsAparienciaAmarillo(original) Then
+                occ.Appearance = original
+                Return
+            End If
+        End If
+        LimpiarAparienciaOcc(occ)
+    Catch
+        Try
+            LimpiarAparienciaOcc(occ)
+        Catch
+        End Try
+    End Try
+End Sub
+
+Sub RestaurarAparienciasSeleccion(aparienciasOriginales As Dictionary(Of String, Asset), oAsmDef As AssemblyComponentDefinition)
+    Dim occ As ComponentOccurrence
+
+    For Each occ In oAsmDef.Occurrences.AllLeafOccurrences
+        Try
+            Dim clave As String = ClaveAparienciaOcc(occ)
+            If aparienciasOriginales.ContainsKey(clave) Then
+                Dim original As Asset = aparienciasOriginales(clave)
+                If original IsNot Nothing AndAlso Not EsAparienciaAmarillo(original) Then
+                    occ.Appearance = original
+                Else
+                    LimpiarAparienciaOcc(occ)
+                End If
+            ElseIf EsAparienciaAmarillo(occ.Appearance) Then
+                LimpiarAparienciaOcc(occ)
+            End If
+        Catch
+        End Try
+    Next
+
+    LimpiarOverridesAmarilloEnEnsamble(oAsmDef)
+End Sub
+
+Function ClaveAparienciaOcc(occ As ComponentOccurrence) As String
+    Try
+        Return occ.Definition.Document.FullFileName.ToLower() & "|" & occ.Name
+    Catch
+        Return occ.Name
+    End Try
+End Function
+
+Sub GuardarAparienciaOriginal(occ As ComponentOccurrence, aparienciasOriginales As Dictionary(Of String, Asset))
+    Try
+        Dim clave As String = ClaveAparienciaOcc(occ)
+        If Not aparienciasOriginales.ContainsKey(clave) Then
+            aparienciasOriginales.Add(clave, occ.Appearance)
+        End If
+    Catch
+    End Try
+End Sub
+
+Sub LimpiarAparienciaOcc(occ As ComponentOccurrence)
+    ' kPartAppearance = usar color del .ipt (quita override del ensamblaje)
+    Try
+        occ.AppearanceSourceType = AppearanceSourceTypeEnum.kPartAppearance
+    Catch
+    End Try
+    Try
+        occ.Appearance = Nothing
+    Catch
+    End Try
+End Sub
+
+Function EsAparienciaAmarillo(app As Asset) As Boolean
+    If app Is Nothing Then Return False
+    Try
+        Dim dn As String = If(app.DisplayName, "").ToLower()
+        Dim nm As String = If(app.Name, "").ToLower()
+        If dn = "yellow" OrElse dn = "amarillo" OrElse nm = "yellow" OrElse nm = "amarillo" Then Return True
+        If dn.Contains("yellow") OrElse dn.Contains("amarillo") Then Return True
+        If nm.Contains("yellow") OrElse nm.Contains("amarillo") Then Return True
+    Catch
+    End Try
+    Return False
+End Function
+
+Sub LimpiarOverridesAmarilloEnEnsamble(oAsmDef As AssemblyComponentDefinition)
+    Dim occ As ComponentOccurrence
+
+    For Each occ In oAsmDef.AppearanceOverridesObjects
+        Try
+            If EsAparienciaAmarillo(occ.Appearance) Then
+                LimpiarAparienciaOcc(occ)
+            End If
+        Catch
+        End Try
+    Next
+
+    For Each occ In oAsmDef.Occurrences.AllLeafOccurrences
+        Try
+            If EsAparienciaAmarillo(occ.Appearance) Then
+                LimpiarAparienciaOcc(occ)
+            End If
+        Catch
+        End Try
+    Next
+
+    Try
+        CType(oAsmDef.Parent, AssemblyDocument).Update2(True)
+    Catch
+    End Try
+    Try
+        ThisApplication.ActiveView.Update()
+    Catch
+    End Try
+End Sub
+
+Function ObtenerNombreArchivoIpt(occ As ComponentOccurrence) As String
+    Try
+        Dim ruta As String = occ.Definition.Document.FullFileName
+        If Not String.IsNullOrWhiteSpace(ruta) Then
+            Return System.IO.Path.GetFileName(ruta)
+        End If
+    Catch
+    End Try
+    Return occ.Name
+End Function
+
+Function ObtenerDocKeyIpt(occ As ComponentOccurrence) As String
+    Try
+        Return occ.Definition.Document.FullFileName.ToLower()
+    Catch
+        Return ""
+    End Try
+End Function
+
+Function AgruparPorArchivoIpt(
+    seleccionados As ObjectCollection,
+    oAsmDef As AssemblyComponentDefinition
+) As Dictionary(Of String, List(Of ComponentOccurrence))
+
+    Dim partsDict As New Dictionary(Of String, List(Of ComponentOccurrence))
+    Dim docKeysSemilla As New List(Of String)
+
+    For Each selected As ComponentOccurrence In seleccionados
+        Dim docKey As String = ObtenerDocKeyIpt(selected)
+        If docKey = "" Then Continue For
+        If Not docKeysSemilla.Contains(docKey) Then
+            docKeysSemilla.Add(docKey)
+        End If
+    Next
+
+    For Each docKey As String In docKeysSemilla
+        Dim occList As List(Of ComponentOccurrence) = ObtenerOcurrenciasMismoArchivo(oAsmDef, docKey)
+        If occList.Count > 0 Then
+            partsDict(docKey) = occList
+        End If
+    Next
+
+    Return partsDict
+End Function
+
+Function ObtenerOcurrenciasMismoArchivo(oAsmDef As AssemblyComponentDefinition, docKey As String) As List(Of ComponentOccurrence)
+    Dim lista As New List(Of ComponentOccurrence)
+    Dim occ As ComponentOccurrence
+
+    For Each occ In oAsmDef.Occurrences.AllLeafOccurrences
+        Try
+            If occ.DefinitionDocumentType = kPartDocumentObject Then
+                If occ.Definition.Document.FullFileName.ToLower() = docKey Then
+                    lista.Add(occ)
+                End If
+            End If
+        Catch ex As Exception
+        End Try
+    Next
+
+    Return lista
+End Function
+
+Sub FusionarOccurrenceEnSeleccion(selectedComps As ObjectCollection, occ As ComponentOccurrence)
+    If occ Is Nothing Then Exit Sub
+    Dim docKeyNuevo As String = ObtenerDocKeyIpt(occ)
+    If docKeyNuevo = "" Then Exit Sub
+
+    For Each existente As ComponentOccurrence In selectedComps
+        Try
+            If ObtenerDocKeyIpt(existente) = docKeyNuevo Then
+                Exit Sub
+            End If
+        Catch
+        End Try
+    Next
+
+    selectedComps.Add(occ)
+End Sub
+
+Sub QuitarPerfilDeListaYSeleccion(
+    perfil As ComponentePerfil,
+    lista As List(Of ComponentePerfil),
+    bindingList As BindingList(Of ComponentePerfil),
+    selectedComps As ObjectCollection,
+    oAsmDef As AssemblyComponentDefinition,
+    aparienciasOriginales As Dictionary(Of String, Asset)
+)
+    If perfil Is Nothing Then Exit Sub
+
+    Dim docKey As String = ResolverDocKeyPerfil(perfil, oAsmDef)
+
+    If docKey <> "" Then
+        Dim occFamilia As List(Of ComponentOccurrence) = ObtenerOcurrenciasMismoArchivo(oAsmDef, docKey)
+        Dim occ As ComponentOccurrence
+        For Each occ In occFamilia
+            RestaurarAparienciaOccDesdeBackup(occ, aparienciasOriginales)
+            Try
+                If EsAparienciaAmarillo(occ.Appearance) Then
+                    LimpiarAparienciaOcc(occ)
+                End If
+                Dim clave As String = ClaveAparienciaOcc(occ)
+                If aparienciasOriginales.ContainsKey(clave) Then
+                    aparienciasOriginales.Remove(clave)
+                End If
+            Catch
+            End Try
+        Next
+    ElseIf perfil.Ocurrencias IsNot Nothing Then
+        Dim occ As ComponentOccurrence
+        For Each occ In perfil.Ocurrencias
+            RestaurarAparienciaOccDesdeBackup(occ, aparienciasOriginales)
+            Try
+                If EsAparienciaAmarillo(occ.Appearance) Then
+                    LimpiarAparienciaOcc(occ)
+                End If
+            Catch
+            End Try
+        Next
+    End If
+
+    If docKey <> "" Then
+        Dim i As Integer
+        For i = selectedComps.Count To 1 Step -1
+            Try
+                Dim existente As ComponentOccurrence = CType(selectedComps.Item(i), ComponentOccurrence)
+                If ObtenerDocKeyIpt(existente) = docKey Then
+                    selectedComps.Remove(i)
+                End If
+            Catch
+            End Try
+        Next
+    End If
+
+    If bindingList IsNot Nothing AndAlso bindingList.Contains(perfil) Then
+        bindingList.Remove(perfil)
+    End If
+    If lista IsNot Nothing AndAlso lista.Contains(perfil) Then
+        lista.Remove(perfil)
+    End If
+
+    Try
+        oAsmDef.Document.Update()
+    Catch
+    End Try
+    Try
+        ThisApplication.ActiveView.Update()
+    Catch
+    End Try
+End Sub
+
+Function ResolverDocKeyPerfil(perfil As ComponentePerfil, oAsmDef As AssemblyComponentDefinition) As String
+    If perfil Is Nothing Then Return ""
+
+    Try
+        If perfil.Ocurrencias IsNot Nothing AndAlso perfil.Ocurrencias.Count > 0 Then
+            Dim docKey As String = ObtenerDocKeyIpt(perfil.Ocurrencias(0))
+            If docKey <> "" Then Return docKey
+        End If
+    Catch
+    End Try
+
+    If perfil.Nombre <> "" AndAlso oAsmDef IsNot Nothing Then
+        Dim occ As ComponentOccurrence
+        For Each occ In oAsmDef.Occurrences.AllLeafOccurrences
+            Try
+                If occ.DefinitionDocumentType = kPartDocumentObject Then
+                    If String.Equals(ObtenerNombreArchivoIpt(occ), perfil.Nombre, StringComparison.OrdinalIgnoreCase) Then
+                        Return ObtenerDocKeyIpt(occ)
+                    End If
+                End If
+            Catch
+            End Try
+        Next
+    End If
+
+    Return ""
+End Function
+
+Function MedirLargoPulgadasOcc(mainOcc As ComponentOccurrence) As Double
+    Dim largo_cm As Double = 0
+    Try
+        Dim oPartDoc As PartDocument = mainOcc.Definition.Document
+        For Each oBody As SurfaceBody In oPartDoc.ComponentDefinition.SurfaceBodies
+            For Each oEdge As Edge In oBody.Edges
+                Try
+                    Dim oCurveEval As CurveEvaluator = oEdge.Evaluator
+                    Dim paramStart As Double, paramEnd As Double
+                    oCurveEval.GetParamExtents(paramStart, paramEnd)
+                    Dim edgeLength As Double
+                    oCurveEval.GetLengthAtParam(paramStart, paramEnd, edgeLength)
+                    If edgeLength > largo_cm Then largo_cm = edgeLength
+                Catch
+                End Try
+            Next
+        Next
+    Catch
+        largo_cm = 0
+    End Try
+    Return Math.Round(largo_cm * 0.393701, 3)
+End Function
+
+Function OpcionesProcesoLargo() As List(Of String)
+    Return New List(Of String) From {
+        "",
+        "CORTE",
+        "CORTE/MAQ",
+        "CORTE/MAQ, CORTAR EN 3""X3"""
+    }
+End Function
+
+Function NormalizarProcesoLargo(raw As String) As String
+    Dim s As String = If(raw, "").Trim()
+    If s = "" Then Return ""
+
+    For Each opt As String In OpcionesProcesoLargo()
+        If opt <> "" AndAlso String.Equals(opt, s, StringComparison.OrdinalIgnoreCase) Then
+            Return opt
+        End If
+    Next
+
+    Dim u As String = s.ToUpperInvariant()
+    If u = "CORTE" Then Return "CORTE"
+    If u.StartsWith("CORTE/MAQ") AndAlso u.Contains("CORTAR EN") Then
+        Return "CORTE/MAQ, CORTAR EN 3""X3"""
+    End If
+    If u.StartsWith("CORTE/MAQ") Then Return "CORTE/MAQ"
+    Return s
+End Function
+
+Function LeerProcesoDesdeOcc(mainOcc As ComponentOccurrence) As String
+    Dim raw As String = ""
+    Try
+        Dim oPartDoc As PartDocument = mainOcc.Definition.Document
+        Dim oCompDef As ComponentDefinition = oPartDoc.ComponentDefinition
+
+        For Each oParam As Parameter In oCompDef.Parameters.UserParameters
+            If String.Equals(oParam.Name, "Proceso", StringComparison.OrdinalIgnoreCase) Then
+                raw = CStr(oParam.Value).Trim()
+                Exit For
+            End If
+        Next
+
+        If raw = "" Then
+            Try
+                Dim props = oPartDoc.PropertySets.Item("Inventor User Defined Properties")
+                For Each prop As [Property] In props
+                    If String.Equals(prop.Name, "Proceso", StringComparison.OrdinalIgnoreCase) Then
+                        raw = CStr(prop.Value).Trim()
+                        Exit For
+                    End If
+                Next
+            Catch
+            End Try
+        End If
+    Catch
+    End Try
+
+    Return NormalizarProcesoLargo(raw)
+End Function
+
+Function ConstruirListaPerfilesDesdeSeleccion(
+    partsDict As Dictionary(Of String, List(Of ComponentOccurrence)),
+    listaAnterior As List(Of ComponentePerfil)
+) As List(Of ComponentePerfil)
+
+    Dim clasifPorNombre As New Dictionary(Of String, String)(StringComparer.OrdinalIgnoreCase)
+    Dim procesoPorNombre As New Dictionary(Of String, String)(StringComparer.OrdinalIgnoreCase)
+    If listaAnterior IsNot Nothing Then
+        For Each prev As ComponentePerfil In listaAnterior
+            If prev Is Nothing Then Continue For
+            If Not clasifPorNombre.ContainsKey(prev.Nombre) Then
+                clasifPorNombre.Add(prev.Nombre, prev.Clasificacion)
+            End If
+            If Not procesoPorNombre.ContainsKey(prev.Nombre) Then
+                procesoPorNombre.Add(prev.Nombre, If(prev.Proceso, ""))
+            End If
+        Next
+    End If
+
+    Dim lista As New List(Of ComponentePerfil)
+
+    For Each entry In partsDict
+        Dim occList As List(Of ComponentOccurrence) = entry.Value
+        If occList Is Nothing OrElse occList.Count = 0 Then Continue For
+
+        Dim mainOcc As ComponentOccurrence = occList(0)
+        Dim nombreBase As String = ObtenerNombreArchivoIpt(mainOcc)
+        Dim clasif As String = "No Clasificado"
+        If clasifPorNombre.ContainsKey(nombreBase) Then
+            clasif = clasifPorNombre(nombreBase)
+        End If
+
+        Dim proceso As String = LeerProcesoDesdeOcc(mainOcc)
+        If proceso = "" AndAlso procesoPorNombre.ContainsKey(nombreBase) Then
+            proceso = NormalizarProcesoLargo(procesoPorNombre(nombreBase))
+        End If
+
+        lista.Add(New ComponentePerfil With {
+            .Nombre = nombreBase,
+            .Clasificacion = clasif,
+            .Largo = MedirLargoPulgadasOcc(mainOcc),
+            .Cantidad = occList.Count,
+            .Proceso = proceso,
+            .Ocurrencias = occList
+        })
+    Next
+
+    Return lista
+End Function
+
+Function AutoPreseleccionarPorClasificacion(oAsmDoc As AssemblyDocument,
+                                            oAsmDef As AssemblyComponentDefinition,
+                                            clasificacionesDisponibles As List(Of String),
+                                            aparienciasOriginales As Dictionary(Of String, Asset)) As List(Of ComponentOccurrence)
+
+    Dim lista As New List(Of ComponentOccurrence)
+    Dim occ As ComponentOccurrence
+
+    For Each occ In oAsmDef.Occurrences.AllLeafOccurrences
+
+        Try
+            If occ.DefinitionDocumentType <> kPartDocumentObject Then
+                Continue For
+            End If
+        Catch
+            Continue For
+        End Try
+
+        If YaExisteEnListaPorDocKey(lista, occ) Then
+            Continue For
+        End If
+
+        If IntentarAutoSolera(occ, clasificacionesDisponibles, oAsmDoc, oAsmDef, aparienciasOriginales, lista) Then
+            Continue For
+        End If
+
+        If IntentarAutoAngulo(occ, clasificacionesDisponibles, oAsmDoc, oAsmDef, aparienciasOriginales, lista) Then
+            Continue For
+        End If
+
+        If IntentarAutoCanal(occ, clasificacionesDisponibles, oAsmDoc, oAsmDef, aparienciasOriginales, lista) Then
+            Continue For
+        End If
+
+        If IntentarAutoViga(occ, clasificacionesDisponibles, oAsmDoc, oAsmDef, aparienciasOriginales, lista) Then
+            Continue For
+        End If
+
+        If IntentarAutoPTR(occ, clasificacionesDisponibles, oAsmDoc, oAsmDef, aparienciasOriginales, lista) Then
+            Continue For
+        End If
+
+    Next
+
+    Return lista
+End Function
+
+Function YaExisteEnListaPorDocKey(lista As List(Of ComponentOccurrence), occ As ComponentOccurrence) As Boolean
+    Dim docKey As String = ""
+    Dim itemKey As String = ""
+
+    Try
+        docKey = occ.Definition.Document.FullFileName.ToLower()
+    Catch
+        Return False
+    End Try
+
+    For Each item As ComponentOccurrence In lista
+        Try
+            itemKey = item.Definition.Document.FullFileName.ToLower()
+            If itemKey = docKey Then
+                Return True
+            End If
+        Catch
+        End Try
+    Next
+
+    Return False
+End Function
+
+Sub AgregarFamiliaAutoSeleccionada(occ As ComponentOccurrence,
+                                   oAsmDoc As AssemblyDocument,
+                                   oAsmDef As AssemblyComponentDefinition,
+                                   aparienciasOriginales As Dictionary(Of String, Asset),
+                                   lista As List(Of ComponentOccurrence))
+
+    If Not YaExisteEnListaPorDocKey(lista, occ) Then
+        lista.Add(occ)
+    End If
+
+    PintarFamiliaAmarillo(occ, oAsmDoc, oAsmDef, aparienciasOriginales)
+End Sub
+
+Function ResolverCarpetaAutoDXF(oAsmDoc As AssemblyDocument) As String
+    Dim asmPath As String = oAsmDoc.FullFileName
+    Dim dir As String = System.IO.Path.GetDirectoryName(asmPath)
+    Dim actual As System.IO.DirectoryInfo = New System.IO.DirectoryInfo(dir)
+
+    For i As Integer = 0 To 6
+        If actual Is Nothing Then Exit For
+        If actual.Name.Equals("AutoDXF", StringComparison.OrdinalIgnoreCase) Then
+            Return actual.FullName
+        End If
+        Dim candidata As String = System.IO.Path.Combine(actual.FullName, "AutoDXF")
+        If System.IO.Directory.Exists(candidata) Then
+            Return candidata
+        End If
+        actual = actual.Parent
+    Next
+
+    Dim fallback As String = System.IO.Path.Combine(dir, "AutoDXF")
+    Return fallback
+End Function
+
+'------------------------------ PUENTE HERINOX (Consulta_Herinox.py) ------------------------------
+
+Sub EnsureHerinoxJsonViaPython(asmDir As String, ByRef logMsg As String, ByRef jsonActualizado As String)
+    logMsg = ""
+    jsonActualizado = ""
+    Dim pyScript As String = FindBridgeScriptListaLargos(asmDir)
+    If String.IsNullOrEmpty(pyScript) OrElse Not System.IO.File.Exists(pyScript) Then
+        logMsg = "No existe Consulta_Herinox.py. Revise acceso a " & vbCrLf &
+            "\\192.168.2.47\arga\...AutoDXF 2.0 o unidad Z: o variable ARGA_AUTODXF20_DIR."
+        Exit Sub
+    End If
+
+    Dim pyDir As String = System.IO.Path.GetDirectoryName(pyScript)
+    Dim targetJsonCentral As String = System.IO.Path.Combine(pyDir, "herinox_sync.local.json")
+    Dim targetJsonJob As String = ResolverJsonHerinoxJobAutoDXF(asmDir)
+
+    Dim pyExeCandidates As List(Of String) = ObtenerCandidatosPythonListaLargos()
+    Dim shell As Object = CreateObject("WScript.Shell")
+    Dim ok As Boolean = False
+    Dim ultimoDetalle As String = ""
+
+    For Each pyExeRaw In pyExeCandidates
+        Try
+            Dim pyExe As String = CStr(pyExeRaw)
+            Dim cmd As String = ""
+            If LCase(pyExe) = "py" Then
+                cmd = """" & pyExe & """ -3 """ & pyScript & """ """ & targetJsonCentral & """"
+            Else
+                cmd = """" & pyExe & """ """ & pyScript & """ """ & targetJsonCentral & """"
+            End If
+
+            Dim proc As Object = shell.Exec(cmd)
+            Do While proc.Status = 0
+                System.Threading.Thread.Sleep(120)
+            Loop
+            If CInt(proc.ExitCode) = 0 AndAlso System.IO.File.Exists(targetJsonCentral) Then
+                ok = True
+                jsonActualizado = targetJsonCentral
+                logMsg = "OK (" & pyExe & ") -> " & targetJsonCentral
+                Exit For
+            End If
+            ultimoDetalle = "ExitCode " & CInt(proc.ExitCode).ToString() & " con " & pyExe
+        Catch ex As Exception
+            ultimoDetalle = ex.Message
+        End Try
+    Next
+
+    If ok Then
+        Try
+            If Not String.IsNullOrEmpty(targetJsonJob) AndAlso Not String.Equals(targetJsonJob, targetJsonCentral, StringComparison.OrdinalIgnoreCase) Then
+                System.IO.File.Copy(targetJsonCentral, targetJsonJob, True)
+                jsonActualizado = targetJsonJob
+                logMsg &= " | copiado a " & targetJsonJob
+            End If
+        Catch ex As Exception
+            logMsg &= " | aviso copia job: " & ex.Message
+        End Try
+        Exit Sub
+    End If
+
+    ' Si Python falló pero el JSON central existe, permitir usarlo (más reciente que copia vieja del job).
+    If System.IO.File.Exists(targetJsonCentral) Then
+        jsonActualizado = targetJsonCentral
+    End If
+
+    If Not String.IsNullOrEmpty(ultimoDetalle) Then
+        logMsg = ultimoDetalle
+    End If
+End Sub
+
+Function ObtenerCandidatosPythonListaLargos() As List(Of String)
+    Dim lista As New List(Of String)
+    Try
+        Dim localApp As String = System.Environment.GetFolderPath(System.Environment.SpecialFolder.LocalApplicationData)
+        If Not String.IsNullOrEmpty(localApp) Then
+            lista.Add(System.IO.Path.Combine(localApp, "Programs\Python\Python312\python.exe"))
+            lista.Add(System.IO.Path.Combine(localApp, "Programs\Python\Python313\python.exe"))
+            lista.Add(System.IO.Path.Combine(localApp, "Programs\Python\Python314\python.exe"))
+        End If
+    Catch
+    End Try
+    lista.Add("C:\Python312\python.exe")
+    lista.Add("C:\Python313\python.exe")
+    lista.Add("C:\Python314\python.exe")
+    lista.Add("python")
+    lista.Add("py")
+    Return lista
+End Function
+
+Function RelativoAutoDxf20() As String
+    Return "♦♦GRUPO ARGA CARPETAS COMPARTIDAS♦♦\BIENVENIDO\Departamentos _antes TIK\21. Desarrollo y Tecnologia\2.- Códigos Desarrollo y Tecnología\7.- Configuración para equipos de Computo\AutoDXF 2.0"
+End Function
+
+Function RutasCorporativasAutoDxf20() As List(Of String)
+    Dim rutas As New List(Of String)
+    Dim rel As String = RelativoAutoDxf20()
+
+    Try
+        Dim envDir As String = System.Environment.GetEnvironmentVariable("ARGA_AUTODXF20_DIR")
+        If Not String.IsNullOrWhiteSpace(envDir) Then rutas.Add(envDir.Trim())
+    Catch
+    End Try
+
+    ' UNC primero: funciona sin unidad Z: si hay acceso al share \\192.168.2.47\arga
+    rutas.Add("\\192.168.2.47\arga\" & rel)
+    rutas.Add("Z:\" & rel)
+
+    Return rutas
+End Function
+
+Function BuscarCarpetaAutoDxf20Desde(rutaBase As String) As String
+    If String.IsNullOrWhiteSpace(rutaBase) Then Return ""
+    Try
+        Dim actual As System.IO.DirectoryInfo = New System.IO.DirectoryInfo(rutaBase)
+        For i As Integer = 0 To 8
+            If actual Is Nothing Then Exit For
+            Dim cand As String = System.IO.Path.Combine(actual.FullName, "AutoDXF 2.0")
+            If System.IO.Directory.Exists(cand) Then Return cand
+            actual = actual.Parent
+        Next
+    Catch
+    End Try
+    Return ""
+End Function
+
+Function FindBridgeScriptListaLargos(asmDir As String) As String
+    Dim names As New List(Of String)
+    names.Add("Consulta_Herinox.py")
+    names.Add("Consuta_Herinox.py")
+
+    Dim dirs As New List(Of String)
+    For Each corp In RutasCorporativasAutoDxf20()
+        If Not dirs.Contains(corp) Then dirs.Add(corp)
+    Next
+
+    Dim ruleDir As String = ResolveRuleBaseDirListaLargos(asmDir)
+    If Not String.IsNullOrEmpty(ruleDir) AndAlso Not dirs.Contains(ruleDir) Then dirs.Add(ruleDir)
+
+    Dim autoDxfJob As String = ResolverJsonHerinoxJobAutoDXF(asmDir)
+    If Not String.IsNullOrEmpty(autoDxfJob) Then
+        Dim jobDir As String = System.IO.Path.GetDirectoryName(autoDxfJob)
+        If Not String.IsNullOrEmpty(jobDir) AndAlso Not dirs.Contains(jobDir) Then dirs.Add(jobDir)
+    End If
+
+    If Not String.IsNullOrEmpty(asmDir) AndAlso Not dirs.Contains(asmDir) Then dirs.Add(asmDir)
+
+    Dim subAuto20 As String = BuscarCarpetaAutoDxf20Desde(asmDir)
+    If Not String.IsNullOrEmpty(subAuto20) AndAlso Not dirs.Contains(subAuto20) Then dirs.Add(subAuto20)
+    If Not String.IsNullOrEmpty(ruleDir) Then
+        subAuto20 = BuscarCarpetaAutoDxf20Desde(ruleDir)
+        If Not String.IsNullOrEmpty(subAuto20) AndAlso Not dirs.Contains(subAuto20) Then dirs.Add(subAuto20)
+    End If
+
+    For Each d In dirs
+        Try
+            If String.IsNullOrEmpty(d) OrElse Not System.IO.Directory.Exists(d) Then Continue For
+            For Each n In names
+                Dim p As String = System.IO.Path.Combine(d, n)
+                If System.IO.File.Exists(p) Then
+                    CopiarPuenteHerinoxAlJobSiFalta(p, autoDxfJob)
+                    Return p
+                End If
+            Next
+        Catch
+        End Try
+    Next
+
+  ' Búsqueda recursiva corta en escritorio / job (como AutoDXF 2.0).
+    Dim roots As New List(Of String)
+    If Not String.IsNullOrEmpty(asmDir) Then roots.Add(asmDir)
+    Try
+        Dim desktop As String = System.Environment.GetFolderPath(System.Environment.SpecialFolder.DesktopDirectory)
+        If Not String.IsNullOrEmpty(desktop) Then roots.Add(desktop)
+    Catch
+    End Try
+    For Each root In roots
+        Dim found As String = TryFindFileRecursiveListaLargos(root, "Consulta_Herinox.py", 6)
+        If String.IsNullOrEmpty(found) Then
+            found = TryFindFileRecursiveListaLargos(root, "Consuta_Herinox.py", 6)
+        End If
+        If Not String.IsNullOrEmpty(found) Then
+            CopiarPuenteHerinoxAlJobSiFalta(found, autoDxfJob)
+            Return found
+        End If
+    Next
+
+    Return ""
+End Function
+
+Sub CopiarPuenteHerinoxAlJobSiFalta(pyScript As String, jsonJob As String)
+    Try
+        If String.IsNullOrEmpty(jsonJob) Then Exit Sub
+        Dim jobDir As String = System.IO.Path.GetDirectoryName(jsonJob)
+        If String.IsNullOrEmpty(jobDir) Then Exit Sub
+        If Not System.IO.Directory.Exists(jobDir) Then
+            System.IO.Directory.CreateDirectory(jobDir)
+        End If
+        Dim destPy As String = System.IO.Path.Combine(jobDir, "Consulta_Herinox.py")
+        Dim copiarScript As Boolean = Not System.IO.File.Exists(destPy)
+        If Not copiarScript Then
+            copiarScript = System.IO.File.GetLastWriteTimeUtc(pyScript) > System.IO.File.GetLastWriteTimeUtc(destPy)
+        End If
+        If copiarScript Then
+            System.IO.File.Copy(pyScript, destPy, True)
+        End If
+    Catch
+    End Try
+End Sub
+
+Function TryFindFileRecursiveListaLargos(root As String, fileName As String, maxDepth As Integer) As String
+    If String.IsNullOrEmpty(root) OrElse maxDepth < 0 Then Return ""
+    Try
+        If Not System.IO.Directory.Exists(root) Then Return ""
+        Dim direct As String = System.IO.Path.Combine(root, fileName)
+        If System.IO.File.Exists(direct) Then Return direct
+        If maxDepth = 0 Then Return ""
+        For Each subDir As String In System.IO.Directory.GetDirectories(root)
+            Dim hit As String = TryFindFileRecursiveListaLargos(subDir, fileName, maxDepth - 1)
+            If Not String.IsNullOrEmpty(hit) Then Return hit
+        Next
+    Catch
+    End Try
+    Return ""
+End Function
+
+Function ResolverJsonHerinoxJobAutoDXF(asmDir As String) As String
+    Try
+        Dim oAsmDoc As AssemblyDocument = CType(ThisDoc.Document, AssemblyDocument)
+        Dim carpeta As String = ResolverCarpetaAutoDXF(oAsmDoc)
+        If Not String.IsNullOrEmpty(carpeta) Then
+            Return System.IO.Path.Combine(carpeta, "herinox_sync.local.json")
+        End If
+    Catch
+    End Try
+    If Not String.IsNullOrEmpty(asmDir) Then
+        Dim cand As String = System.IO.Path.Combine(asmDir, "AutoDXF", "herinox_sync.local.json")
+        Return cand
+    End If
+    Return ""
+End Function
+
+Function ResolveRuleBaseDirListaLargos(asmDir As String) As String
+    Dim candidates As New List(Of String)
+    Try
+        Dim p As String = System.IO.Path.GetDirectoryName(ThisDoc.Path)
+        If Not String.IsNullOrEmpty(p) Then candidates.Add(p)
+    Catch
+    End Try
+    If Not String.IsNullOrEmpty(asmDir) Then candidates.Add(asmDir)
+
+    For Each d In candidates
+        Try
+            If String.IsNullOrEmpty(d) OrElse Not System.IO.Directory.Exists(d) Then Continue For
+            Dim r1 As String = System.IO.Path.Combine(d, "Lista de largos 2.0.iLogicVb")
+            Dim r2 As String = System.IO.Path.Combine(d, "AutoDXF 2.0.iLogicVb")
+            If System.IO.File.Exists(r1) OrElse System.IO.File.Exists(r2) Then Return d
+        Catch
+        End Try
+    Next
+    Return asmDir
+End Function
+
+Function JsonGetStringListaLargos(raw As String, key As String) As String
+    Try
+        If String.IsNullOrEmpty(raw) Then Return ""
+        Dim pattern As String = """" & Regex.Escape(key) & """\s*:\s*(?:""(?<v>(?:\\.|[^""\\])*)""|(?<n>[-+]?\d+(\.\d+)?)|(?<b>true|false))"
+        Dim m As Match = Regex.Match(raw, pattern, RegexOptions.IgnoreCase)
+        If Not m.Success Then Return ""
+        If m.Groups("v").Success Then
+            Return m.Groups("v").Value.Replace("\""", """").Replace("\\", "\")
+        End If
+        If m.Groups("n").Success Then Return m.Groups("n").Value
+        If m.Groups("b").Success Then Return m.Groups("b").Value
+    Catch
+    End Try
+    Return ""
+End Function
+
+Function ResolverRutaHerinoxJsonListaLargos(asmDir As String, Optional preferPath As String = "") As String
+    If Not String.IsNullOrWhiteSpace(preferPath) AndAlso System.IO.File.Exists(preferPath) Then
+        Return preferPath
+    End If
+
+    Dim candidates As New List(Of String)
+
+    For Each corp In RutasCorporativasAutoDxf20()
+        candidates.Add(System.IO.Path.Combine(corp, "herinox_sync.local.json"))
+    Next
+
+    Dim jsonJob As String = ResolverJsonHerinoxJobAutoDXF(asmDir)
+    If Not String.IsNullOrEmpty(jsonJob) Then candidates.Add(jsonJob)
+
+    Dim ruleDir As String = ResolveRuleBaseDirListaLargos(asmDir)
+    If Not String.IsNullOrEmpty(ruleDir) Then candidates.Add(System.IO.Path.Combine(ruleDir, "herinox_sync.local.json"))
+    If Not String.IsNullOrEmpty(asmDir) Then
+        candidates.Add(System.IO.Path.Combine(asmDir, "herinox_sync.local.json"))
+        candidates.Add(System.IO.Path.Combine(asmDir, "AutoDXF", "herinox_sync.local.json"))
+    End If
+
+    Dim mejorRuta As String = ""
+    Dim mejorFecha As Date = Date.MinValue
+    For Each p In candidates
+        Try
+            If Not System.IO.File.Exists(p) Then Continue For
+            Dim f As Date = System.IO.File.GetLastWriteTimeUtc(p)
+            If f >= mejorFecha Then
+                mejorFecha = f
+                mejorRuta = p
+            End If
+        Catch
+        End Try
+    Next
+    Return mejorRuta
+End Function
+
+Function JsonGetB64CatalogListaLargos(raw As String) As String
+    Try
+        If String.IsNullOrEmpty(raw) Then Return ""
+        Dim key As String = """largos_catalog_b64"""
+        Dim idx As Integer = raw.IndexOf(key, StringComparison.OrdinalIgnoreCase)
+        If idx < 0 Then Return JsonGetStringListaLargos(raw, "largos_catalog_b64")
+
+        Dim colon As Integer = raw.IndexOf(":"c, idx + key.Length)
+        If colon < 0 Then Return ""
+
+        Dim q1 As Integer = raw.IndexOf(""""c, colon + 1)
+        If q1 < 0 Then Return ""
+
+        Dim q2 As Integer = q1 + 1
+        Do While q2 < raw.Length
+            If raw(q2) = """"c AndAlso (q2 = raw.Length - 1 OrElse raw(q2 + 1) <> """"c) Then Exit Do
+            q2 += 1
+        Loop
+        If q2 >= raw.Length Then Return ""
+
+        Dim valor As String = raw.Substring(q1 + 1, q2 - q1 - 1)
+        Return valor.Replace("\""", """").Replace("\\", "\")
+    Catch
+        Return JsonGetStringListaLargos(raw, "largos_catalog_b64")
+    End Try
+End Function
+
+Function TryCargarFilasDesdeHerinoxJson(Optional preferPath As String = "") As List(Of CatalogoHerinoxFila)
+    Dim filas As New List(Of CatalogoHerinoxFila)
+    Dim asmDir As String = ""
+    Try
+        asmDir = System.IO.Path.GetDirectoryName(ThisDoc.Document.FullFileName)
+    Catch
+        asmDir = ""
+    End Try
+
+    Dim cfgPath As String = ResolverRutaHerinoxJsonListaLargos(asmDir, preferPath)
+    If cfgPath = "" Then Return filas
+
+    Dim raw As String = System.IO.File.ReadAllText(cfgPath, Encoding.UTF8)
+    Dim b64 As String = JsonGetB64CatalogListaLargos(raw)
+    If String.IsNullOrWhiteSpace(b64) Then Return filas
+
+    Dim tsv As String = ""
+    Try
+        Dim bytes() As Byte = Convert.FromBase64String(b64)
+        tsv = Encoding.UTF8.GetString(bytes)
+    Catch
+        Return filas
+    End Try
+
+    For Each linea As String In tsv.Split(New String() {vbLf, vbCrLf}, StringSplitOptions.RemoveEmptyEntries)
+        Dim texto As String = linea.Trim()
+        If texto = "" Then Continue For
+        Dim partes() As String = texto.Split(vbTab)
+        If partes.Length < 2 Then Continue For
+
+        Dim fila As New CatalogoHerinoxFila With {
+            .Codigo = partes(0).Trim(),
+            .Clasificacion = partes(1).Trim(),
+            .Perfil = If(partes.Length > 2, partes(2).Trim(), ""),
+            .Material = If(partes.Length > 3, partes(3).Trim(), ""),
+            .LargoFt = 0,
+            .TextoComboLinea = ""
+        }
+        If partes.Length > 6 Then Double.TryParse(partes(6).Trim(), fila.LargoFt)
+        If partes.Length > 9 Then
+            fila.TextoComboLinea = partes(9).Trim()
+        Else
+            fila.TextoComboLinea = fila.TextoCombo()
+        End If
+        If fila.Codigo <> "" AndAlso fila.Clasificacion <> "" Then filas.Add(fila)
+    Next
+
+    If filas.Count > 0 Then
+        CatalogoHerinoxEstado.FuenteUltimaCarga = cfgPath & " (" & filas.Count.ToString() & " largos)"
+    End If
+
+    Return filas
+End Function
+
+Function BibliotecaHerinoxObtenerFilas(Optional preferPath As String = "") As List(Of CatalogoHerinoxFila)
+    Dim desdeJson As List(Of CatalogoHerinoxFila) = TryCargarFilasDesdeHerinoxJson(preferPath)
+    If desdeJson IsNot Nothing AndAlso desdeJson.Count > 0 Then
+        Return desdeJson
+    End If
+
+    Dim filas As New List(Of CatalogoHerinoxFila)
+    ' BEGIN_BIBLIOTECA_HERINOX_DATOS (fallback local si no hay herinox_sync.local.json)
+    Dim datos As String = _
+        "PTR051	PTR 1 x 1 x 3/16	PTR	A 36	1.0	0.169	20.0	38.34	1	PTR051 | PTR | A 36 | 1 in x 20 ft | esp 0.169 in | 38.34 lb | DISP" & vbLf & _
+        "PTR045	PTR 2 x 2 x 0.339	PTR	A 36	2.0	0.339	20.0	153.36	1	PTR045 | PTR | A 36 | 2 in x 20 ft | esp 0.339 in | 153.36 lb | DISP" & vbLf & _
+        "PTR052	PTR 2	PTR	A 36	2.0		20.0	272.64	1	PTR052 | PTR | A 36 | 2 in x 20 ft | esp N/D | 272.64 lb | DISP" & vbLf & _
+        "PTR053	PTR 2 x 2 x 0.441	PTR	A 36	2.0	0.441	20.0	187.44	1	PTR053 | PTR | A 36 | 2 in x 20 ft | esp 0.441 in | 187.44 lb | DISP" & vbLf & _
+        "PTR044	PTR 3 x 3 x 0.671	PTR	A 36	3.0	0.671	20.0	426.0	1	PTR044 | PTR | A 36 | 3 in x 20 ft | esp 0.671 in | 426 lb | DISP" & vbLf & _
+        "PTR018	PTR 3 x 3 x 0.354	PTR	A 36	3.0	0.354	20.0	255.6	1	PTR018 | PTR | A 36 | 3 in x 20 ft | esp 0.354 in | 255.6 lb | DISP" & vbLf & _
+        "PTR013	PTR 3 x 3 x 3/16	PTR	A 36	3.0	0.201	20.0	153.36	1	PTR013 | PTR | A 36 | 3 in x 20 ft | esp 0.201 in | 153.36 lb | DISP" & vbLf & _
+        "PTR016	PTR 4 x 4 x 1/4	PTR	A 36	4.0	0.25	20.0	255.6	1	PTR016 | PTR | A 36 | 4 in x 20 ft | esp 0.25 in | 255.6 lb | DISP" & vbLf & _
+        "PTR021	PTR 4 x 4 x 5/16	PTR	A 36	4.0	0.323	20.0	323.76	1	PTR021 | PTR | A 36 | 4 in x 20 ft | esp 0.323 in | 323.76 lb | DISP" & vbLf & _
+        "PTR027	PTR 4 x 4 x 1/2	PTR	A 36	4.0	0.495	40.0	945.72	1	PTR027 | PTR | A 36 | 4 in x 40 ft | esp 0.495 in | 945.72 lb | DISP" & vbLf & _
+        "PTR034	PTR 4	PTR	A 36	4.0		40.0	3271.68	1	PTR034 | PTR | A 36 | 4 in x 40 ft | esp N/D | 3271.68 lb | DISP" & vbLf & _
+        "SLC024	Solera 4 x 2	SOLERA	A 1018	4.0	2.0	20.0	545.28	1	SLC024 | SOLERA | A 1018 | 4 in x 20 ft | esp 2 in | 545.28 lb | DISP" & vbLf & _
+        "SLC036	Solera 1 x 1/2	SOLERA	A 36	1.0	0.5	20.0	34.08	1	SLC036 | SOLERA | A 36 | 1 in x 20 ft | esp 0.5 in | 34.08 lb | DISP" & vbLf & _
+        "SLC039	Solera 2 x 3/8	SOLERA	A 36	2.0	0.375	20.0	51.12	1	SLC039 | SOLERA | A 36 | 2 in x 20 ft | esp 0.375 in | 51.12 lb | DISP" & vbLf & _
+        "SLC047	Solera 3 x 3/4	SOLERA	A 36	3.0	0.75	20.0	153.36	1	SLC047 | SOLERA | A 36 | 3 in x 20 ft | esp 0.75 in | 153.36 lb | DISP" & vbLf & _
+        "SLC046	Solera 3 x 1/2	SOLERA	A 36	3.0	0.5	20.0	102.24	1	SLC046 | SOLERA | A 36 | 3 in x 20 ft | esp 0.5 in | 102.24 lb | DISP" & vbLf & _
+        "SLC051	Solera 4 x 1/2	SOLERA	A 36	4.0	0.5	20.0	136.32	1	SLC051 | SOLERA | A 36 | 4 in x 20 ft | esp 0.5 in | 136.32 lb | DISP" & vbLf & _
+        "SCO002	Solera 2 x 1/2	SOLERA	CU	2.0	0.5	20.0	77.52	1	SCO002 | SOLERA | CU | 2 in x 20 ft | esp 0.5 in | 77.52 lb | DISP" & vbLf & _
+        "SLC041	Solera 2 x 3/16	SOLERA	CU	2.0	0.188	20.0	29.148	1	SLC041 | SOLERA | CU | 2 in x 20 ft | esp 0.188 in | 29.148 lb | DISP" & vbLf & _
+        "SCO014	Solera 4 x 1/4	SOLERA	CU	4.0	0.25	20.0	77.52	1	SCO014 | SOLERA | CU | 4 in x 20 ft | esp 0.25 in | 77.52 lb | DISP" & vbLf & _
+        "SCO003	Solera 4 x 1/8	SOLERA	CU	4.0	0.125	20.0	38.76	1	SCO003 | SOLERA | CU | 4 in x 20 ft | esp 0.125 in | 38.76 lb | DISP" & vbLf & _
+        "SCO015	Solera 5 x 1/4	SOLERA	CU	5.0	0.25	20.0	96.9	1	SCO015 | SOLERA | CU | 5 in x 20 ft | esp 0.25 in | 96.9 lb | DISP" & vbLf & _
+        "SLS006	Solera 1 x 1/2	SOLERA	SSTL 304	1.0	0.5	20.0	34.68	1	SLS006 | SOLERA | SSTL 304 | 1 in x 20 ft | esp 0.5 in | 34.68 lb | DISP" & vbLf & _
+        "SLS008	Solera 2 x 1/2	SOLERA	SSTL 304	2.0	0.5	20.0	69.36	1	SLS008 | SOLERA | SSTL 304 | 2 in x 20 ft | esp 0.5 in | 69.36 lb | DISP" & vbLf & _
+        "SLS011	Solera 4 x 1/2	SOLERA	SSTL 304	4.0	0.5	20.0	138.72	1	SLS011 | SOLERA | SSTL 304 | 4 in x 20 ft | esp 0.5 in | 138.72 lb | DISP" & vbLf & _
+        "HR174	TUBO HR174	TUBO	A 36	1.0		20.0	33.276	1	HR174 | TUBO | A 36 | 1 in x 20 ft | esp N/D | 33.276 lb | DISP" & vbLf & _
+        "HR169	TUBO HR169	TUBO	A 36	1.0		20.0	342.952	1	HR169 | TUBO | A 36 | 1 in x 20 ft | esp N/D | 342.952 lb | DISP" & vbLf & _
+        "HR211	TUBO HR211	TUBO	A 36	1.0		20.0	307.813	1	HR211 | TUBO | A 36 | 1 in x 20 ft | esp N/D | 307.813 lb | DISP" & vbLf & _
+        "HR220	TUBO HR220	TUBO	A 36	1.0		20.0	42.071	1	HR220 | TUBO | A 36 | 1 in x 20 ft | esp N/D | 42.071 lb | DISP" & vbLf & _
+        "HR164	TUBO HR164	TUBO	A 36	1.0		20.0	261.976	1	HR164 | TUBO | A 36 | 1 in x 20 ft | esp N/D | 261.976 lb | DISP" & vbLf & _
+        "HR166	TUBO HR166	TUBO	A 36	1.0		20.0	60.874	1	HR166 | TUBO | A 36 | 1 in x 20 ft | esp N/D | 60.874 lb | DISP" & vbLf & _
+        "HR167	TUBO HR167	TUBO	A 36	1.0		20.0	9.126	1	HR167 | TUBO | A 36 | 1 in x 20 ft | esp N/D | 9.126 lb | DISP" & vbLf & _
+        "HR212	TUBO HR212	TUBO	SSTL 304	1.0		20.0	266.588	1	HR212 | TUBO | SSTL 304 | 1 in x 20 ft | esp N/D | 266.588 lb | DISP" & vbLf & _
+        "RED025	Varilla RED025	VARILLA	A 36	1.0		20.0	13.383	1	RED025 | VARILLA | A 36 | 1 in x 20 ft | esp N/D | 13.383 lb | DISP" & vbLf & _
+        "RED027	Varilla RED027	VARILLA	A 36	1.0		20.0	30.112	1	RED027 | VARILLA | A 36 | 1 in x 20 ft | esp N/D | 30.112 lb | DISP" & vbLf & _
+        "RED028	Varilla RED028	VARILLA	A 36	1.0		20.0	5.245	1	RED028 | VARILLA | A 36 | 1 in x 20 ft | esp N/D | 5.245 lb | DISP" & vbLf & _
+        "RED024	Varilla RED024	VARILLA	A 36	1.0		20.0	7.528	1	RED024 | VARILLA | A 36 | 1 in x 20 ft | esp N/D | 7.528 lb | DISP" & vbLf & _
+        "RED040	Varilla RED040	VARILLA	A 36	1.0		20.0	53.533	1	RED040 | VARILLA | A 36 | 1 in x 20 ft | esp N/D | 53.533 lb | DISP" & vbLf & _
+        "RED035	Varilla RED035	VARILLA	SSTL 304	1.0		20.0	3.405	1	RED035 | VARILLA | SSTL 304 | 1 in x 20 ft | esp N/D | 3.405 lb | DISP" & vbLf & _
+        "VIG047	Viga IPR 1	VIGA IPR	A 36	1.0		20.0	240.0	1	VIG047 | VIGA IPR | A 36 | 1 in x 20 ft | esp N/D | 240 lb | DISP" & vbLf & _
+        "VIG044	Viga IPR 1	VIGA IPR	A 36	1.0		20.0	154.0	1	VIG044 | VIGA IPR | A 36 | 1 in x 20 ft | esp N/D | 154 lb | DISP" & vbLf & _
+        "VIG033	Viga IPR 1	VIGA IPR	A 36	1.0		40.0	480.0	1	VIG033 | VIGA IPR | A 36 | 1 in x 40 ft | esp N/D | 480 lb | DISP"
+' END_BIBLIOTECA_HERINOX_DATOS
+    If String.IsNullOrWhiteSpace(datos) Then Return filas
+
+    For Each linea As String In datos.Split(New String() {vbLf, vbCrLf}, StringSplitOptions.RemoveEmptyEntries)
+        Dim texto As String = linea.Trim()
+        If texto = "" Then Continue For
+
+        Dim partes() As String = texto.Split(vbTab)
+        If partes.Length < 2 Then Continue For
+
+        Dim codigo As String = partes(0).Trim()
+        Dim clasif As String = partes(1).Trim()
+        If codigo = "" OrElse clasif = "" Then Continue For
+
+        Dim fila As New CatalogoHerinoxFila With {
+            .Codigo = codigo,
+            .Clasificacion = clasif,
+            .Perfil = If(partes.Length > 2, partes(2).Trim(), ""),
+            .Material = If(partes.Length > 3, partes(3).Trim(), ""),
+            .LargoFt = 0,
+            .TextoComboLinea = ""
+        }
+        If partes.Length > 6 Then Double.TryParse(partes(6).Trim(), fila.LargoFt)
+        If partes.Length > 9 Then
+            fila.TextoComboLinea = partes(9).Trim()
+        Else
+            fila.TextoComboLinea = fila.TextoCombo()
+        End If
+
+        filas.Add(fila)
+    Next
+
+    If filas.Count > 0 Then
+        CatalogoHerinoxEstado.FuenteUltimaCarga = "FALLBACK embebido (" & filas.Count.ToString() & " largos; revise Consulta_Herinox.py)"
+    End If
+
+    Return filas
+End Function
+
+Function CargarCatalogoHerinox(
+    ByRef catalogoPorCombo As Dictionary(Of String, CatalogoHerinoxFila),
+    Optional preferJsonPath As String = ""
+) As List(Of String)
+
+    catalogoPorCombo = New Dictionary(Of String, CatalogoHerinoxFila)(StringComparer.OrdinalIgnoreCase)
+    Dim opciones As New List(Of String)
+
+    For Each fila As CatalogoHerinoxFila In BibliotecaHerinoxObtenerFilas(preferJsonPath)
+        Dim claveCombo As String = fila.TextoCombo()
+        If Not catalogoPorCombo.ContainsKey(claveCombo) Then
+            catalogoPorCombo.Add(claveCombo, fila)
+            opciones.Add(claveCombo)
+        End If
+    Next
+
+    opciones.Sort(StringComparer.OrdinalIgnoreCase)
+
+    If Not opciones.Contains("No Clasificado") Then
+        opciones.Add("No Clasificado")
+    End If
+
+    Return opciones
+End Function
+
+Function MaterialHerinoxEsValido(clasificacion As String) As Boolean
+    If String.IsNullOrWhiteSpace(clasificacion) Then Return False
+    Dim t As String = clasificacion.Trim()
+    If String.Equals(t, "No Clasificado", StringComparison.OrdinalIgnoreCase) Then Return False
+    If String.Equals(t, "No clasificado", StringComparison.OrdinalIgnoreCase) Then Return False
+    If Not t.Contains("|") Then Return False
+    Return True
+End Function
+
+Function ValidarMaterialesHerinoxObligatorios(lista As List(Of ComponentePerfil)) As String
+    If lista Is Nothing OrElse lista.Count = 0 Then
+        Return "No hay piezas en la lista para exportar."
+    End If
+
+    Dim faltantes As New List(Of String)
+    For Each item As ComponentePerfil In lista
+        If Not MaterialHerinoxEsValido(item.Clasificacion) Then
+            faltantes.Add(item.Nombre)
+        End If
+    Next
+
+    If faltantes.Count = 0 Then Return ""
+
+    Dim detalle As String = String.Join(vbCrLf, faltantes.ToArray())
+    Return "Debe seleccionar un material Herinox en cada fila (no puede quedar ""No Clasificado"")." & vbCrLf & vbCrLf &
+           "Piezas sin material:" & vbCrLf & detalle
+End Function
+
+Function EscaparCsvCampo(valor As String) As String
+    If valor Is Nothing Then Return ""
+    If valor.Contains(",") OrElse valor.Contains("""") OrElse valor.Contains(vbCr) OrElse valor.Contains(vbLf) Then
+        Return """" & valor.Replace("""", """""") & """"
+    End If
+    Return valor
+End Function
+
+Function GuardarCsvListaPerfiles(filePath As String, contenido As String) As String
+    Dim intentos As Integer = 8
+    Dim pausaMs As Integer = 450
+    Dim ultimoError As String = ""
+    Dim bytes() As Byte = System.Text.Encoding.UTF8.GetBytes(contenido)
+
+    For i As Integer = 1 To intentos
+        Try
+            Using fs As New System.IO.FileStream(filePath, System.IO.FileMode.Create, System.IO.FileAccess.Write, System.IO.FileShare.None)
+                fs.Write(bytes, 0, bytes.Length)
+                fs.Flush()
+            End Using
+            Return ""
+        Catch ex As System.IO.IOException
+            ultimoError = ex.Message
+            System.Threading.Thread.Sleep(pausaMs)
+        Catch ex As Exception
+            Return ex.Message
+        End Try
+    Next
+
+    Dim rutaTmp As String = filePath & ".tmp"
+    Try
+        System.IO.File.WriteAllText(rutaTmp, contenido, System.Text.Encoding.UTF8)
+        If System.IO.File.Exists(filePath) Then
+            System.IO.File.Delete(filePath)
+        End If
+        System.IO.File.Move(rutaTmp, filePath)
+        Return ""
+    Catch ex2 As Exception
+        Try
+            If System.IO.File.Exists(rutaTmp) Then
+                System.IO.File.Delete(rutaTmp)
+            End If
+        Catch
+        End Try
+        If ultimoError = "" Then
+            Return ex2.Message
+        End If
+        Return ultimoError & vbCrLf & ex2.Message
+    End Try
+End Function
+
+Function ColorNombrePorClasificacion(clasificacion As String) As String
+    If String.IsNullOrWhiteSpace(clasificacion) Then Return ""
+    Dim c As String = clasificacion.ToUpperInvariant()
+
+    If c.Contains("NO CLASIFICADO") Then Return "Gray"
+
+    ' Formato tarjetón: CODIGO | PERFIL perfil | MATERIAL | descripcion
+    Dim partes() As String = clasificacion.Split("|"c)
+    If partes.Length >= 2 Then
+        Dim perfilSeg As String = partes(1).Trim().ToUpperInvariant()
+        If perfilSeg.StartsWith("SOLERA") Then Return "Forest Green"
+        If perfilSeg.StartsWith("CANAL") Then Return "Sky Blue"
+        If perfilSeg.StartsWith("VIGA") Then Return "Red"
+        If perfilSeg.StartsWith("PTR") Then Return "Yellow"
+        If perfilSeg.StartsWith("ANGULO") OrElse perfilSeg.StartsWith("ÁNGULO") Then Return "Yellow"
+        If perfilSeg.StartsWith("VARILLA") Then Return "Dark Gray"
+        If perfilSeg.StartsWith("TUBO") Then Return "Gray"
+    End If
+
+    If c.StartsWith("SOLERA") Then Return "Forest Green"
+    If c.StartsWith("CANAL") Then Return "Sky Blue"
+    If c.StartsWith("VIGA") Then Return "Red"
+    If c.StartsWith("PTR") Then Return "Yellow"
+    If c.StartsWith("ÁNGULO") OrElse c.StartsWith("ANGULO") Then Return "Yellow"
+    If c.Contains("VARILLA") Then Return "Dark Gray"
+
+    Return "Gray"
+End Function
+
+Function IntentarAutoSolera(occ As ComponentOccurrence,
+                            clasificacionesDisponibles As List(Of String),
+                            oAsmDoc As AssemblyDocument,
+                            oAsmDef As AssemblyComponentDefinition,
+                            aparienciasOriginales As Dictionary(Of String, Asset),
+                            lista As List(Of ComponentOccurrence)) As Boolean
+    Return False
+End Function
+
+Function IntentarAutoAngulo(occ As ComponentOccurrence,
+                            clasificacionesDisponibles As List(Of String),
+                            oAsmDoc As AssemblyDocument,
+                            oAsmDef As AssemblyComponentDefinition,
+                            aparienciasOriginales As Dictionary(Of String, Asset),
+                            lista As List(Of ComponentOccurrence)) As Boolean
+    Return False
+End Function
+
+Function IntentarAutoCanal(occ As ComponentOccurrence,
+                           clasificacionesDisponibles As List(Of String),
+                           oAsmDoc As AssemblyDocument,
+                           oAsmDef As AssemblyComponentDefinition,
+                           aparienciasOriginales As Dictionary(Of String, Asset),
+                           lista As List(Of ComponentOccurrence)) As Boolean
+    Return False
+End Function
+
+Function IntentarAutoViga(occ As ComponentOccurrence,
+                          clasificacionesDisponibles As List(Of String),
+                          oAsmDoc As AssemblyDocument,
+                          oAsmDef As AssemblyComponentDefinition,
+                          aparienciasOriginales As Dictionary(Of String, Asset),
+                          lista As List(Of ComponentOccurrence)) As Boolean
+    Return False
+End Function
+
+Function IntentarAutoPTR(occ As ComponentOccurrence,
+                         clasificacionesDisponibles As List(Of String),
+                         oAsmDoc As AssemblyDocument,
+                         oAsmDef As AssemblyComponentDefinition,
+                         aparienciasOriginales As Dictionary(Of String, Asset),
+                         lista As List(Of ComponentOccurrence)) As Boolean
+    Return False
+End Function
+
+' Pilas UNDO (mismo patrón que Colorimetria Sub Assembly + Norman)
+Public Class ListaLargosSelectionUndoRecord
+    Public Property DocKey As String
+    Public Property Occs As List(Of ComponentOccurrence)
+End Class
+
+Public Class ListaLargosClasificacionUndoRecord
+    Public Property Perfil As ComponentePerfil
+    Public Property OldClasificacion As String
+End Class
+
+Public Class MiniToolbarSelector
+
+    Private _inventor As Inventor.Application
+    Private _asmDoc As AssemblyDocument
+    Private _asmDef As AssemblyComponentDefinition
+    Private _interactEvents As InteractionEvents
+    Private _selectEvents As SelectEvents
+    Private _toolBar As MiniToolbar
+    Private _stillSelecting As Boolean
+    Private _selectedOccs As New List(Of ComponentOccurrence)
+    Private _aparienciasOriginales As Dictionary(Of String, Asset)
+    Private _appearanceAmarillo As Asset
+    Private _selectionUndoStack As New Stack(Of ListaLargosSelectionUndoRecord)
+
+    Public Sub New(app As Inventor.Application,
+                   asmDoc As AssemblyDocument,
+                   asmDef As AssemblyComponentDefinition,
+                   aparienciasOriginales As Dictionary(Of String, Asset))
+
+        _inventor = app
+        _asmDoc = asmDoc
+        _asmDef = asmDef
+        _aparienciasOriginales = aparienciasOriginales
+    End Sub
+
+    Public ReadOnly Property SelectedOccurrences As List(Of ComponentOccurrence)
+        Get
+            Return _selectedOccs
+        End Get
+    End Property
+
+    Public Sub Pick()
+
+        _stillSelecting = True
+        _appearanceAmarillo = BuscarOCopiarAppearanceLocal("Yellow")
+        If _appearanceAmarillo Is Nothing Then
+            _appearanceAmarillo = BuscarOCopiarAppearanceLocal("Amarillo")
+        End If
+
+        _interactEvents = _inventor.CommandManager.CreateInteractionEvents
+        _selectEvents = _interactEvents.SelectEvents
+
+        _selectEvents.ClearSelectionFilter()
+        _selectEvents.AddSelectionFilter(SelectionFilterEnum.kAllEntitiesFilter)
+        _selectEvents.SingleSelectEnabled = False
+
+        AddHandler _selectEvents.OnSelect, AddressOf OnSelectOcc
+        AddHandler _interactEvents.OnTerminate, AddressOf OnTerminateHandler
+
+        _toolBar = _interactEvents.CreateMiniToolbar()
+
+        _toolBar.Controls.AddNewLine()
+
+        Dim btnUndoOp = _toolBar.Controls.AddButton("btnUndoOp", "⏪", "Deshacer ultima seleccion aplicada")
+        AddHandler btnUndoOp.OnClick, AddressOf DeshacerUltimaSeleccion
+
+        Dim btnSalir = _toolBar.Controls.AddButton("btnSalir", "Salir", "Terminar seleccion")
+        AddHandler btnSalir.OnClick, AddressOf Salir
+
+        _toolBar.ShowApply = False
+        _toolBar.Visible = True
+
+        _interactEvents.Start()
+
+        Do While _stillSelecting
+            _inventor.UserInterfaceManager.DoEvents()
+        Loop
+
+        If _interactEvents IsNot Nothing Then
+            _interactEvents.Stop()
+        End If
+
+        If _toolBar IsNot Nothing Then
+            _toolBar.Delete()
+        End If
+    End Sub
+
+    Private Sub OnSelectOcc(JustSelectedEntities As ObjectsEnumerator,
+                            SelectionDevice As SelectionDeviceEnum,
+                            ModelPosition As Inventor.Point,
+                            ViewPosition As Inventor.Point2d,
+                            ByVal View As Inventor.View)
+
+        If JustSelectedEntities Is Nothing OrElse JustSelectedEntities.Count = 0 Then Exit Sub
+
+        For Each sel As Object In JustSelectedEntities
+
+            Dim occ As ComponentOccurrence = ResolveOccurrence(sel)
+            If occ Is Nothing Then Continue For
+
+            AgregarPiezaYGemelosASeleccion(occ)
+        Next
+    End Sub
+
+    Private Sub AgregarPiezaYGemelosASeleccion(occ As ComponentOccurrence)
+        Dim docKey As String = ""
+        Try
+            docKey = occ.Definition.Document.FullFileName.ToLower()
+        Catch
+            Exit Sub
+        End Try
+
+        Dim occsMismoArchivo As List(Of ComponentOccurrence) = ObtenerOcurrenciasMismoArchivoLocal(docKey)
+        Dim occClone As ComponentOccurrence
+        Dim newlyAdded As New List(Of ComponentOccurrence)
+
+        For Each occClone In occsMismoArchivo
+            If Not _selectedOccs.Contains(occClone) Then
+                _selectedOccs.Add(occClone)
+                newlyAdded.Add(occClone)
+            End If
+        Next
+
+        If newlyAdded.Count = 0 Then Exit Sub
+
+        _selectionUndoStack.Push(New ListaLargosSelectionUndoRecord With {
+            .DocKey = docKey,
+            .Occs = newlyAdded
+        })
+
+        PintarFamiliaAmarilloLocal(occ)
+    End Sub
+
+    Private Sub DeshacerUltimaSeleccion()
+        If _selectionUndoStack Is Nothing OrElse _selectionUndoStack.Count = 0 Then
+            _inventor.StatusBarText = "No hay cambios para deshacer."
+            Exit Sub
+        End If
+
+        Dim rec As ListaLargosSelectionUndoRecord = _selectionUndoStack.Pop()
+        If rec Is Nothing OrElse rec.Occs Is Nothing Then Exit Sub
+
+        Dim occClone As ComponentOccurrence
+        For Each occClone In rec.Occs
+            Try
+                If _selectedOccs.Contains(occClone) Then
+                    _selectedOccs.Remove(occClone)
+                End If
+                RestaurarAparienciaLocalDesdeBackup(occClone)
+            Catch
+            End Try
+        Next
+
+        Try
+            _inventor.ActiveView.Update()
+        Catch
+        End Try
+
+        _inventor.StatusBarText = "Se deshizo la ultima seleccion aplicada."
+    End Sub
+
+    Private Sub RestaurarAparienciaLocalDesdeBackup(occ As ComponentOccurrence)
+        Try
+            Dim clave As String = occ.Definition.Document.FullFileName.ToLower() & "|" & occ.Name
+            If _aparienciasOriginales.ContainsKey(clave) Then
+                Dim original As Asset = _aparienciasOriginales(clave)
+                If original IsNot Nothing Then
+                    Dim dn As String = ""
+                    Try
+                        dn = original.DisplayName.ToLower()
+                    Catch
+                    End Try
+                    If dn <> "yellow" AndAlso dn <> "amarillo" AndAlso Not dn.Contains("yellow") AndAlso Not dn.Contains("amarillo") Then
+                        occ.Appearance = original
+                        Return
+                    End If
+                End If
+            End If
+            Try
+                occ.AppearanceSourceType = AppearanceSourceTypeEnum.kPartAppearance
+            Catch
+            End Try
+            Try
+                occ.Appearance = Nothing
+            Catch
+            End Try
+        Catch
+        End Try
+    End Sub
+
+    Private Function ResolveOccurrence(sel As Object) As ComponentOccurrence
+        Dim occ As ComponentOccurrence = TryCast(sel, ComponentOccurrence)
+        If occ IsNot Nothing Then Return occ
+
+        Try
+            Return DirectCast(sel, FaceProxy).ContainingOccurrence
+        Catch
+        End Try
+
+        Try
+            Return DirectCast(sel, EdgeProxy).ContainingOccurrence
+        Catch
+        End Try
+
+        Try
+            Return DirectCast(sel, VertexProxy).ContainingOccurrence
+        Catch
+        End Try
+
+        Try
+            Return DirectCast(sel, SurfaceBodyProxy).ContainingOccurrence
+        Catch
+        End Try
+
+        Return Nothing
+    End Function
+
+    Private Sub PintarFamiliaAmarilloLocal(occ As ComponentOccurrence)
+        If _appearanceAmarillo Is Nothing Then Exit Sub
+
+        Dim docKey As String = ""
+        Try
+            docKey = occ.Definition.Document.FullFileName.ToLower()
+        Catch
+            Exit Sub
+        End Try
+
+        Dim occsMismoArchivo As List(Of ComponentOccurrence) = ObtenerOcurrenciasMismoArchivoLocal(docKey)
+        Dim occClone As ComponentOccurrence
+
+        For Each occClone In occsMismoArchivo
+            GuardarAparienciaOriginalLocal(occClone)
+            Try
+                occClone.AppearanceSourceType = AppearanceSourceTypeEnum.kOverrideAppearance
+                occClone.Appearance = _appearanceAmarillo
+            Catch
+                Try
+                    occClone.Appearance = _appearanceAmarillo
+                Catch
+                End Try
+            End Try
+        Next
+
+        Try
+            _inventor.ActiveView.Update()
+        Catch
+        End Try
+    End Sub
+
+    Private Sub GuardarAparienciaOriginalLocal(occ As ComponentOccurrence)
+        Try
+            Dim clave As String = occ.Definition.Document.FullFileName.ToLower() & "|" & occ.Name
+            If Not _aparienciasOriginales.ContainsKey(clave) Then
+                _aparienciasOriginales.Add(clave, occ.Appearance)
+            End If
+        Catch
+        End Try
+    End Sub
+
+    Private Function BuscarOCopiarAppearanceLocal(nombreAppearance As String) As Asset
+        Dim oAsset As Asset = Nothing
+        Dim oLib As AssetLibrary
+        Dim oLibAsset As Asset = Nothing
+
+        Try
+            For Each oAsset In _asmDoc.Assets
+                Try
+                    If oAsset.AssetType = AssetTypeEnum.kAssetTypeAppearance Then
+                        If String.Compare(oAsset.DisplayName, nombreAppearance, True) = 0 Then
+                            Return oAsset
+                        End If
+                        If String.Compare(oAsset.Name, nombreAppearance, True) = 0 Then
+                            Return oAsset
+                        End If
+                    End If
+                Catch
+                End Try
+            Next
+        Catch
+        End Try
+
+        Try
+            For Each oLib In _inventor.AssetLibraries
+                Try
+                    oLibAsset = oLib.AppearanceAssets.Item(nombreAppearance)
+                    If oLibAsset IsNot Nothing Then
+                        Return oLibAsset.CopyTo(_asmDoc)
+                    End If
+                Catch
+                End Try
+            Next
+        Catch
+        End Try
+
+        Return Nothing
+    End Function
+
+    Private Function ObtenerOcurrenciasMismoArchivoLocal(docKey As String) As List(Of ComponentOccurrence)
+        Dim lista As New List(Of ComponentOccurrence)
+        Dim occ As ComponentOccurrence
+
+        For Each occ In _asmDef.Occurrences.AllLeafOccurrences
+            Try
+                If occ.DefinitionDocumentType = kPartDocumentObject Then
+                    If occ.Definition.Document.FullFileName.ToLower() = docKey Then
+                        lista.Add(occ)
+                    End If
+                End If
+            Catch ex As Exception
+            End Try
+        Next
+
+        Return lista
+    End Function
+
+    Private Sub OnTerminateHandler()
+        _stillSelecting = False
+    End Sub
+
+    Private Sub Salir()
+        _stillSelecting = False
+    End Sub
+
+End Class
+' Función para mostrar tabla editable antes de exportar
+' OK = continuar al CSV | Retry = seguir añadiendo largos | Cancel = salir
+Function MostrarTablaClasificacion(
+    lista As List(Of ComponentePerfil),
+    clasificaciones As List(Of String),
+    selectedComps As ObjectCollection,
+    oAsmDef As AssemblyComponentDefinition,
+    aparienciasOriginales As Dictionary(Of String, Asset)
+) As DialogResult
+    Dim frm As New System.Windows.Forms.Form With {
+        .Text = "Resumen de perfiles antes de exportar CSV",
+        .Width = 1040,
+        .Height = 560,
+        .CancelButton = Nothing
+    }
+    Dim bindingList As New BindingList(Of ComponentePerfil)
+    For Each perfilItem As ComponentePerfil In lista
+        bindingList.Add(perfilItem)
+    Next
+    Dim dgv As New DataGridView With {
+        .Dock = DockStyle.Fill,
+        .AutoGenerateColumns = False,
+        .AllowUserToAddRows = False,
+        .SelectionMode = DataGridViewSelectionMode.FullRowSelect,
+        .MultiSelect = False,
+        .DataSource = New BindingSource(bindingList, Nothing)
+    }
+    dgv.Columns.Add(New DataGridViewTextBoxColumn() With {.HeaderText = "Archivo .ipt", .DataPropertyName = "Nombre", .ReadOnly = True, .Width = 180})
+    Dim comboCol As New DataGridViewComboBoxColumn With {
+        .HeaderText = "Material Herinox (código | perfil | material | descripción)",
+        .DataPropertyName = "Clasificacion",
+        .DataSource = clasificaciones,
+        .FlatStyle = FlatStyle.Flat,
+        .Width = 420
+    }
+    dgv.Columns.Add(comboCol)
+    dgv.Columns.Add(New DataGridViewTextBoxColumn() With {.HeaderText = "Largo (in)", .DataPropertyName = "Largo", .ReadOnly = True})
+    dgv.Columns.Add(New DataGridViewTextBoxColumn() With {.HeaderText = "Cantidad (gemelos)", .DataPropertyName = "Cantidad", .ReadOnly = True, .Width = 110})
+    Dim comboProceso As New DataGridViewComboBoxColumn With {
+        .HeaderText = "Proceso",
+        .DataPropertyName = "Proceso",
+        .DataSource = OpcionesProcesoLargo(),
+        .FlatStyle = FlatStyle.Flat,
+        .Width = 210
+    }
+    dgv.Columns.Add(comboProceso)
+
+    Dim undoClasif As New Stack(Of ListaLargosClasificacionUndoRecord)
+    Dim editingPerfil As ComponentePerfil = Nothing
+    Dim editingOldClasif As String = ""
+    Const idxColClasif As Integer = 1
+
+    AddHandler dgv.CellBeginEdit,
+        Sub(sender, e)
+            If e.ColumnIndex <> idxColClasif Then Return
+            editingPerfil = TryCast(dgv.Rows(e.RowIndex).DataBoundItem, ComponentePerfil)
+            If editingPerfil IsNot Nothing Then
+                editingOldClasif = editingPerfil.Clasificacion
+            End If
+        End Sub
+
+    AddHandler dgv.CellEndEdit,
+        Sub(sender, e)
+            If e.ColumnIndex <> idxColClasif Then Return
+            If editingPerfil Is Nothing Then Return
+            Dim nuevo As String = editingPerfil.Clasificacion
+            If nuevo <> editingOldClasif Then
+                undoClasif.Push(New ListaLargosClasificacionUndoRecord With {
+                    .Perfil = editingPerfil,
+                    .OldClasificacion = editingOldClasif
+                })
+            End If
+            editingPerfil = Nothing
+            editingOldClasif = ""
+        End Sub
+
+    Dim panelBtns As New Panel With {.Dock = DockStyle.Bottom, .Height = 48}
+    Dim btnUndo As New Button With {
+        .Text = "⏪ Deshacer",
+        .Width = 120,
+        .Height = 32,
+        .Dock = DockStyle.Left
+    }
+    Dim btnEliminar As New Button With {
+        .Text = "Eliminar",
+        .Width = 100,
+        .Height = 32,
+        .Dock = DockStyle.Left
+    }
+    Dim panelDer As New Panel With {
+        .Dock = DockStyle.Right,
+        .Width = 360,
+        .Height = 48
+    }
+    Dim btnOK As New Button With {
+        .Text = "Continuar",
+        .Width = 130,
+        .Height = 32,
+        .Dock = DockStyle.Right
+    }
+    Dim btnSeguir As New Button With {
+        .Text = "Seguir añadiendo largos",
+        .Width = 210,
+        .Height = 32,
+        .Dock = DockStyle.Right
+    }
+
+    AddHandler btnUndo.Click,
+        Sub(sender, e)
+            If undoClasif.Count = 0 Then
+                MessageBox.Show("No hay cambios de clasificacion para deshacer.", "Lista de largos",
+                                MessageBoxButtons.OK, MessageBoxIcon.Information)
+                Return
+            End If
+            Dim rec As ListaLargosClasificacionUndoRecord = undoClasif.Pop()
+            If rec IsNot Nothing AndAlso rec.Perfil IsNot Nothing Then
+                rec.Perfil.Clasificacion = rec.OldClasificacion
+                dgv.Refresh()
+            End If
+        End Sub
+
+    AddHandler btnEliminar.Click,
+        Sub(sender, e)
+            If dgv.CurrentRow Is Nothing Then
+                MessageBox.Show("Seleccione una fila de la tabla para eliminar.", "Lista de largos",
+                                MessageBoxButtons.OK, MessageBoxIcon.Information)
+                Return
+            End If
+            Dim perfil As ComponentePerfil = TryCast(dgv.CurrentRow.DataBoundItem, ComponentePerfil)
+            If perfil Is Nothing Then Return
+
+            Dim confirmar As DialogResult = MessageBox.Show(
+                "Quitar de la lista: " & perfil.Nombre & " ?" & vbCrLf &
+                "Se quitara el amarillo de esa pieza en el ensamble.",
+                "Eliminar perfil",
+                MessageBoxButtons.YesNo,
+                MessageBoxIcon.Question)
+            If confirmar <> DialogResult.Yes Then Return
+
+            QuitarPerfilDeListaYSeleccion(perfil, lista, bindingList, selectedComps, oAsmDef, aparienciasOriginales)
+
+            If lista.Count = 0 Then
+                MessageBox.Show(
+                    "No quedan perfiles en la lista." & vbCrLf &
+                    "Use 'Seguir añadiendo largos' o cierre la ventana.",
+                    "Lista de largos",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information)
+            End If
+        End Sub
+
+    AddHandler btnSeguir.Click,
+        Sub(sender, e)
+            frm.DialogResult = DialogResult.Retry
+            frm.Close()
+        End Sub
+
+    AddHandler btnOK.Click,
+        Sub(sender, e)
+            Dim msgValidacion As String = ValidarMaterialesHerinoxObligatorios(lista)
+            If msgValidacion <> "" Then
+                MessageBox.Show(
+                    msgValidacion,
+                    "Material Herinox obligatorio",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning)
+                Return
+            End If
+            frm.DialogResult = DialogResult.OK
+            frm.Close()
+        End Sub
+    AddHandler frm.FormClosing,
+        Sub(sender, e)
+            If frm.DialogResult = DialogResult.None Then
+                frm.DialogResult = DialogResult.Cancel
+            End If
+            If frm.DialogResult <> DialogResult.OK AndAlso frm.DialogResult <> DialogResult.Retry Then
+                RestaurarAparienciasSeleccion(aparienciasOriginales, oAsmDef)
+            End If
+        End Sub
+    panelDer.Controls.Add(btnOK)
+    panelDer.Controls.Add(btnSeguir)
+    panelBtns.Controls.Add(panelDer)
+    panelBtns.Controls.Add(btnUndo)
+    panelBtns.Controls.Add(btnEliminar)
+    frm.Controls.Add(panelBtns)
+    frm.Controls.Add(dgv)
+    Return frm.ShowDialog()
+End Function

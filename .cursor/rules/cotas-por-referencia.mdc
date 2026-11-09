@@ -1,0 +1,13 @@
+---
+description: Cotas por referencia cerrada; motor de geometría exacta (snapshot).
+alwaysApply: true
+---
+# Cotas por referencia (cerrada, motor geometría)
+
+Leer `cotas-por-referencia/CONTROL.md`. `control.json` tiene `fase: cerrada`, `motor_vista: geometria`.
+
+- No cambiar el contrato: origen IL, Y mundo arriba, vista desde fuera, barrera de 6 muros por instancia, un JPG por cota.
+- Código: `python/referencia_snapshot.py` (captura Inventor) + `python/referencia_geo.py` (cálculo puro). Respaldo 8711: `python/vista_hlr.py` + `python/caras_referencia.py`.
+- Cotas siempre desde geometría exacta del snapshot, nunca desde píxeles. Prohibido malla Phong/gris 3D para estos JPG.
+- Cambios en el cálculo: agregar caso a `python/test_referencia_geo.py`.
+- Siguiente trabajo: **Corte**. Control en `corte/CONTROL.md`.

@@ -1,0 +1,16 @@
+{
+  "local_debug": false,
+  "fase": "cerrada",
+  "vista": "alambrico",
+  "motor_vista": "geometria",
+  "motor_respaldo": "inventor_8711",
+  "solo_vista": false,
+  "mostrar_origen": true,
+  "origen": "IL",
+  "arriba_mundo": [0, 1, 0],
+  "cara_frontal_fija": "SEGM1",
+  "caras": ["SEGM1", "SEGM2", "SEGM3", "SEGM4", "TOP", "BASE"],
+  "no_girar_eje_largo": true,
+  "solo_cara_frontal": true,
+  "notas": "Cerrada 2026-10-20. 2026-10-23: motor geometria (snapshot exacto) por defecto; 8711 solo respaldo. Contrato en CONTROL.md."
+}

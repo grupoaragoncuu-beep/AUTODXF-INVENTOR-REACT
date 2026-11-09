@@ -1,0 +1,14 @@
+mode=accessories
+stop=C:\Users\Ing. Cano\Documents\AUTODXF INVENTOR REACT\config\pick_stop.flag
+status=C:\Users\Ing. Cano\Documents\AUTODXF INVENTOR REACT\config\pick_status.json
+className=Maquinados
+color=#2563EB
+colorR=37
+colorG=99
+colorB=235
+appearances=Blue - Wall Paint - Glossy|Azul - Pintura mural - Brillante
+smart=1
+blockProp=AutoDXF Maquinados
+looseProp=AutoDXF Accesorios Sueltos
+blocks=AutoDXF Almacén:Almacén|AutoDXF Corte:Corte|AutoDXF Doblado:Doblado|AutoDXF Maquinados:Maquinados|AutoDXF Accesorios Sueltos:Accesorios Sueltos|AutoDXF Assy Loose:Assy Loose Accesories|AutoDXF Assy Tanks:Assy Tanks
+exclusive=AutoDXF Almacén|AutoDXF Corte|AutoDXF Doblado

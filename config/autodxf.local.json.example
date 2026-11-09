@@ -1,0 +1,10 @@
+{
+  "herinox_database_url": "",
+  "nestingpro": {
+    "host": "192.168.2.80",
+    "port": 5433,
+    "database": "nestingpro_db",
+    "username": "postgres",
+    "password": ""
+  }
+}

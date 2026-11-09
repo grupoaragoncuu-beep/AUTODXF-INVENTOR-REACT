@@ -1,0 +1,70 @@
+{
+  "CSharpSyntax": "42 files passed tree-sitter C# parser; not a compilation",
+  "ActualWallScopeChecks": [
+    {
+      "Face": "AXIS_1_NEGATIVE",
+      "ExcludedBodies": [
+        1
+      ],
+      "EligibleOtherBodies": []
+    },
+    {
+      "Face": "AXIS_1_POSITIVE",
+      "ExcludedBodies": [
+        1
+      ],
+      "EligibleOtherBodies": []
+    },
+    {
+      "Face": "AXIS_2_NEGATIVE",
+      "ExcludedBodies": [
+        2
+      ],
+      "EligibleOtherBodies": [
+        1,
+        3
+      ]
+    },
+    {
+      "Face": "AXIS_2_POSITIVE",
+      "ExcludedBodies": [
+        3
+      ],
+      "EligibleOtherBodies": [
+        1,
+        2
+      ]
+    },
+    {
+      "Face": "AXIS_3_NEGATIVE",
+      "ExcludedBodies": [
+        1
+      ],
+      "EligibleOtherBodies": [
+        2,
+        3
+      ]
+    },
+    {
+      "Face": "AXIS_3_POSITIVE",
+      "ExcludedBodies": [
+        1
+      ],
+      "EligibleOtherBodies": []
+    }
+  ],
+  "StepSectionCheck": {
+    "AXIS_2_NEGATIVE": {
+      "RecoveredLongEdgeMm": 1638.3,
+      "BoundaryGapMm": 0.0125,
+      "RejectedFarEdgeGapMm": 4.775
+    },
+    "AXIS_2_POSITIVE": {
+      "RecoveredLongEdgeMm": 1638.3,
+      "BoundaryGapMm": 0.0131,
+      "RejectedFarEdgeGapMm": 4.7756
+    }
+  },
+  "ExecutedInInventor": false,
+  "CompiledWithInventorInterop": false
+}

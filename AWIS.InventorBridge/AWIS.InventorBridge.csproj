@@ -1,0 +1,20 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net10.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<Reference Include="Autodesk.Inventor.Interop">
+			<HintPath>C:\Inventor 2027\Bin\Autodesk.Inventor.Interop.dll</HintPath>
+			<Private>false</Private>
+		</Reference>
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Folder Include="WeldInterfaces\" />
+	</ItemGroup>
+
+</Project>

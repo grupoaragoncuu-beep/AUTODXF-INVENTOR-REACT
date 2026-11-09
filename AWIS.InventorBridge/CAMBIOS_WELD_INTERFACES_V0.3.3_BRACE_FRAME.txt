@@ -1,0 +1,87 @@
+AWIS Weld Interfaces V0.3.3 — BRACE FRAME PHYSICAL BOUNDARY
+===============================================================
+
+OBJETIVO
+--------
+Corregir el caso OTC donde una cara coplanar angosta de un brace exportaba
+un loop cerrado completo. AWIS interpretaba los dos bordes largos del loop
+como dos cordones distintos sobre el mismo lado físico.
+
+V0.3.3 NO fuerza Paired Members.
+Primero limpia la geometría física; AWIS decide después si dos lados válidos
+son un par.
+
+LÓGICA NUEVA
+------------
+1. Conserva íntegro el filtro V0.3.2 OUTER vs INNER.
+2. Después de resolver todas las interfaces de una cara, busca grupos que:
+   - compartan el mismo parent occurrence path;
+   - tengan exactamente cuatro tiras coplanares cerradas y angostas;
+   - sean exactamente 2 horizontales + 2 verticales;
+   - cierren geométricamente un frame común.
+3. Solo para esos grupos confirmados como BRACE_FRAME:
+   - cada tira CLOSED se convierte en un solo path LINEAR;
+   - se conserva únicamente el borde del PERÍMETRO EXTERIOR del frame;
+   - el borde interior de la misma tira deja de exportarse como candidato.
+4. Se agregan metadatos de auditoría:
+   - PhysicalMemberType = BRACE_FRAME
+   - PhysicalMemberGroupId
+   - PhysicalSideRole = LEFT / RIGHT / TOP / BOTTOM
+   - PhysicalBoundaryRole = OUTER_WELD_EDGE
+   - OriginalClosedLoopLengthMm
+   - BoundarySelectionReason = BRACE_FRAME_OUTER_PERIMETER_EDGE
+5. Statistics agrega:
+   - BraceFrameGroupsResolved
+   - BraceFrameClosedLoopsConverted
+
+POR QUÉ ES CONSERVADOR
+----------------------
+La regla no se aplica a cualquier rectángulo angosto. Para evitar afectar
+soleras o accesorios aislados, V0.3.3 exige el patrón completo 2H + 2V bajo
+el mismo parent occurrence path. Si el conjunto es ambiguo o tiene geometría
+extra, no se transforma automáticamente.
+
+CASO OTC DE REFERENCIA
+----------------------
+Para 62223-1246-A01 / AXIS_1_NEGATIVE, el JSON V0.3.2 mostró un frame bajo:
+  .../62223-1248-A13_224
+con cuatro tiras físicas:
+  - dos verticales: IF00008 P001/P002
+  - una horizontal inferior: IF00009 P001
+  - una horizontal superior: IF00010 P001
+
+Antes:
+  cada tira CLOSED podía producir dos candidatos largos.
+
+Esperado en V0.3.3:
+  RIGHT  -> x = borde exterior derecho
+  LEFT   -> x = borde exterior izquierdo
+  BOTTOM -> y = borde exterior inferior
+  TOP    -> y = borde exterior superior
+
+Resultado esperado para AWIS:
+  4 lados físicos del brace, un candidato por lado.
+
+VALIDACIÓN RECOMENDADA
+----------------------
+Después de compilar/ejecutar el complemento:
+1. Abrir AWIS_WELD_INTERFACES_<TANK>.json.
+2. Confirmar:
+   Version = 0.3.3
+   GeneratorVersion = Inventor Weld Interface Companion V0.3.3
+3. Buscar:
+   BraceFrameGroupsResolved
+   BraceFrameClosedLoopsConverted
+4. En los paths transformados confirmar:
+   GeometryType = LINEAR
+   Closed = false
+   PhysicalMemberType = BRACE_FRAME
+   PhysicalSideRole = LEFT/RIGHT/TOP/BOTTOM
+5. En AWIS, el brace debe mostrar un solo candidato por lado físico.
+
+IMPORTANTE
+----------
+- No se modificó Collision Geometry.
+- No se modificó Face Preview.
+- No se fuerza ningún pair desde Inventor.
+- La detección de Paired Members sigue siendo responsabilidad downstream.

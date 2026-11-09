@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<Addin Type="Standard">
+
+  <ClassId>{653272b1-7ff2-4700-8e4b-7e6cc8e1e5fa}</ClassId>
+
+  <ClientId>{653272b1-7ff2-4700-8e4b-7e6cc8e1e5fa}</ClientId>
+
+  <DisplayName>AWIS Inventor Bridge</DisplayName>
+
+  <Description>
+    Arga Welding Interactive Software - Inventor Bridge V0.1
+  </Description>
+
+  <Assembly>C:\Users\ricardo_cano\source\repos\AWIS.InventorBridge\bin\Debug\net10.0\AWIS.InventorBridge.dll</Assembly>
+
+  <OSType>Win64</OSType>
+
+  <LoadAutomatically>1</LoadAutomatically>
+
+  <UserUnloadable>1</UserUnloadable>
+
+  <Hidden>0</Hidden>
+
+  <LoadBehavior>0</LoadBehavior>
+
+  <DataVersion>1</DataVersion>
+
+  <UserInterfaceVersion>1</UserInterfaceVersion>
+
+</Addin>

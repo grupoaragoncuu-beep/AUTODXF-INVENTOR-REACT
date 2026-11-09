@@ -1,0 +1,16 @@
+Modulo Ingenieria — instalacion en la laptop
+
+Necesitas:
+- Inventor 2027
+- Python 3 (que funcione el comando py -3)
+- Acceso a la carpeta de red del modulo
+- La contrasena de administrador de la version (te la da ingenieria)
+
+Pasos:
+1. Cierra Inventor.
+2. Ejecuta Instalar.bat (doble clic).
+3. Abre Inventor.
+4. En un ensamble, pestana Modulo Ingenieria.
+5. La primera vez de cada version nueva pide la contrasena. Despues ya no.
+
+No uses Iniciar AutoDXF.bat. Eso es solo para quien desarrolla el modulo.

@@ -1,0 +1,89 @@
+AWIS INVENTOR BRIDGE - FACE PREVIEW V0.4.0
+MULTI-SEGMENT PHYSICAL WALL + STRUCTURAL SEAMS
+Fecha: 2026-09-18
+
+OBJETIVO
+- Mantener las 6 FACE logicas del Tank Frame.
+- Permitir que una FACE este compuesta por 1..N placas fisicas.
+- Detectar geometricamente juntas entre placas coplanares sin depender todavia de una familia OTC/VANTRAN/GIGA.
+- Exportar la junta como candidato geometrico, sin inventar el tipo de soldadura.
+
+CAMBIOS PRINCIPALES
+1. AWIS_FACE_PREVIEWS pasa de 0.3.3 a 0.4.0.
+2. PhysicalWall conserva los campos legacy del segmento ancla y agrega:
+   - SegmentCount
+   - Segments[]
+   - StructuralSeams[]
+3. PhysicalWall.Bounds ahora es la UNION de todos los segmentos resueltos.
+4. El segundo pase de proyeccion usa esa union; por lo tanto una segunda placa ya no queda fuera del preview.
+5. El cleaner reconoce las placas adicionales como estructura:
+   - OUTER loop estructural: no se muestra como ACCESSORY.
+   - INNER loops de la cara estructural: se conservan como WALL_OPENING.
+6. AWIS_WELD_INTERFACES pasa de 0.2.2 a 0.3.0 y copia Segments[] + StructuralSeams[].
+7. Las occurrence paths de todos los segmentos se excluyen del broad phase de accesorios/interfaces para evitar duplicados.
+8. StructuralSeam se exporta con:
+   Classification = PANEL_TO_PANEL_SEAM
+   WeldClassification = UNCONFIRMED
+   DetectionStatus = GEOMETRY_DETECTED
+
+ESTRATEGIA DE DETECCION V0.4.0
+- La cara estructural oficial de V0 sigue siendo el ancla.
+- Un panel adicional debe:
+  * ser OUTER loop,
+  * estar casi coplanar al ancla (<= 2.0 mm de diferencia de profundidad),
+  * tener NormalAlignment >= 0.995,
+  * ocupar al menos 12% del area canonica de la pared,
+  * estar mayormente dentro de la FACE canonica,
+  * ser adyacente a un segmento aceptado,
+  * tener gap <= 25 mm,
+  * compartir al menos 70% del span enfrentado.
+- El crecimiento siempre parte del ancla; una placa grande aislada no se incorpora solo por tamaño.
+
+VALIDACION GEOMETRICA REAL - OTC 62223-1246-A01.STEP
+Se reviso directamente el STEP con OCCT/OCP.
+
+AXIS_3_NEGATIVE
+- Segmento 1: U 25.400..1854.200 | V 152.400..3689.350
+- Segmento 2: U 1857.375..3395.599 | V 152.400..3651.250
+- Gap: 3.175 mm
+- Seam compartido: 3498.850 mm
+
+AXIS_3_POSITIVE
+- Segmento 1: U 25.400..1828.800 | V 152.400..3651.250
+- Segmento 2: U 1831.975..3420.999 | V 152.400..3651.250
+- Gap: 3.175 mm
+- Seam compartido: 3498.850 mm
+
+Resultado esperado para este OTC:
+- Faces: 6
+- PhysicalWall segments: 8
+- Structural seams: 2
+- Las otras 4 caras permanecen con un solo segmento.
+
+ARCHIVOS MODIFICADOS
+- AddInServer.cs
+- FacePreview/FacePreviewBuilder.cs
+- FacePreview/FacePreviewModels.cs
+- FacePreview/FacePreviewPhysicalWallResolver.cs (NUEVO)
+- FacePreview/FacePreviewVisualCleaner.cs
+- WeldInterfaces/WeldInterfaceBuilder.cs
+- WeldInterfaces/WeldInterfaceModels.cs
+
+PRUEBA EN INVENTOR
+1. Recompilar AWIS.InventorBridge en la PC que tiene Inventor 2027 / Autodesk.Inventor.Interop.
+2. Sustituir/cargar el DLL compilado como se hace actualmente.
+3. Abrir 62223-1246-A01.STEP y ejecutar Detect Tank.
+4. La barra de estado debe reportar aproximadamente:
+   Preview: OK (6 faces, 8 segments, 2 seams)
+5. Revisar AWIS_FACE_PREVIEWS_62223-1246-A01.json:
+   Faces -> AXIS_3_NEGATIVE/POSITIVE -> PhysicalWall -> Segments / StructuralSeams.
+6. Revisar AWIS_WELD_INTERFACES_62223-1246-A01.json:
+   Faces -> AXIS_3_NEGATIVE/POSITIVE -> PhysicalWall -> StructuralSeams.
+
+NOTA DE COMPATIBILIDAD
+- No se modifica AWIS_TANK_DETECTION ni la logica oficial de las seis boundaries.
+- Los campos legacy PhysicalWall.SourceEntityId/Bounds/OuterLoop siguen existiendo.
+- No se ha agregado todavia un perfil OTC hardcoded. Esta version primero demuestra que la segmentacion puede obtenerse de la geometria. Los perfiles de familia pueden agregarse despues como capa de validacion/reglas de manufactura.
+
+IMPORTANTE
+Este paquete contiene codigo fuente modificado. En el entorno donde se preparo no esta disponible el toolchain de compilacion .NET/Inventor, por lo que el DLL debe recompilarse en la PC de desarrollo antes de probarlo en Inventor.

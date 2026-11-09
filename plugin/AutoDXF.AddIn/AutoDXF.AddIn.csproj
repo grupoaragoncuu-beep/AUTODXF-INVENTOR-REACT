@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <RootNamespace>AutoDXF.AddIn</RootNamespace>
+    <AssemblyName>AutoDXF.AddIn</AssemblyName>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <UseWindowsForms>true</UseWindowsForms>
+    <EnableComHosting>true</EnableComHosting>
+    <EnableComRegister>false</EnableComRegister>
+    <ComVisible>false</ComVisible>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+    <Version>1.0.0.0</Version>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\AutoDXF.Core\AutoDXF.Core.csproj" />
+    <EmbeddedResource Include="Icons\modulo-ingenieria.jpg" />
+    <Reference Include="Autodesk.Inventor.Interop">
+      <HintPath>C:\Program Files\Autodesk\Inventor 2027\Bin\Public Assemblies\Autodesk.Inventor.Interop.dll</HintPath>
+      <Private>false</Private>
+      <EmbedInteropTypes>false</EmbedInteropTypes>
+    </Reference>
+  </ItemGroup>
+</Project>

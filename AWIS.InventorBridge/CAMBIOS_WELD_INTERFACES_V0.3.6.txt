@@ -1,0 +1,33 @@
+CAMBIOS V0.3.6 — 2026-10-05
+
+BASE: ZIP e27dfd43-1282-425f-9d3a-d588b285738c del usuario, V0.3.5.
+
+ARCHIVOS Y BLOQUES
+WeldInterfaces/WeldInterfaceModels.cs:
+- WeldInterfacePackage: version/generador 0.3.6 y lista SurfaceVariants.
+- WeldInterfaceThresholds: habilitacion ExportSegmentSurfaceVariants y limites de correspondencia de cara interna.
+- WeldSurfaceVariant: contrato de superficie, estado, espesor, normal, geometria y estadisticas independientes.
+- WeldInterfaceFaceRecord y WeldInterfaceRecord: identificacion explicita de lado/segmento/superficie.
+
+WeldInterfaces/WeldInterfaceBuilder.cs, Build():
+- Etiqueta las interfaces legacy como EXTERIOR.
+- Despues de finalizar el bucle exterior existente, llama WeldSurfaceVariantBuilder.Build(). No reemplaza el bucle exterior ni sus estadisticas; las nuevas variantes tienen sus propias Statistics.
+
+WeldInterfaces/WeldSurfaceVariantBuilder.cs (nuevo):
+- MakeView(): copia independiente por segmento/lado; conserva UV canonico, limita PhysicalWall al segmento, elimina juntas de ensamblado y asigna IDs propios.
+- ResolveInner(): busca la cara opuesta real en el mismo body. Valida area, paralelismo, huella y distancia. Invierte la normal fisica y mide espesor. No desplaza la cara por un espesor fijo.
+- Analyze(): reutiliza broad phase, exact detector y selector existentes con el plano correcto y estadisticas independientes.
+- Build(): exporta estados unresolved explicitamente; evita recurrir al exterior como fallback interior.
+
+Los detectores de contacto, secciones anulares, brace selector, clipping, FacePreview y CollisionGeometry se conservaron byte por byte. Archivo de verificacion: validation/PRESERVED_MODULES_V0.3.6.json.
+
+Thresholds nuevos (editables en WeldInterfaceModels.cs antes de compilar):
+ExportSegmentSurfaceVariants=true
+InnerSurfaceParallelToleranceDeg=0.01
+InnerSurfaceMinimumAreaRatio=0.75
+InnerSurfaceFootprintToleranceMm=0.5
+InnerSurfaceMaximumThicknessMm=100.0
+El maximo es limite de correspondencia, no espesor supuesto. Los casos fuera de estos criterios se reportan unresolved.
+
+CRITERIO DE CIERRE
+Compilacion correcta; JSON de V0.3.6 realmente ejecutado; plano interior resuelto con espesor del modelo; recuperacion de refuerzos interiores; regresion exterior conservada. UI y programacion interior constituyen la siguiente etapa, aun no implementada.

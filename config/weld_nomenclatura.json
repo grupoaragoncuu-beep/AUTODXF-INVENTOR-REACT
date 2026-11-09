@@ -1,0 +1,3940 @@
+{
+  "assemblies": {
+    "c:/users/ing. cano/downloads/modelo vantran 251007 (1)/vantran 261428✅/vantran 261428✅.iam": {
+      "assembly": "C:\\Users\\Ing. Cano\\Downloads\\MODELO VANTRAN 251007 (1)\\VANTRAN 261428✅\\VANTRAN 261428✅.iam",
+      "cordones": [
+        {
+          "id": "SEGM1_BASE",
+          "titulo": "SEGM1 / BASE",
+          "largo": "1467 mm",
+          "clasificacion": "hermetico",
+          "clasificacion_auto": "hermetico",
+          "spec": {
+            "flecha": 6.0,
+            "otro": 8.0,
+            "dos_lados": true,
+            "typ": true,
+            "paso": "100-300"
+          },
+          "spec_auto": {
+            "flecha": 6.0,
+            "otro": 8.0,
+            "dos_lados": true,
+            "typ": true,
+            "paso": "100-300"
+          },
+          "texto": "FILLET 6/8 mm 100-300 TYP",
+          "cuerpos": [
+            "SEGM1_BASE"
+          ],
+          "editado": false
+        },
+        {
+          "id": "SEGM2_BASE",
+          "titulo": "SEGM2 / BASE",
+          "largo": "1000 mm",
+          "clasificacion": "hermetico",
+          "clasificacion_auto": "hermetico",
+          "spec": {
+            "flecha": 6.0,
+            "otro": 8.0,
+            "dos_lados": true,
+            "typ": true,
+            "paso": "100-300"
+          },
+          "spec_auto": {
+            "flecha": 6.0,
+            "otro": 8.0,
+            "dos_lados": true,
+            "typ": true,
+            "paso": "100-300"
+          },
+          "texto": "FILLET 6/8 mm 100-300 TYP",
+          "cuerpos": [
+            "SEGM2_BASE"
+          ],
+          "editado": false
+        },
+        {
+          "id": "SEGM3_BASE",
+          "titulo": "SEGM3 / BASE",
+          "largo": "1467 mm",
+          "clasificacion": "hermetico",
+          "clasificacion_auto": "hermetico",
+          "spec": {
+            "flecha": 6.0,
+            "otro": 8.0,
+            "dos_lados": true,
+            "typ": true,
+            "paso": "100-300"
+          },
+          "spec_auto": {
+            "flecha": 6.0,
+            "otro": 8.0,
+            "dos_lados": true,
+            "typ": true,
+            "paso": "100-300"
+          },
+          "texto": "FILLET 6/8 mm 100-300 TYP",
+          "cuerpos": [
+            "SEGM3_BASE"
+          ],
+          "editado": false
+        },
+        {
+          "id": "SEGM4_BASE",
+          "titulo": "SEGM4 / BASE",
+          "largo": "1000 mm",
+          "clasificacion": "hermetico",
+          "clasificacion_auto": "hermetico",
+          "spec": {
+            "flecha": 6.0,
+            "otro": 8.0,
+            "dos_lados": true,
+            "typ": true,
+            "paso": "100-300"
+          },
+          "spec_auto": {
+            "flecha": 6.0,
+            "otro": 8.0,
+            "dos_lados": true,
+            "typ": true,
+            "paso": "100-300"
+          },
+          "texto": "FILLET 6/8 mm 100-300 TYP",
+          "cuerpos": [
+            "SEGM4_BASE"
+          ],
+          "editado": false
+        },
+        {
+          "id": "SEGM1_TOP",
+          "titulo": "SEGM1 / TOP",
+          "largo": "1467 mm",
+          "clasificacion": "hermetico",
+          "clasificacion_auto": "hermetico",
+          "spec": {
+            "flecha": 6.0,
+            "otro": 8.0,
+            "dos_lados": true,
+            "typ": true,
+            "paso": "100-300"
+          },
+          "spec_auto": {
+            "flecha": 6.0,
+            "otro": 8.0,
+            "dos_lados": true,
+            "typ": true,
+            "paso": "100-300"
+          },
+          "texto": "FILLET 6/8 mm 100-300 TYP",
+          "cuerpos": [
+            "SEGM1_TOP"
+          ],
+          "editado": false
+        },
+        {
+          "id": "SEGM2_TOP",
+          "titulo": "SEGM2 / TOP",
+          "largo": "1000 mm",
+          "clasificacion": "hermetico",
+          "clasificacion_auto": "hermetico",
+          "spec": {
+            "flecha": 6.0,
+            "otro": 8.0,
+            "dos_lados": true,
+            "typ": true,
+            "paso": "100-300"
+          },
+          "spec_auto": {
+            "flecha": 6.0,
+            "otro": 8.0,
+            "dos_lados": true,
+            "typ": true,
+            "paso": "100-300"
+          },
+          "texto": "FILLET 6/8 mm 100-300 TYP",
+          "cuerpos": [
+            "SEGM2_TOP"
+          ],
+          "editado": false
+        },
+        {
+          "id": "SEGM3_TOP",
+          "titulo": "SEGM3 / TOP",
+          "largo": "1467 mm",
+          "clasificacion": "hermetico",
+          "clasificacion_auto": "hermetico",
+          "spec": {
+            "flecha": 6.0,
+            "otro": 8.0,
+            "dos_lados": true,
+            "typ": true,
+            "paso": "100-300"
+          },
+          "spec_auto": {
+            "flecha": 6.0,
+            "otro": 8.0,
+            "dos_lados": true,
+            "typ": true,
+            "paso": "100-300"
+          },
+          "texto": "FILLET 6/8 mm 100-300 TYP",
+          "cuerpos": [
+            "SEGM3_TOP"
+          ],
+          "editado": false
+        },
+        {
+          "id": "SEGM4_TOP",
+          "titulo": "SEGM4 / TOP",
+          "largo": "1000 mm",
+          "clasificacion": "hermetico",
+          "clasificacion_auto": "hermetico",
+          "spec": {
+            "flecha": 6.0,
+            "otro": 8.0,
+            "dos_lados": true,
+            "typ": true,
+            "paso": "100-300"
+          },
+          "spec_auto": {
+            "flecha": 6.0,
+            "otro": 8.0,
+            "dos_lados": true,
+            "typ": true,
+            "paso": "100-300"
+          },
+          "texto": "FILLET 6/8 mm 100-300 TYP",
+          "cuerpos": [
+            "SEGM4_TOP"
+          ],
+          "editado": false
+        },
+        {
+          "id": "SEGM1_SEGM2",
+          "titulo": "SEGM1 / SEGM2",
+          "largo": "1908 mm",
+          "clasificacion": "hermetico",
+          "clasificacion_auto": "hermetico",
+          "spec": {
+            "flecha": 6.0,
+            "otro": 6.0,
+            "dos_lados": true,
+            "typ": true,
+            "paso": "100-300"
+          },
+          "spec_auto": {
+            "flecha": 6.0,
+            "otro": 6.0,
+            "dos_lados": true,
+            "typ": true,
+            "paso": "100-300"
+          },
+          "texto": "FILLET 6 mm 2SIDES 100-300 TYP",
+          "cuerpos": [
+            "SEGM1_SEGM2"
+          ],
+          "editado": false
+        },
+        {
+          "id": "SEGM2_SEGM3",
+          "titulo": "SEGM2 / SEGM3",
+          "largo": "1908 mm",
+          "clasificacion": "hermetico",
+          "clasificacion_auto": "hermetico",
+          "spec": {
+            "flecha": 6.0,
+            "otro": 6.0,
+            "dos_lados": true,
+            "typ": true,
+            "paso": "100-300"
+          },
+          "spec_auto": {
+            "flecha": 6.0,
+            "otro": 6.0,
+            "dos_lados": true,
+            "typ": true,
+            "paso": "100-300"
+          },
+          "texto": "FILLET 6 mm 2SIDES 100-300 TYP",
+          "cuerpos": [
+            "SEGM2_SEGM3"
+          ],
+          "editado": false
+        },
+        {
+          "id": "SEGM3_SEGM4",
+          "titulo": "SEGM3 / SEGM4",
+          "largo": "1908 mm",
+          "clasificacion": "hermetico",
+          "clasificacion_auto": "hermetico",
+          "spec": {
+            "flecha": 6.0,
+            "otro": 6.0,
+            "dos_lados": true,
+            "typ": true,
+            "paso": "100-300"
+          },
+          "spec_auto": {
+            "flecha": 6.0,
+            "otro": 6.0,
+            "dos_lados": true,
+            "typ": true,
+            "paso": "100-300"
+          },
+          "texto": "FILLET 6 mm 2SIDES 100-300 TYP",
+          "cuerpos": [
+            "SEGM3_SEGM4"
+          ],
+          "editado": false
+        },
+        {
+          "id": "SEGM1_SEGM4",
+          "titulo": "SEGM1 / SEGM4",
+          "largo": "1908 mm",
+          "clasificacion": "hermetico",
+          "clasificacion_auto": "hermetico",
+          "spec": {
+            "flecha": 6.0,
+            "otro": 6.0,
+            "dos_lados": true,
+            "typ": true,
+            "paso": "100-300"
+          },
+          "spec_auto": {
+            "flecha": 6.0,
+            "otro": 6.0,
+            "dos_lados": true,
+            "typ": true,
+            "paso": "100-300"
+          },
+          "texto": "FILLET 6 mm 2SIDES 100-300 TYP",
+          "cuerpos": [
+            "SEGM1_SEGM4"
+          ],
+          "editado": false
+        },
+        {
+          "id": "TOP_9",
+          "titulo": "TOP / 9",
+          "largo": "686 mm",
+          "clasificacion": "accesorio",
+          "clasificacion_auto": "accesorio",
+          "spec": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "spec_auto": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "texto": "FILLET 6 mm TYP",
+          "cuerpos": [
+            "TOP_9",
+            "TOP_9_2"
+          ],
+          "editado": false
+        },
+        {
+          "id": "TOP_28",
+          "titulo": "TOP / 28",
+          "largo": "89 mm",
+          "clasificacion": "accesorio",
+          "clasificacion_auto": "accesorio",
+          "spec": {
+            "flecha": 5.0,
+            "otro": 5.0,
+            "dos_lados": true,
+            "typ": false,
+            "paso": ""
+          },
+          "spec_auto": {
+            "flecha": 5.0,
+            "otro": 5.0,
+            "dos_lados": true,
+            "typ": false,
+            "paso": ""
+          },
+          "texto": "FILLET 5 mm 2SIDES",
+          "cuerpos": [
+            "TOP_28",
+            "TOP_28_2",
+            "TOP_28_3",
+            "TOP_28_4"
+          ],
+          "editado": false
+        },
+        {
+          "id": "TOP_31",
+          "titulo": "TOP / 31",
+          "largo": "610 mm",
+          "clasificacion": "accesorio",
+          "clasificacion_auto": "accesorio",
+          "spec": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "spec_auto": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "texto": "FILLET 6 mm TYP",
+          "cuerpos": [
+            "TOP_31",
+            "TOP_31_2",
+            "TOP_31_3",
+            "TOP_31_4",
+            "TOP_31_5",
+            "TOP_31_6",
+            "TOP_31_7",
+            "TOP_31_8"
+          ],
+          "editado": false
+        },
+        {
+          "id": "TOP_32",
+          "titulo": "TOP / 32",
+          "largo": "610 mm",
+          "clasificacion": "accesorio",
+          "clasificacion_auto": "accesorio",
+          "spec": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "spec_auto": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "texto": "FILLET 6 mm TYP",
+          "cuerpos": [
+            "TOP_32",
+            "TOP_32_2",
+            "TOP_32_3",
+            "TOP_32_4",
+            "TOP_32_5",
+            "TOP_32_6",
+            "TOP_32_7",
+            "TOP_32_8"
+          ],
+          "editado": false
+        },
+        {
+          "id": "BASE_51",
+          "titulo": "BASE / 51",
+          "largo": "1286 mm",
+          "clasificacion": "accesorio",
+          "clasificacion_auto": "accesorio",
+          "spec": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "spec_auto": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "texto": "FILLET 6 mm TYP",
+          "cuerpos": [
+            "BASE_51",
+            "BASE_51_2"
+          ],
+          "editado": false
+        },
+        {
+          "id": "BASE_52",
+          "titulo": "BASE / 52",
+          "largo": "1286 mm",
+          "clasificacion": "accesorio",
+          "clasificacion_auto": "accesorio",
+          "spec": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "spec_auto": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "texto": "FILLET 6 mm TYP",
+          "cuerpos": [
+            "BASE_52",
+            "BASE_52_2"
+          ],
+          "editado": false
+        },
+        {
+          "id": "BASE_53",
+          "titulo": "BASE / 53",
+          "largo": "1168 mm",
+          "clasificacion": "accesorio",
+          "clasificacion_auto": "accesorio",
+          "spec": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "spec_auto": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "texto": "FILLET 6 mm TYP",
+          "cuerpos": [
+            "BASE_53"
+          ],
+          "editado": false
+        },
+        {
+          "id": "BASE_62",
+          "titulo": "BASE / 62",
+          "largo": "1168 mm",
+          "clasificacion": "accesorio",
+          "clasificacion_auto": "accesorio",
+          "spec": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "spec_auto": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "texto": "FILLET 6 mm TYP",
+          "cuerpos": [
+            "BASE_62"
+          ],
+          "editado": false
+        },
+        {
+          "id": "SEGM1_16",
+          "titulo": "SEGM1 / 16",
+          "largo": "41 mm",
+          "clasificacion": "accesorio",
+          "clasificacion_auto": "accesorio",
+          "spec": {
+            "flecha": 3.0,
+            "otro": 3.0,
+            "dos_lados": true,
+            "typ": true,
+            "paso": ""
+          },
+          "spec_auto": {
+            "flecha": 3.0,
+            "otro": 3.0,
+            "dos_lados": true,
+            "typ": true,
+            "paso": ""
+          },
+          "texto": "FILLET 3 mm 2SIDES TYP",
+          "cuerpos": [
+            "SEGM1_16"
+          ],
+          "editado": false
+        },
+        {
+          "id": "SEGM1_19",
+          "titulo": "SEGM1 / 19",
+          "largo": "46 mm",
+          "clasificacion": "accesorio",
+          "clasificacion_auto": "accesorio",
+          "spec": {
+            "flecha": 3.0,
+            "otro": 3.0,
+            "dos_lados": true,
+            "typ": true,
+            "paso": ""
+          },
+          "spec_auto": {
+            "flecha": 3.0,
+            "otro": 3.0,
+            "dos_lados": true,
+            "typ": true,
+            "paso": ""
+          },
+          "texto": "FILLET 3 mm 2SIDES TYP",
+          "cuerpos": [
+            "SEGM1_19"
+          ],
+          "editado": false
+        },
+        {
+          "id": "SEGM1_21",
+          "titulo": "SEGM1 / 21",
+          "largo": "45 mm",
+          "clasificacion": "accesorio",
+          "clasificacion_auto": "accesorio",
+          "spec": {
+            "flecha": 3.0,
+            "otro": 3.0,
+            "dos_lados": true,
+            "typ": true,
+            "paso": ""
+          },
+          "spec_auto": {
+            "flecha": 3.0,
+            "otro": 3.0,
+            "dos_lados": true,
+            "typ": true,
+            "paso": ""
+          },
+          "texto": "FILLET 3 mm 2SIDES TYP",
+          "cuerpos": [
+            "SEGM1_21"
+          ],
+          "editado": false
+        },
+        {
+          "id": "SEGM1_25",
+          "titulo": "SEGM1 / 25",
+          "largo": "60 mm",
+          "clasificacion": "accesorio",
+          "clasificacion_auto": "accesorio",
+          "spec": {
+            "flecha": 3.0,
+            "otro": 3.0,
+            "dos_lados": true,
+            "typ": true,
+            "paso": ""
+          },
+          "spec_auto": {
+            "flecha": 3.0,
+            "otro": 3.0,
+            "dos_lados": true,
+            "typ": true,
+            "paso": ""
+          },
+          "texto": "FILLET 3 mm 2SIDES TYP",
+          "cuerpos": [
+            "SEGM1_25"
+          ],
+          "editado": false
+        },
+        {
+          "id": "SEGM1_26",
+          "titulo": "SEGM1 / 26",
+          "largo": "1295 mm",
+          "clasificacion": "accesorio",
+          "clasificacion_auto": "accesorio",
+          "spec": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "spec_auto": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "texto": "FILLET 6 mm TYP",
+          "cuerpos": [
+            "SEGM1_26",
+            "SEGM1_26_2"
+          ],
+          "editado": false
+        },
+        {
+          "id": "SEGM1_33",
+          "titulo": "SEGM1 / 33",
+          "largo": "680 mm",
+          "clasificacion": "accesorio",
+          "clasificacion_auto": "accesorio",
+          "spec": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "spec_auto": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "texto": "FILLET 6 mm TYP",
+          "cuerpos": [
+            "SEGM1_33",
+            "SEGM1_33_2",
+            "SEGM1_33_3",
+            "SEGM1_33_4"
+          ],
+          "editado": false
+        },
+        {
+          "id": "SEGM1_36",
+          "titulo": "SEGM1 / 36",
+          "largo": "178 mm",
+          "clasificacion": "accesorio",
+          "clasificacion_auto": "accesorio",
+          "spec": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "spec_auto": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "texto": "FILLET 6 mm TYP",
+          "cuerpos": [
+            "SEGM1_36",
+            "SEGM1_36_2",
+            "SEGM1_36_3",
+            "SEGM1_36_4"
+          ],
+          "editado": false
+        },
+        {
+          "id": "SEGM1_39",
+          "titulo": "SEGM1 / 39",
+          "largo": "178 mm",
+          "clasificacion": "accesorio",
+          "clasificacion_auto": "accesorio",
+          "spec": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "spec_auto": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "texto": "FILLET 6 mm TYP",
+          "cuerpos": [
+            "SEGM1_39",
+            "SEGM1_39_2"
+          ],
+          "editado": false
+        },
+        {
+          "id": "SEGM1_49",
+          "titulo": "SEGM1 / 49",
+          "largo": "38 mm",
+          "clasificacion": "accesorio",
+          "clasificacion_auto": "accesorio",
+          "spec": {
+            "flecha": 3.0,
+            "otro": 3.0,
+            "dos_lados": true,
+            "typ": true,
+            "paso": ""
+          },
+          "spec_auto": {
+            "flecha": 3.0,
+            "otro": 3.0,
+            "dos_lados": true,
+            "typ": true,
+            "paso": ""
+          },
+          "texto": "FILLET 3 mm 2SIDES TYP",
+          "cuerpos": [
+            "SEGM1_49"
+          ],
+          "editado": false
+        },
+        {
+          "id": "SEGM1_67",
+          "titulo": "SEGM1 / 67",
+          "largo": "38 mm",
+          "clasificacion": "accesorio",
+          "clasificacion_auto": "accesorio",
+          "spec": {
+            "flecha": 3.0,
+            "otro": 3.0,
+            "dos_lados": true,
+            "typ": true,
+            "paso": ""
+          },
+          "spec_auto": {
+            "flecha": 3.0,
+            "otro": 3.0,
+            "dos_lados": true,
+            "typ": true,
+            "paso": ""
+          },
+          "texto": "FILLET 3 mm 2SIDES TYP",
+          "cuerpos": [
+            "SEGM1_67"
+          ],
+          "editado": false
+        },
+        {
+          "id": "SEGM1_68",
+          "titulo": "SEGM1 / 68",
+          "largo": "44 mm",
+          "clasificacion": "accesorio",
+          "clasificacion_auto": "accesorio",
+          "spec": {
+            "flecha": 3.0,
+            "otro": 3.0,
+            "dos_lados": true,
+            "typ": true,
+            "paso": ""
+          },
+          "spec_auto": {
+            "flecha": 3.0,
+            "otro": 3.0,
+            "dos_lados": true,
+            "typ": true,
+            "paso": ""
+          },
+          "texto": "FILLET 3 mm 2SIDES TYP",
+          "cuerpos": [
+            "SEGM1_68"
+          ],
+          "editado": false
+        },
+        {
+          "id": "SEGM1_71",
+          "titulo": "SEGM1 / 71",
+          "largo": "229 mm",
+          "clasificacion": "accesorio",
+          "clasificacion_auto": "accesorio",
+          "spec": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "spec_auto": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "texto": "FILLET 6 mm TYP",
+          "cuerpos": [
+            "SEGM1_71",
+            "SEGM1_71_2"
+          ],
+          "editado": false
+        },
+        {
+          "id": "SEGM1_73",
+          "titulo": "SEGM1 / 73",
+          "largo": "229 mm",
+          "clasificacion": "accesorio",
+          "clasificacion_auto": "accesorio",
+          "spec": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "spec_auto": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "texto": "FILLET 6 mm TYP",
+          "cuerpos": [
+            "SEGM1_73",
+            "SEGM1_73_2"
+          ],
+          "editado": false
+        },
+        {
+          "id": "SEGM1_76",
+          "titulo": "SEGM1 / 76",
+          "largo": "89 mm",
+          "clasificacion": "accesorio",
+          "clasificacion_auto": "accesorio",
+          "spec": {
+            "flecha": 5.0,
+            "otro": 5.0,
+            "dos_lados": true,
+            "typ": false,
+            "paso": ""
+          },
+          "spec_auto": {
+            "flecha": 5.0,
+            "otro": 5.0,
+            "dos_lados": true,
+            "typ": false,
+            "paso": ""
+          },
+          "texto": "FILLET 5 mm 2SIDES",
+          "cuerpos": [
+            "SEGM1_76",
+            "SEGM1_76_2",
+            "SEGM1_76_3",
+            "SEGM1_76_4"
+          ],
+          "editado": false
+        },
+        {
+          "id": "SEGM1_77",
+          "titulo": "SEGM1 / 77",
+          "largo": "35 mm",
+          "clasificacion": "accesorio",
+          "clasificacion_auto": "accesorio",
+          "spec": {
+            "flecha": 3.0,
+            "otro": 3.0,
+            "dos_lados": true,
+            "typ": true,
+            "paso": ""
+          },
+          "spec_auto": {
+            "flecha": 3.0,
+            "otro": 3.0,
+            "dos_lados": true,
+            "typ": true,
+            "paso": ""
+          },
+          "texto": "FILLET 3 mm 2SIDES TYP",
+          "cuerpos": [
+            "SEGM1_77"
+          ],
+          "editado": false
+        },
+        {
+          "id": "SEGM1_82",
+          "titulo": "SEGM1 / 82",
+          "largo": "1295 mm",
+          "clasificacion": "accesorio",
+          "clasificacion_auto": "accesorio",
+          "spec": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "spec_auto": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "texto": "FILLET 6 mm TYP",
+          "cuerpos": [
+            "SEGM1_82",
+            "SEGM1_82_2"
+          ],
+          "editado": false
+        },
+        {
+          "id": "SEGM1_84",
+          "titulo": "SEGM1 / 84",
+          "largo": "1295 mm",
+          "clasificacion": "accesorio",
+          "clasificacion_auto": "accesorio",
+          "spec": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "spec_auto": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "texto": "FILLET 6 mm TYP",
+          "cuerpos": [
+            "SEGM1_84",
+            "SEGM1_84_2"
+          ],
+          "editado": false
+        },
+        {
+          "id": "SEGM2_78",
+          "titulo": "SEGM2 / 78",
+          "largo": "864 mm",
+          "clasificacion": "accesorio",
+          "clasificacion_auto": "accesorio",
+          "spec": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "spec_auto": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "texto": "FILLET 6 mm TYP",
+          "cuerpos": [
+            "SEGM2_78",
+            "SEGM2_78_2"
+          ],
+          "editado": false
+        },
+        {
+          "id": "SEGM2_79",
+          "titulo": "SEGM2 / 79",
+          "largo": "864 mm",
+          "clasificacion": "accesorio",
+          "clasificacion_auto": "accesorio",
+          "spec": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "spec_auto": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "texto": "FILLET 6 mm TYP",
+          "cuerpos": [
+            "SEGM2_79",
+            "SEGM2_79_2"
+          ],
+          "editado": false
+        },
+        {
+          "id": "SEGM2_81",
+          "titulo": "SEGM2 / 81",
+          "largo": "864 mm",
+          "clasificacion": "accesorio",
+          "clasificacion_auto": "accesorio",
+          "spec": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "spec_auto": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "texto": "FILLET 6 mm TYP",
+          "cuerpos": [
+            "SEGM2_81",
+            "SEGM2_81_2"
+          ],
+          "editado": false
+        },
+        {
+          "id": "SEGM3_30",
+          "titulo": "SEGM3 / 30",
+          "largo": "1295 mm",
+          "clasificacion": "accesorio",
+          "clasificacion_auto": "accesorio",
+          "spec": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "spec_auto": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "texto": "FILLET 6 mm TYP",
+          "cuerpos": [
+            "SEGM3_30",
+            "SEGM3_30_2"
+          ],
+          "editado": false
+        },
+        {
+          "id": "SEGM3_44",
+          "titulo": "SEGM3 / 44",
+          "largo": "1295 mm",
+          "clasificacion": "accesorio",
+          "clasificacion_auto": "accesorio",
+          "spec": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "spec_auto": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "texto": "FILLET 6 mm TYP",
+          "cuerpos": [
+            "SEGM3_44",
+            "SEGM3_44_2"
+          ],
+          "editado": false
+        },
+        {
+          "id": "SEGM3_45",
+          "titulo": "SEGM3 / 45",
+          "largo": "1295 mm",
+          "clasificacion": "accesorio",
+          "clasificacion_auto": "accesorio",
+          "spec": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "spec_auto": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "texto": "FILLET 6 mm TYP",
+          "cuerpos": [
+            "SEGM3_45",
+            "SEGM3_45_2"
+          ],
+          "editado": false
+        },
+        {
+          "id": "SEGM3_72",
+          "titulo": "SEGM3 / 72",
+          "largo": "229 mm",
+          "clasificacion": "accesorio",
+          "clasificacion_auto": "accesorio",
+          "spec": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "spec_auto": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "texto": "FILLET 6 mm TYP",
+          "cuerpos": [
+            "SEGM3_72",
+            "SEGM3_72_2"
+          ],
+          "editado": false
+        },
+        {
+          "id": "SEGM3_74",
+          "titulo": "SEGM3 / 74",
+          "largo": "89 mm",
+          "clasificacion": "accesorio",
+          "clasificacion_auto": "accesorio",
+          "spec": {
+            "flecha": 5.0,
+            "otro": 5.0,
+            "dos_lados": true,
+            "typ": false,
+            "paso": ""
+          },
+          "spec_auto": {
+            "flecha": 5.0,
+            "otro": 5.0,
+            "dos_lados": true,
+            "typ": false,
+            "paso": ""
+          },
+          "texto": "FILLET 5 mm 2SIDES",
+          "cuerpos": [
+            "SEGM3_74",
+            "SEGM3_74_2",
+            "SEGM3_74_3",
+            "SEGM3_74_4"
+          ],
+          "editado": false
+        },
+        {
+          "id": "SEGM3_75",
+          "titulo": "SEGM3 / 75",
+          "largo": "229 mm",
+          "clasificacion": "accesorio",
+          "clasificacion_auto": "accesorio",
+          "spec": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "spec_auto": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "texto": "FILLET 6 mm TYP",
+          "cuerpos": [
+            "SEGM3_75",
+            "SEGM3_75_2"
+          ],
+          "editado": false
+        },
+        {
+          "id": "SEGM4_27",
+          "titulo": "SEGM4 / 27",
+          "largo": "864 mm",
+          "clasificacion": "accesorio",
+          "clasificacion_auto": "accesorio",
+          "spec": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "spec_auto": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "texto": "FILLET 6 mm TYP",
+          "cuerpos": [
+            "SEGM4_27",
+            "SEGM4_27_2"
+          ],
+          "editado": false
+        },
+        {
+          "id": "SEGM4_43",
+          "titulo": "SEGM4 / 43",
+          "largo": "813 mm",
+          "clasificacion": "accesorio",
+          "clasificacion_auto": "accesorio",
+          "spec": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "spec_auto": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "texto": "FILLET 6 mm TYP",
+          "cuerpos": [
+            "SEGM4_43",
+            "SEGM4_43_2"
+          ],
+          "editado": false
+        },
+        {
+          "id": "SEGM4_80",
+          "titulo": "SEGM4 / 80",
+          "largo": "864 mm",
+          "clasificacion": "accesorio",
+          "clasificacion_auto": "accesorio",
+          "spec": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "spec_auto": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "texto": "FILLET 6 mm TYP",
+          "cuerpos": [
+            "SEGM4_80",
+            "SEGM4_80_2"
+          ],
+          "editado": false
+        }
+      ]
+    },
+    "c:/users/ing. cano/videos/1500 vantran/261143 vantran/261143 vantran.iam": {
+      "assembly": "C:\\Users\\Ing. Cano\\Videos\\1500 vantran\\261143 VANTRAN\\261143 VANTRAN.iam",
+      "cordones": [
+        {
+          "id": "SEGM1_BASE",
+          "titulo": "SEGM1 / BASE",
+          "largo": "1594 mm",
+          "clasificacion": "hermetico",
+          "clasificacion_auto": "hermetico",
+          "spec": {
+            "flecha": 6.0,
+            "otro": 8.0,
+            "dos_lados": true,
+            "typ": true,
+            "paso": "100-300"
+          },
+          "spec_auto": {
+            "flecha": 6.0,
+            "otro": 8.0,
+            "dos_lados": true,
+            "typ": true,
+            "paso": "100-300"
+          },
+          "texto": "FILLET 6/8 mm 100-300 TYP",
+          "cuerpos": [
+            "SEGM1_BASE"
+          ],
+          "editado": true
+        },
+        {
+          "id": "SEGM2_BASE",
+          "titulo": "SEGM2 / BASE",
+          "largo": "899 mm",
+          "clasificacion": "hermetico",
+          "clasificacion_auto": "hermetico",
+          "spec": {
+            "flecha": 6.0,
+            "otro": 8.0,
+            "dos_lados": true,
+            "typ": true,
+            "paso": "100-300"
+          },
+          "spec_auto": {
+            "flecha": 6.0,
+            "otro": 8.0,
+            "dos_lados": true,
+            "typ": true,
+            "paso": "100-300"
+          },
+          "texto": "FILLET 6/8 mm 100-300 TYP",
+          "cuerpos": [
+            "SEGM2_BASE"
+          ],
+          "editado": false
+        },
+        {
+          "id": "SEGM3_BASE",
+          "titulo": "SEGM3 / BASE",
+          "largo": "813 mm",
+          "clasificacion": "hermetico",
+          "clasificacion_auto": "hermetico",
+          "spec": {
+            "flecha": 6.0,
+            "otro": 8.0,
+            "dos_lados": true,
+            "typ": true,
+            "paso": "100-300"
+          },
+          "spec_auto": {
+            "flecha": 6.0,
+            "otro": 8.0,
+            "dos_lados": true,
+            "typ": true,
+            "paso": "100-300"
+          },
+          "texto": "FILLET 6/8 mm 100-300 TYP",
+          "cuerpos": [
+            "SEGM3_BASE"
+          ],
+          "editado": false
+        },
+        {
+          "id": "SEGM4_BASE",
+          "titulo": "SEGM4 / BASE",
+          "largo": "899 mm",
+          "clasificacion": "hermetico",
+          "clasificacion_auto": "hermetico",
+          "spec": {
+            "flecha": 6.0,
+            "otro": 8.0,
+            "dos_lados": true,
+            "typ": true,
+            "paso": "100-300"
+          },
+          "spec_auto": {
+            "flecha": 6.0,
+            "otro": 8.0,
+            "dos_lados": true,
+            "typ": true,
+            "paso": "100-300"
+          },
+          "texto": "FILLET 6/8 mm 100-300 TYP",
+          "cuerpos": [
+            "SEGM4_BASE"
+          ],
+          "editado": false
+        },
+        {
+          "id": "SEGM1_TOP",
+          "titulo": "SEGM1 / TOP",
+          "largo": "1594 mm",
+          "clasificacion": "hermetico",
+          "clasificacion_auto": "hermetico",
+          "spec": {
+            "flecha": 6.0,
+            "otro": 8.0,
+            "dos_lados": true,
+            "typ": true,
+            "paso": "100-300"
+          },
+          "spec_auto": {
+            "flecha": 6.0,
+            "otro": 8.0,
+            "dos_lados": true,
+            "typ": true,
+            "paso": "100-300"
+          },
+          "texto": "FILLET 6/8 mm 100-300 TYP",
+          "cuerpos": [
+            "SEGM1_TOP"
+          ],
+          "editado": false
+        },
+        {
+          "id": "SEGM2_TOP",
+          "titulo": "SEGM2 / TOP",
+          "largo": "899 mm",
+          "clasificacion": "hermetico",
+          "clasificacion_auto": "hermetico",
+          "spec": {
+            "flecha": 6.0,
+            "otro": 8.0,
+            "dos_lados": true,
+            "typ": true,
+            "paso": "100-300"
+          },
+          "spec_auto": {
+            "flecha": 6.0,
+            "otro": 8.0,
+            "dos_lados": true,
+            "typ": true,
+            "paso": "100-300"
+          },
+          "texto": "FILLET 6/8 mm 100-300 TYP",
+          "cuerpos": [
+            "SEGM2_TOP"
+          ],
+          "editado": false
+        },
+        {
+          "id": "SEGM3_TOP",
+          "titulo": "SEGM3 / TOP",
+          "largo": "821 mm",
+          "clasificacion": "hermetico",
+          "clasificacion_auto": "hermetico",
+          "spec": {
+            "flecha": 6.0,
+            "otro": 8.0,
+            "dos_lados": true,
+            "typ": true,
+            "paso": "100-300"
+          },
+          "spec_auto": {
+            "flecha": 6.0,
+            "otro": 8.0,
+            "dos_lados": true,
+            "typ": true,
+            "paso": "100-300"
+          },
+          "texto": "FILLET 6/8 mm 100-300 TYP",
+          "cuerpos": [
+            "SEGM3_TOP"
+          ],
+          "editado": false
+        },
+        {
+          "id": "SEGM4_TOP",
+          "titulo": "SEGM4 / TOP",
+          "largo": "899 mm",
+          "clasificacion": "hermetico",
+          "clasificacion_auto": "hermetico",
+          "spec": {
+            "flecha": 6.0,
+            "otro": 8.0,
+            "dos_lados": true,
+            "typ": true,
+            "paso": "100-300"
+          },
+          "spec_auto": {
+            "flecha": 6.0,
+            "otro": 8.0,
+            "dos_lados": true,
+            "typ": true,
+            "paso": "100-300"
+          },
+          "texto": "FILLET 6/8 mm 100-300 TYP",
+          "cuerpos": [
+            "SEGM4_TOP"
+          ],
+          "editado": false
+        },
+        {
+          "id": "SEGM1_SEGM2",
+          "titulo": "SEGM1 / SEGM2",
+          "largo": "1756 mm",
+          "clasificacion": "hermetico",
+          "clasificacion_auto": "hermetico",
+          "spec": {
+            "flecha": 6.0,
+            "otro": 6.0,
+            "dos_lados": true,
+            "typ": true,
+            "paso": "100-300"
+          },
+          "spec_auto": {
+            "flecha": 6.0,
+            "otro": 6.0,
+            "dos_lados": true,
+            "typ": true,
+            "paso": "100-300"
+          },
+          "texto": "FILLET 6 mm 2SIDES 100-300 TYP",
+          "cuerpos": [
+            "SEGM1_SEGM2"
+          ],
+          "editado": false
+        },
+        {
+          "id": "SEGM1_SEGM4",
+          "titulo": "SEGM1 / SEGM4",
+          "largo": "1756 mm",
+          "clasificacion": "hermetico",
+          "clasificacion_auto": "hermetico",
+          "spec": {
+            "flecha": 6.0,
+            "otro": 6.0,
+            "dos_lados": true,
+            "typ": true,
+            "paso": "100-300"
+          },
+          "spec_auto": {
+            "flecha": 6.0,
+            "otro": 6.0,
+            "dos_lados": true,
+            "typ": true,
+            "paso": "100-300"
+          },
+          "texto": "FILLET 6 mm 2SIDES 100-300 TYP",
+          "cuerpos": [
+            "SEGM1_SEGM4"
+          ],
+          "editado": false
+        },
+        {
+          "id": "TOP_IP Build Up-16X30_57",
+          "titulo": "TOP / IP Build Up-16X30_57",
+          "largo": "762 mm",
+          "clasificacion": "accesorio",
+          "clasificacion_auto": "accesorio",
+          "spec": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "spec_auto": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "texto": "FILLET 6 mm TYP",
+          "cuerpos": [
+            "TOP_IP_Build_Up-16X30_57",
+            "TOP_IP_Build_Up-16X30_57_2",
+            "TOP_IP_Build_Up-16X30_57_3",
+            "TOP_IP_Build_Up-16X30_57_4",
+            "TOP_IP_Build_Up-16X30_57_5",
+            "TOP_IP_Build_Up-16X30_57_6",
+            "TOP_IP_Build_Up-16X30_57_7",
+            "TOP_IP_Build_Up-16X30_57_8"
+          ],
+          "editado": false
+        },
+        {
+          "id": "TOP_IP Build Up-16X30_58",
+          "titulo": "TOP / IP Build Up-16X30_58",
+          "largo": "762 mm",
+          "clasificacion": "accesorio",
+          "clasificacion_auto": "accesorio",
+          "spec": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "spec_auto": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "texto": "FILLET 6 mm TYP",
+          "cuerpos": [
+            "TOP_IP_Build_Up-16X30_58",
+            "TOP_IP_Build_Up-16X30_58_2",
+            "TOP_IP_Build_Up-16X30_58_3",
+            "TOP_IP_Build_Up-16X30_58_4",
+            "TOP_IP_Build_Up-16X30_58_5",
+            "TOP_IP_Build_Up-16X30_58_6",
+            "TOP_IP_Build_Up-16X30_58_7",
+            "TOP_IP_Build_Up-16X30_58_8"
+          ],
+          "editado": false
+        },
+        {
+          "id": "SEGM1_Pipe Flange .5_19",
+          "titulo": "SEGM1 / Pipe Flange .5_19",
+          "largo": "61 mm",
+          "clasificacion": "accesorio",
+          "clasificacion_auto": "accesorio",
+          "spec": {
+            "flecha": 3.0,
+            "otro": 3.0,
+            "dos_lados": true,
+            "typ": true,
+            "paso": ""
+          },
+          "spec_auto": {
+            "flecha": 3.0,
+            "otro": 3.0,
+            "dos_lados": true,
+            "typ": true,
+            "paso": ""
+          },
+          "texto": "FILLET 3 mm 2SIDES TYP",
+          "cuerpos": [
+            "SEGM1_Pipe_Flange_.5_19"
+          ],
+          "editado": false
+        },
+        {
+          "id": "SEGM1_D3000 Lifting Lug With Chain Retainer_25",
+          "titulo": "SEGM1 / D3000 Lifting Lug With Chain Retainer_25",
+          "largo": "229 mm",
+          "clasificacion": "accesorio",
+          "clasificacion_auto": "accesorio",
+          "spec": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "spec_auto": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "texto": "FILLET 6 mm TYP",
+          "cuerpos": [
+            "SEGM1_D3000_Lifting_Lug_With_Chain_Retainer_25",
+            "SEGM1_D3000_Lifting_Lug_With_Chain_Retainer_25_2"
+          ],
+          "editado": false
+        },
+        {
+          "id": "SEGM1_Pipe Flange 1_26",
+          "titulo": "SEGM1 / Pipe Flange 1_26",
+          "largo": "61 mm",
+          "clasificacion": "accesorio",
+          "clasificacion_auto": "accesorio",
+          "spec": {
+            "flecha": 3.0,
+            "otro": 3.0,
+            "dos_lados": true,
+            "typ": true,
+            "paso": ""
+          },
+          "spec_auto": {
+            "flecha": 3.0,
+            "otro": 3.0,
+            "dos_lados": true,
+            "typ": true,
+            "paso": ""
+          },
+          "texto": "FILLET 3 mm 2SIDES TYP",
+          "cuerpos": [
+            "SEGM1_Pipe_Flange_1_26"
+          ],
+          "editado": false
+        },
+        {
+          "id": "SEGM1_Specialty Switch Boss_27",
+          "titulo": "SEGM1 / Specialty Switch Boss_27",
+          "largo": "48 mm",
+          "clasificacion": "accesorio",
+          "clasificacion_auto": "accesorio",
+          "spec": {
+            "flecha": 3.0,
+            "otro": 3.0,
+            "dos_lados": true,
+            "typ": true,
+            "paso": ""
+          },
+          "spec_auto": {
+            "flecha": 3.0,
+            "otro": 3.0,
+            "dos_lados": true,
+            "typ": true,
+            "paso": ""
+          },
+          "texto": "FILLET 3 mm 2SIDES TYP",
+          "cuerpos": [
+            "SEGM1_Specialty_Switch_Boss_27"
+          ],
+          "editado": false
+        },
+        {
+          "id": "SEGM1_D3000 Lifting Lug With Chain Retainer_30",
+          "titulo": "SEGM1 / D3000 Lifting Lug With Chain Retainer_30",
+          "largo": "229 mm",
+          "clasificacion": "accesorio",
+          "clasificacion_auto": "accesorio",
+          "spec": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "spec_auto": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "texto": "FILLET 6 mm TYP",
+          "cuerpos": [
+            "SEGM1_D3000_Lifting_Lug_With_Chain_Retainer_30",
+            "SEGM1_D3000_Lifting_Lug_With_Chain_Retainer_30_2"
+          ],
+          "editado": false
+        },
+        {
+          "id": "SEGM1_Pipe Flange .25_31",
+          "titulo": "SEGM1 / Pipe Flange .25_31",
+          "largo": "38 mm",
+          "clasificacion": "accesorio",
+          "clasificacion_auto": "accesorio",
+          "spec": {
+            "flecha": 3.0,
+            "otro": 3.0,
+            "dos_lados": true,
+            "typ": true,
+            "paso": ""
+          },
+          "spec_auto": {
+            "flecha": 3.0,
+            "otro": 3.0,
+            "dos_lados": true,
+            "typ": true,
+            "paso": ""
+          },
+          "texto": "FILLET 3 mm 2SIDES TYP",
+          "cuerpos": [
+            "SEGM1_Pipe_Flange_.25_31"
+          ],
+          "editado": false
+        },
+        {
+          "id": "SEGM1_Ground Pad, 316LSS, 2X3.5_32",
+          "titulo": "SEGM1 / Ground Pad, 316LSS, 2X3.5_32",
+          "largo": "89 mm",
+          "clasificacion": "accesorio",
+          "clasificacion_auto": "accesorio",
+          "spec": {
+            "flecha": 5.0,
+            "otro": 5.0,
+            "dos_lados": true,
+            "typ": false,
+            "paso": ""
+          },
+          "spec_auto": {
+            "flecha": 5.0,
+            "otro": 5.0,
+            "dos_lados": true,
+            "typ": false,
+            "paso": ""
+          },
+          "texto": "FILLET 5 mm 2SIDES",
+          "cuerpos": [
+            "SEGM1_Ground_Pad__316LSS__2X3.5_32",
+            "SEGM1_Ground_Pad__316LSS__2X3.5_32_2",
+            "SEGM1_Ground_Pad__316LSS__2X3.5_32_3",
+            "SEGM1_Ground_Pad__316LSS__2X3.5_32_4"
+          ],
+          "editado": false
+        },
+        {
+          "id": "SEGM1_261143__Stand Off Bracket 26X24_43",
+          "titulo": "SEGM1 / 261143__Stand Off Bracket 26X24_43",
+          "largo": "803 mm",
+          "clasificacion": "accesorio",
+          "clasificacion_auto": "accesorio",
+          "spec": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "spec_auto": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "texto": "FILLET 6 mm TYP",
+          "cuerpos": [
+            "SEGM1_261143__Stand_Off_Bracket_26X24_43",
+            "SEGM1_261143__Stand_Off_Bracket_26X24_43_2",
+            "SEGM1_261143__Stand_Off_Bracket_26X24_43_3",
+            "SEGM1_261143__Stand_Off_Bracket_26X24_43_4"
+          ],
+          "editado": false
+        },
+        {
+          "id": "SEGM1_261143__Brace-Front_44",
+          "titulo": "SEGM1 / 261143__Brace-Front_44",
+          "largo": "1422 mm",
+          "clasificacion": "accesorio",
+          "clasificacion_auto": "accesorio",
+          "spec": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "spec_auto": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "texto": "FILLET 6 mm TYP",
+          "cuerpos": [
+            "SEGM1_261143__Brace-Front_44",
+            "SEGM1_261143__Brace-Front_44_2"
+          ],
+          "editado": false
+        },
+        {
+          "id": "SEGM1_1 Pipe Half Nipple_45",
+          "titulo": "SEGM1 / 1 Pipe Half Nipple_45",
+          "largo": "32 mm",
+          "clasificacion": "accesorio",
+          "clasificacion_auto": "accesorio",
+          "spec": {
+            "flecha": 3.0,
+            "otro": 3.0,
+            "dos_lados": true,
+            "typ": true,
+            "paso": ""
+          },
+          "spec_auto": {
+            "flecha": 3.0,
+            "otro": 3.0,
+            "dos_lados": true,
+            "typ": true,
+            "paso": ""
+          },
+          "texto": "FILLET 3 mm 2SIDES TYP",
+          "cuerpos": [
+            "SEGM1_1_Pipe_Half_Nipple_45"
+          ],
+          "editado": false
+        },
+        {
+          "id": "SEGM1_Boss, Gauge mounting, 8-H_46",
+          "titulo": "SEGM1 / Boss, Gauge mounting, 8-H_46",
+          "largo": "102 mm",
+          "clasificacion": "accesorio",
+          "clasificacion_auto": "accesorio",
+          "spec": {
+            "flecha": 5.0,
+            "otro": 5.0,
+            "dos_lados": true,
+            "typ": false,
+            "paso": ""
+          },
+          "spec_auto": {
+            "flecha": 5.0,
+            "otro": 5.0,
+            "dos_lados": true,
+            "typ": false,
+            "paso": ""
+          },
+          "texto": "FILLET 5 mm 2SIDES",
+          "cuerpos": [
+            "SEGM1_Boss__Gauge_mounting__8-H_46"
+          ],
+          "editado": false
+        },
+        {
+          "id": "SEGM1_Pipe Flange .375_50",
+          "titulo": "SEGM1 / Pipe Flange .375_50",
+          "largo": "41 mm",
+          "clasificacion": "accesorio",
+          "clasificacion_auto": "accesorio",
+          "spec": {
+            "flecha": 3.0,
+            "otro": 3.0,
+            "dos_lados": true,
+            "typ": true,
+            "paso": ""
+          },
+          "spec_auto": {
+            "flecha": 3.0,
+            "otro": 3.0,
+            "dos_lados": true,
+            "typ": true,
+            "paso": ""
+          },
+          "texto": "FILLET 3 mm 2SIDES TYP",
+          "cuerpos": [
+            "SEGM1_Pipe_Flange_.375_50"
+          ],
+          "editado": false
+        },
+        {
+          "id": "SEGM1_Pipe Flange 1_52",
+          "titulo": "SEGM1 / Pipe Flange 1_52",
+          "largo": "60 mm",
+          "clasificacion": "accesorio",
+          "clasificacion_auto": "accesorio",
+          "spec": {
+            "flecha": 3.0,
+            "otro": 3.0,
+            "dos_lados": true,
+            "typ": true,
+            "paso": ""
+          },
+          "spec_auto": {
+            "flecha": 3.0,
+            "otro": 3.0,
+            "dos_lados": true,
+            "typ": true,
+            "paso": ""
+          },
+          "texto": "FILLET 3 mm 2SIDES TYP",
+          "cuerpos": [
+            "SEGM1_Pipe_Flange_1_52"
+          ],
+          "editado": false
+        },
+        {
+          "id": "SEGM1_Boss, Gauge mounting, 8-H_53",
+          "titulo": "SEGM1 / Boss, Gauge mounting, 8-H_53",
+          "largo": "102 mm",
+          "clasificacion": "accesorio",
+          "clasificacion_auto": "accesorio",
+          "spec": {
+            "flecha": 5.0,
+            "otro": 5.0,
+            "dos_lados": true,
+            "typ": false,
+            "paso": ""
+          },
+          "spec_auto": {
+            "flecha": 5.0,
+            "otro": 5.0,
+            "dos_lados": true,
+            "typ": false,
+            "paso": ""
+          },
+          "texto": "FILLET 5 mm 2SIDES",
+          "cuerpos": [
+            "SEGM1_Boss__Gauge_mounting__8-H_53"
+          ],
+          "editado": false
+        },
+        {
+          "id": "SEGM1_Pipe Flange .25_54",
+          "titulo": "SEGM1 / Pipe Flange .25_54",
+          "largo": "38 mm",
+          "clasificacion": "accesorio",
+          "clasificacion_auto": "accesorio",
+          "spec": {
+            "flecha": 3.0,
+            "otro": 3.0,
+            "dos_lados": true,
+            "typ": true,
+            "paso": ""
+          },
+          "spec_auto": {
+            "flecha": 3.0,
+            "otro": 3.0,
+            "dos_lados": true,
+            "typ": true,
+            "paso": ""
+          },
+          "texto": "FILLET 3 mm 2SIDES TYP",
+          "cuerpos": [
+            "SEGM1_Pipe_Flange_.25_54"
+          ],
+          "editado": false
+        },
+        {
+          "id": "SEGM1_Pipe Flange .5_55",
+          "titulo": "SEGM1 / Pipe Flange .5_55",
+          "largo": "46 mm",
+          "clasificacion": "accesorio",
+          "clasificacion_auto": "accesorio",
+          "spec": {
+            "flecha": 3.0,
+            "otro": 3.0,
+            "dos_lados": true,
+            "typ": true,
+            "paso": ""
+          },
+          "spec_auto": {
+            "flecha": 3.0,
+            "otro": 3.0,
+            "dos_lados": true,
+            "typ": true,
+            "paso": ""
+          },
+          "texto": "FILLET 3 mm 2SIDES TYP",
+          "cuerpos": [
+            "SEGM1_Pipe_Flange_.5_55"
+          ],
+          "editado": false
+        },
+        {
+          "id": "SEGM1_VT-4300-Receptical Box Bottom_All Holes_7",
+          "titulo": "SEGM1 / VT-4300-Receptical Box Bottom_All Holes_7",
+          "largo": "223 mm",
+          "clasificacion": "accesorio",
+          "clasificacion_auto": "accesorio",
+          "spec": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "spec_auto": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "texto": "FILLET 6 mm TYP",
+          "cuerpos": [
+            "SEGM1_VT-4300-Receptical_Box_Bottom_All_Holes_7",
+            "SEGM1_VT-4300-Receptical_Box_Bottom_All_Holes_7_2"
+          ],
+          "editado": false
+        },
+        {
+          "id": "SEGM1_VT-4300-Receptical Box Sides_8",
+          "titulo": "SEGM1 / VT-4300-Receptical Box Sides_8",
+          "largo": "223 mm",
+          "clasificacion": "accesorio",
+          "clasificacion_auto": "accesorio",
+          "spec": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "spec_auto": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "texto": "FILLET 6 mm TYP",
+          "cuerpos": [
+            "SEGM1_VT-4300-Receptical_Box_Sides_8",
+            "SEGM1_VT-4300-Receptical_Box_Sides_8_2"
+          ],
+          "editado": false
+        },
+        {
+          "id": "SEGM1_VT-4300-Receptical Box Sides_9",
+          "titulo": "SEGM1 / VT-4300-Receptical Box Sides_9",
+          "largo": "223 mm",
+          "clasificacion": "accesorio",
+          "clasificacion_auto": "accesorio",
+          "spec": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "spec_auto": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "texto": "FILLET 6 mm TYP",
+          "cuerpos": [
+            "SEGM1_VT-4300-Receptical_Box_Sides_9",
+            "SEGM1_VT-4300-Receptical_Box_Sides_9_2"
+          ],
+          "editado": false
+        },
+        {
+          "id": "SEGM1_VT-4300-Receptical Box Top_10",
+          "titulo": "SEGM1 / VT-4300-Receptical Box Top_10",
+          "largo": "223 mm",
+          "clasificacion": "accesorio",
+          "clasificacion_auto": "accesorio",
+          "spec": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "spec_auto": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "texto": "FILLET 6 mm TYP",
+          "cuerpos": [
+            "SEGM1_VT-4300-Receptical_Box_Top_10",
+            "SEGM1_VT-4300-Receptical_Box_Top_10_2"
+          ],
+          "editado": false
+        },
+        {
+          "id": "SEGM1_Ground Boss_63",
+          "titulo": "SEGM1 / Ground Boss_63",
+          "largo": "34 mm",
+          "clasificacion": "accesorio",
+          "clasificacion_auto": "accesorio",
+          "spec": {
+            "flecha": 3.0,
+            "otro": 3.0,
+            "dos_lados": true,
+            "typ": true,
+            "paso": ""
+          },
+          "spec_auto": {
+            "flecha": 3.0,
+            "otro": 3.0,
+            "dos_lados": true,
+            "typ": true,
+            "paso": ""
+          },
+          "texto": "FILLET 3 mm 2SIDES TYP",
+          "cuerpos": [
+            "SEGM1_Ground_Boss_63"
+          ],
+          "editado": false
+        },
+        {
+          "id": "SEGM1_261143__Brace-Front_66",
+          "titulo": "SEGM1 / 261143__Brace-Front_66",
+          "largo": "1422 mm",
+          "clasificacion": "accesorio",
+          "clasificacion_auto": "accesorio",
+          "spec": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "spec_auto": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "texto": "FILLET 6 mm TYP",
+          "cuerpos": [
+            "SEGM1_261143__Brace-Front_66",
+            "SEGM1_261143__Brace-Front_66_2"
+          ],
+          "editado": false
+        },
+        {
+          "id": "SEGM2_261143__Brace-Side_35",
+          "titulo": "SEGM2 / 261143__Brace-Side_35",
+          "largo": "737 mm",
+          "clasificacion": "accesorio",
+          "clasificacion_auto": "accesorio",
+          "spec": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "spec_auto": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "texto": "FILLET 6 mm TYP",
+          "cuerpos": [
+            "SEGM2_261143__Brace-Side_35",
+            "SEGM2_261143__Brace-Side_35_2"
+          ],
+          "editado": false
+        },
+        {
+          "id": "SEGM2_261143__Brace-Side_68",
+          "titulo": "SEGM2 / 261143__Brace-Side_68",
+          "largo": "737 mm",
+          "clasificacion": "accesorio",
+          "clasificacion_auto": "accesorio",
+          "spec": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "spec_auto": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "texto": "FILLET 6 mm TYP",
+          "cuerpos": [
+            "SEGM2_261143__Brace-Side_68",
+            "SEGM2_261143__Brace-Side_68_2"
+          ],
+          "editado": false
+        },
+        {
+          "id": "SEGM2_261143__Brace-Side_74",
+          "titulo": "SEGM2 / 261143__Brace-Side_74",
+          "largo": "737 mm",
+          "clasificacion": "accesorio",
+          "clasificacion_auto": "accesorio",
+          "spec": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "spec_auto": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "texto": "FILLET 6 mm TYP",
+          "cuerpos": [
+            "SEGM2_261143__Brace-Side_74",
+            "SEGM2_261143__Brace-Side_74_2"
+          ],
+          "editado": false
+        },
+        {
+          "id": "SEGM3_D3000 Lifting Lug With Chain Retainer_28",
+          "titulo": "SEGM3 / D3000 Lifting Lug With Chain Retainer_28",
+          "largo": "229 mm",
+          "clasificacion": "accesorio",
+          "clasificacion_auto": "accesorio",
+          "spec": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "spec_auto": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "texto": "FILLET 6 mm TYP",
+          "cuerpos": [
+            "SEGM3_D3000_Lifting_Lug_With_Chain_Retainer_28",
+            "SEGM3_D3000_Lifting_Lug_With_Chain_Retainer_28_2"
+          ],
+          "editado": false
+        },
+        {
+          "id": "SEGM3_Ground Pad, 316LSS, 2X3.5_29",
+          "titulo": "SEGM3 / Ground Pad, 316LSS, 2X3.5_29",
+          "largo": "89 mm",
+          "clasificacion": "accesorio",
+          "clasificacion_auto": "accesorio",
+          "spec": {
+            "flecha": 5.0,
+            "otro": 5.0,
+            "dos_lados": true,
+            "typ": false,
+            "paso": ""
+          },
+          "spec_auto": {
+            "flecha": 5.0,
+            "otro": 5.0,
+            "dos_lados": true,
+            "typ": false,
+            "paso": ""
+          },
+          "texto": "FILLET 5 mm 2SIDES",
+          "cuerpos": [
+            "SEGM3_Ground_Pad__316LSS__2X3.5_29",
+            "SEGM3_Ground_Pad__316LSS__2X3.5_29_2",
+            "SEGM3_Ground_Pad__316LSS__2X3.5_29_3",
+            "SEGM3_Ground_Pad__316LSS__2X3.5_29_4"
+          ],
+          "editado": false
+        },
+        {
+          "id": "SEGM3_D3000 Lifting Lug With Chain Retainer_33",
+          "titulo": "SEGM3 / D3000 Lifting Lug With Chain Retainer_33",
+          "largo": "229 mm",
+          "clasificacion": "accesorio",
+          "clasificacion_auto": "accesorio",
+          "spec": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "spec_auto": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "texto": "FILLET 6 mm TYP",
+          "cuerpos": [
+            "SEGM3_D3000_Lifting_Lug_With_Chain_Retainer_33",
+            "SEGM3_D3000_Lifting_Lug_With_Chain_Retainer_33_2"
+          ],
+          "editado": false
+        },
+        {
+          "id": "SEGM3_261143__Brace-Front_49",
+          "titulo": "SEGM3 / 261143__Brace-Front_49",
+          "largo": "1422 mm",
+          "clasificacion": "accesorio",
+          "clasificacion_auto": "accesorio",
+          "spec": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "spec_auto": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "texto": "FILLET 6 mm TYP",
+          "cuerpos": [
+            "SEGM3_261143__Brace-Front_49",
+            "SEGM3_261143__Brace-Front_49_2"
+          ],
+          "editado": false
+        },
+        {
+          "id": "SEGM3_261143__Brace-Front_67",
+          "titulo": "SEGM3 / 261143__Brace-Front_67",
+          "largo": "1422 mm",
+          "clasificacion": "accesorio",
+          "clasificacion_auto": "accesorio",
+          "spec": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "spec_auto": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "texto": "FILLET 6 mm TYP",
+          "cuerpos": [
+            "SEGM3_261143__Brace-Front_67",
+            "SEGM3_261143__Brace-Front_67_2"
+          ],
+          "editado": false
+        },
+        {
+          "id": "SEGM3_261143__Brace-Front_73",
+          "titulo": "SEGM3 / 261143__Brace-Front_73",
+          "largo": "1422 mm",
+          "clasificacion": "accesorio",
+          "clasificacion_auto": "accesorio",
+          "spec": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "spec_auto": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "texto": "FILLET 6 mm TYP",
+          "cuerpos": [
+            "SEGM3_261143__Brace-Front_73",
+            "SEGM3_261143__Brace-Front_73_2"
+          ],
+          "editado": false
+        },
+        {
+          "id": "SEGM4_261143__Patch-LV Bushing Patch_34",
+          "titulo": "SEGM4 / 261143__Patch-LV Bushing Patch_34",
+          "largo": "635 mm",
+          "clasificacion": "accesorio",
+          "clasificacion_auto": "accesorio",
+          "spec": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "spec_auto": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "texto": "FILLET 6 mm TYP",
+          "cuerpos": [
+            "SEGM4_261143__Patch-LV_Bushing_Patch_34",
+            "SEGM4_261143__Patch-LV_Bushing_Patch_34_2"
+          ],
+          "editado": false
+        },
+        {
+          "id": "SEGM4_261143__Brace-Side_51",
+          "titulo": "SEGM4 / 261143__Brace-Side_51",
+          "largo": "737 mm",
+          "clasificacion": "accesorio",
+          "clasificacion_auto": "accesorio",
+          "spec": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "spec_auto": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "texto": "FILLET 6 mm TYP",
+          "cuerpos": [
+            "SEGM4_261143__Brace-Side_51",
+            "SEGM4_261143__Brace-Side_51_2"
+          ],
+          "editado": false
+        },
+        {
+          "id": "SEGM4_Ground Pad, 316LSS, 2X3.5_65",
+          "titulo": "SEGM4 / Ground Pad, 316LSS, 2X3.5_65",
+          "largo": "89 mm",
+          "clasificacion": "accesorio",
+          "clasificacion_auto": "accesorio",
+          "spec": {
+            "flecha": 5.0,
+            "otro": 5.0,
+            "dos_lados": true,
+            "typ": false,
+            "paso": ""
+          },
+          "spec_auto": {
+            "flecha": 5.0,
+            "otro": 5.0,
+            "dos_lados": true,
+            "typ": false,
+            "paso": ""
+          },
+          "texto": "FILLET 5 mm 2SIDES",
+          "cuerpos": [
+            "SEGM4_Ground_Pad__316LSS__2X3.5_65",
+            "SEGM4_Ground_Pad__316LSS__2X3.5_65_2",
+            "SEGM4_Ground_Pad__316LSS__2X3.5_65_3",
+            "SEGM4_Ground_Pad__316LSS__2X3.5_65_4"
+          ],
+          "editado": false
+        },
+        {
+          "id": "SEGM4_261143__Brace-Side_69",
+          "titulo": "SEGM4 / 261143__Brace-Side_69",
+          "largo": "737 mm",
+          "clasificacion": "accesorio",
+          "clasificacion_auto": "accesorio",
+          "spec": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "spec_auto": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "texto": "FILLET 6 mm TYP",
+          "cuerpos": [
+            "SEGM4_261143__Brace-Side_69",
+            "SEGM4_261143__Brace-Side_69_2"
+          ],
+          "editado": false
+        },
+        {
+          "id": "SEGM4_261143__Brace-Side_71",
+          "titulo": "SEGM4 / 261143__Brace-Side_71",
+          "largo": "737 mm",
+          "clasificacion": "accesorio",
+          "clasificacion_auto": "accesorio",
+          "spec": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "spec_auto": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "texto": "FILLET 6 mm TYP",
+          "cuerpos": [
+            "SEGM4_261143__Brace-Side_71",
+            "SEGM4_261143__Brace-Side_71_2"
+          ],
+          "editado": false
+        },
+        {
+          "id": "BASE_261143_Tank-Base____Default<As Machined>_61",
+          "titulo": "BASE / 261143_Tank-Base____Default<As Machined>_61",
+          "largo": "1542 mm",
+          "clasificacion": "accesorio",
+          "clasificacion_auto": "accesorio",
+          "spec": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "spec_auto": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "texto": "FILLET 6 mm TYP",
+          "cuerpos": [
+            "BASE_261143_Tank-Base____Default_As_Machined__61",
+            "BASE_261143_Tank-Base____Default_As_Machined__61_2",
+            "BASE_261143_Tank-Base____Default_As_Machined__61_3",
+            "BASE_261143_Tank-Base____Default_As_Machined__61_4"
+          ],
+          "editado": false
+        }
+      ]
+    },
+    "c:/users/ing. cano/videos/1500 vantran/261139_tank assembly/261139_tank assembly.iam": {
+      "assembly": "C:\\Users\\Ing. Cano\\Videos\\1500 vantran\\261139_Tank Assembly\\261139_Tank Assembly.iam",
+      "cordones": [
+        {
+          "id": "SEGM1_BASE",
+          "titulo": "SEGM1 / BASE",
+          "largo": "2305 mm",
+          "clasificacion": "hermetico",
+          "clasificacion_auto": "hermetico",
+          "spec": {
+            "flecha": 6.0,
+            "otro": 8.0,
+            "dos_lados": true,
+            "typ": true,
+            "paso": "100-300"
+          },
+          "spec_auto": {
+            "flecha": 6.0,
+            "otro": 8.0,
+            "dos_lados": true,
+            "typ": true,
+            "paso": "100-300"
+          },
+          "texto": "FILLET 6/8 mm 100-300 TYP",
+          "cuerpos": [
+            "SEGM1_BASE"
+          ],
+          "editado": false
+        },
+        {
+          "id": "SEGM2_BASE",
+          "titulo": "SEGM2 / BASE",
+          "largo": "1356 mm",
+          "clasificacion": "hermetico",
+          "clasificacion_auto": "hermetico",
+          "spec": {
+            "flecha": 6.0,
+            "otro": 8.0,
+            "dos_lados": true,
+            "typ": true,
+            "paso": "100-300"
+          },
+          "spec_auto": {
+            "flecha": 6.0,
+            "otro": 8.0,
+            "dos_lados": true,
+            "typ": true,
+            "paso": "100-300"
+          },
+          "texto": "FILLET 6/8 mm 100-300 TYP",
+          "cuerpos": [
+            "SEGM2_BASE"
+          ],
+          "editado": false
+        },
+        {
+          "id": "SEGM3_BASE",
+          "titulo": "SEGM3 / BASE",
+          "largo": "1168 mm",
+          "clasificacion": "hermetico",
+          "clasificacion_auto": "hermetico",
+          "spec": {
+            "flecha": 6.0,
+            "otro": 8.0,
+            "dos_lados": true,
+            "typ": true,
+            "paso": "100-300"
+          },
+          "spec_auto": {
+            "flecha": 6.0,
+            "otro": 8.0,
+            "dos_lados": true,
+            "typ": true,
+            "paso": "100-300"
+          },
+          "texto": "FILLET 6/8 mm 100-300 TYP",
+          "cuerpos": [
+            "SEGM3_BASE"
+          ],
+          "editado": false
+        },
+        {
+          "id": "SEGM4_BASE",
+          "titulo": "SEGM4 / BASE",
+          "largo": "1356 mm",
+          "clasificacion": "hermetico",
+          "clasificacion_auto": "hermetico",
+          "spec": {
+            "flecha": 6.0,
+            "otro": 8.0,
+            "dos_lados": true,
+            "typ": true,
+            "paso": "100-300"
+          },
+          "spec_auto": {
+            "flecha": 6.0,
+            "otro": 8.0,
+            "dos_lados": true,
+            "typ": true,
+            "paso": "100-300"
+          },
+          "texto": "FILLET 6/8 mm 100-300 TYP",
+          "cuerpos": [
+            "SEGM4_BASE"
+          ],
+          "editado": false
+        },
+        {
+          "id": "SEGM2_TOP",
+          "titulo": "SEGM2 / TOP",
+          "largo": "1356 mm",
+          "clasificacion": "hermetico",
+          "clasificacion_auto": "hermetico",
+          "spec": {
+            "flecha": 6.0,
+            "otro": 8.0,
+            "dos_lados": true,
+            "typ": true,
+            "paso": "100-300"
+          },
+          "spec_auto": {
+            "flecha": 6.0,
+            "otro": 8.0,
+            "dos_lados": true,
+            "typ": true,
+            "paso": "100-300"
+          },
+          "texto": "FILLET 6/8 mm 100-300 TYP",
+          "cuerpos": [
+            "SEGM2_TOP"
+          ],
+          "editado": false
+        },
+        {
+          "id": "SEGM3_TOP",
+          "titulo": "SEGM3 / TOP",
+          "largo": "1176 mm",
+          "clasificacion": "hermetico",
+          "clasificacion_auto": "hermetico",
+          "spec": {
+            "flecha": 6.0,
+            "otro": 8.0,
+            "dos_lados": true,
+            "typ": true,
+            "paso": "100-300"
+          },
+          "spec_auto": {
+            "flecha": 6.0,
+            "otro": 8.0,
+            "dos_lados": true,
+            "typ": true,
+            "paso": "100-300"
+          },
+          "texto": "FILLET 6/8 mm 100-300 TYP",
+          "cuerpos": [
+            "SEGM3_TOP"
+          ],
+          "editado": false
+        },
+        {
+          "id": "SEGM1_SEGM2",
+          "titulo": "SEGM1 / SEGM2",
+          "largo": "2061 mm",
+          "clasificacion": "hermetico",
+          "clasificacion_auto": "hermetico",
+          "spec": {
+            "flecha": 6.0,
+            "otro": 6.0,
+            "dos_lados": true,
+            "typ": true,
+            "paso": "100-300"
+          },
+          "spec_auto": {
+            "flecha": 6.0,
+            "otro": 6.0,
+            "dos_lados": true,
+            "typ": true,
+            "paso": "100-300"
+          },
+          "texto": "FILLET 6 mm 2SIDES 100-300 TYP",
+          "cuerpos": [
+            "SEGM1_SEGM2"
+          ],
+          "editado": false
+        },
+        {
+          "id": "SEGM1_SEGM4",
+          "titulo": "SEGM1 / SEGM4",
+          "largo": "2061 mm",
+          "clasificacion": "hermetico",
+          "clasificacion_auto": "hermetico",
+          "spec": {
+            "flecha": 6.0,
+            "otro": 6.0,
+            "dos_lados": true,
+            "typ": true,
+            "paso": "100-300"
+          },
+          "spec_auto": {
+            "flecha": 6.0,
+            "otro": 6.0,
+            "dos_lados": true,
+            "typ": true,
+            "paso": "100-300"
+          },
+          "texto": "FILLET 6 mm 2SIDES 100-300 TYP",
+          "cuerpos": [
+            "SEGM1_SEGM4"
+          ],
+          "editado": false
+        },
+        {
+          "id": "TOP_261139_IP Build Up-16X30_49",
+          "titulo": "TOP / 261139_IP Build Up-16X30_49",
+          "largo": "762 mm",
+          "clasificacion": "accesorio",
+          "clasificacion_auto": "accesorio",
+          "spec": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "spec_auto": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "texto": "FILLET 6 mm TYP",
+          "cuerpos": [
+            "TOP_261139_IP_Build_Up-16X30_49",
+            "TOP_261139_IP_Build_Up-16X30_49_2",
+            "TOP_261139_IP_Build_Up-16X30_49_3",
+            "TOP_261139_IP_Build_Up-16X30_49_4",
+            "TOP_261139_IP_Build_Up-16X30_49_5",
+            "TOP_261139_IP_Build_Up-16X30_49_6",
+            "TOP_261139_IP_Build_Up-16X30_49_7",
+            "TOP_261139_IP_Build_Up-16X30_49_8"
+          ],
+          "editado": false
+        },
+        {
+          "id": "TOP_261139_IP Build Up-16X30_59",
+          "titulo": "TOP / 261139_IP Build Up-16X30_59",
+          "largo": "762 mm",
+          "clasificacion": "accesorio",
+          "clasificacion_auto": "accesorio",
+          "spec": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "spec_auto": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "texto": "FILLET 6 mm TYP",
+          "cuerpos": [
+            "TOP_261139_IP_Build_Up-16X30_59",
+            "TOP_261139_IP_Build_Up-16X30_59_2",
+            "TOP_261139_IP_Build_Up-16X30_59_3",
+            "TOP_261139_IP_Build_Up-16X30_59_4",
+            "TOP_261139_IP_Build_Up-16X30_59_5",
+            "TOP_261139_IP_Build_Up-16X30_59_6",
+            "TOP_261139_IP_Build_Up-16X30_59_7",
+            "TOP_261139_IP_Build_Up-16X30_59_8"
+          ],
+          "editado": false
+        },
+        {
+          "id": "BASE_261139_Tank-Base_Default<As Machined>_16",
+          "titulo": "BASE / 261139_Tank-Base_Default<As Machined>_16",
+          "largo": "2328 mm",
+          "clasificacion": "accesorio",
+          "clasificacion_auto": "accesorio",
+          "spec": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "spec_auto": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "texto": "FILLET 6 mm TYP",
+          "cuerpos": [
+            "BASE_261139_Tank-Base_Default_As_Machined__16",
+            "BASE_261139_Tank-Base_Default_As_Machined__16_2",
+            "BASE_261139_Tank-Base_Default_As_Machined__16_3",
+            "BASE_261139_Tank-Base_Default_As_Machined__16_4"
+          ],
+          "editado": false
+        },
+        {
+          "id": "SEGM1_261139_D3000 Lifting Lug With Chain Retainer_24",
+          "titulo": "SEGM1 / 261139_D3000 Lifting Lug With Chain Retainer_24",
+          "largo": "229 mm",
+          "clasificacion": "accesorio",
+          "clasificacion_auto": "accesorio",
+          "spec": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "spec_auto": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "texto": "FILLET 6 mm TYP",
+          "cuerpos": [
+            "SEGM1_261139_D3000_Lifting_Lug_With_Chain_Retainer_24",
+            "SEGM1_261139_D3000_Lifting_Lug_With_Chain_Retainer_24_2"
+          ],
+          "editado": false
+        },
+        {
+          "id": "SEGM1_Ground Pad, 316LSS, 2X3.5_25",
+          "titulo": "SEGM1 / Ground Pad, 316LSS, 2X3.5_25",
+          "largo": "89 mm",
+          "clasificacion": "accesorio",
+          "clasificacion_auto": "accesorio",
+          "spec": {
+            "flecha": 5.0,
+            "otro": 5.0,
+            "dos_lados": true,
+            "typ": false,
+            "paso": ""
+          },
+          "spec_auto": {
+            "flecha": 5.0,
+            "otro": 5.0,
+            "dos_lados": true,
+            "typ": false,
+            "paso": ""
+          },
+          "texto": "FILLET 5 mm 2SIDES",
+          "cuerpos": [
+            "SEGM1_Ground_Pad__316LSS__2X3.5_25",
+            "SEGM1_Ground_Pad__316LSS__2X3.5_25_2",
+            "SEGM1_Ground_Pad__316LSS__2X3.5_25_3",
+            "SEGM1_Ground_Pad__316LSS__2X3.5_25_4"
+          ],
+          "editado": false
+        },
+        {
+          "id": "SEGM1_261139_D3000 Lifting Lug With Chain Retainer_26",
+          "titulo": "SEGM1 / 261139_D3000 Lifting Lug With Chain Retainer_26",
+          "largo": "229 mm",
+          "clasificacion": "accesorio",
+          "clasificacion_auto": "accesorio",
+          "spec": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "spec_auto": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "texto": "FILLET 6 mm TYP",
+          "cuerpos": [
+            "SEGM1_261139_D3000_Lifting_Lug_With_Chain_Retainer_26",
+            "SEGM1_261139_D3000_Lifting_Lug_With_Chain_Retainer_26_2"
+          ],
+          "editado": false
+        },
+        {
+          "id": "SEGM1_261139_Pipe Flange .5_27",
+          "titulo": "SEGM1 / 261139_Pipe Flange .5_27",
+          "largo": "46 mm",
+          "clasificacion": "hermetico",
+          "clasificacion_auto": "accesorio",
+          "spec": {
+            "flecha": 3.0,
+            "otro": 3.0,
+            "dos_lados": true,
+            "typ": true,
+            "paso": ""
+          },
+          "spec_auto": {
+            "flecha": 3.0,
+            "otro": 3.0,
+            "dos_lados": true,
+            "typ": true,
+            "paso": ""
+          },
+          "texto": "FILLET 3 mm 2SIDES TYP",
+          "cuerpos": [
+            "SEGM1_261139_Pipe_Flange_.5_27"
+          ],
+          "editado": true
+        },
+        {
+          "id": "SEGM1_261139_Pipe Flange 1_29",
+          "titulo": "SEGM1 / 261139_Pipe Flange 1_29",
+          "largo": "61 mm",
+          "clasificacion": "accesorio",
+          "clasificacion_auto": "accesorio",
+          "spec": {
+            "flecha": 3.0,
+            "otro": 3.0,
+            "dos_lados": true,
+            "typ": true,
+            "paso": ""
+          },
+          "spec_auto": {
+            "flecha": 3.0,
+            "otro": 3.0,
+            "dos_lados": true,
+            "typ": true,
+            "paso": ""
+          },
+          "texto": "FILLET 3 mm 2SIDES TYP",
+          "cuerpos": [
+            "SEGM1_261139_Pipe_Flange_1_29"
+          ],
+          "editado": false
+        },
+        {
+          "id": "SEGM1_261139_Pipe Flange .25_32",
+          "titulo": "SEGM1 / 261139_Pipe Flange .25_32",
+          "largo": "54 mm",
+          "clasificacion": "accesorio",
+          "clasificacion_auto": "accesorio",
+          "spec": {
+            "flecha": 3.0,
+            "otro": 3.0,
+            "dos_lados": true,
+            "typ": true,
+            "paso": ""
+          },
+          "spec_auto": {
+            "flecha": 3.0,
+            "otro": 3.0,
+            "dos_lados": true,
+            "typ": true,
+            "paso": ""
+          },
+          "texto": "FILLET 3 mm 2SIDES TYP",
+          "cuerpos": [
+            "SEGM1_261139_Pipe_Flange_.25_32"
+          ],
+          "editado": false
+        },
+        {
+          "id": "SEGM1_261139_Specialty Switch Boss_35",
+          "titulo": "SEGM1 / 261139_Specialty Switch Boss_35",
+          "largo": "48 mm",
+          "clasificacion": "hermetico",
+          "clasificacion_auto": "accesorio",
+          "spec": {
+            "flecha": 3.0,
+            "otro": 3.0,
+            "dos_lados": true,
+            "typ": true,
+            "paso": ""
+          },
+          "spec_auto": {
+            "flecha": 3.0,
+            "otro": 3.0,
+            "dos_lados": true,
+            "typ": true,
+            "paso": ""
+          },
+          "texto": "FILLET 3 mm 2SIDES TYP",
+          "cuerpos": [
+            "SEGM1_261139_Specialty_Switch_Boss_35"
+          ],
+          "editado": true
+        },
+        {
+          "id": "SEGM1_261139_Pipe Flange .25_44",
+          "titulo": "SEGM1 / 261139_Pipe Flange .25_44",
+          "largo": "38 mm",
+          "clasificacion": "accesorio",
+          "clasificacion_auto": "accesorio",
+          "spec": {
+            "flecha": 3.0,
+            "otro": 3.0,
+            "dos_lados": true,
+            "typ": true,
+            "paso": ""
+          },
+          "spec_auto": {
+            "flecha": 3.0,
+            "otro": 3.0,
+            "dos_lados": true,
+            "typ": true,
+            "paso": ""
+          },
+          "texto": "FILLET 3 mm 2SIDES TYP",
+          "cuerpos": [
+            "SEGM1_261139_Pipe_Flange_.25_44"
+          ],
+          "editado": false
+        },
+        {
+          "id": "SEGM1_261139_Boss, Gauge mounting, 8-H_45",
+          "titulo": "SEGM1 / 261139_Boss, Gauge mounting, 8-H_45",
+          "largo": "102 mm",
+          "clasificacion": "accesorio",
+          "clasificacion_auto": "accesorio",
+          "spec": {
+            "flecha": 5.0,
+            "otro": 5.0,
+            "dos_lados": true,
+            "typ": false,
+            "paso": ""
+          },
+          "spec_auto": {
+            "flecha": 5.0,
+            "otro": 5.0,
+            "dos_lados": true,
+            "typ": false,
+            "paso": ""
+          },
+          "texto": "FILLET 5 mm 2SIDES",
+          "cuerpos": [
+            "SEGM1_261139_Boss__Gauge_mounting__8-H_45"
+          ],
+          "editado": false
+        },
+        {
+          "id": "SEGM1_261139_Brace-Front_46",
+          "titulo": "SEGM1 / 261139_Brace-Front_46",
+          "largo": "2134 mm",
+          "clasificacion": "accesorio",
+          "clasificacion_auto": "accesorio",
+          "spec": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "spec_auto": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "texto": "FILLET 6 mm TYP",
+          "cuerpos": [
+            "SEGM1_261139_Brace-Front_46",
+            "SEGM1_261139_Brace-Front_46_2"
+          ],
+          "editado": false
+        },
+        {
+          "id": "SEGM1_261139_Ground Boss, .5-13_48",
+          "titulo": "SEGM1 / 261139_Ground Boss, .5-13_48",
+          "largo": "31 mm",
+          "clasificacion": "accesorio",
+          "clasificacion_auto": "accesorio",
+          "spec": {
+            "flecha": 3.0,
+            "otro": 3.0,
+            "dos_lados": true,
+            "typ": true,
+            "paso": ""
+          },
+          "spec_auto": {
+            "flecha": 3.0,
+            "otro": 3.0,
+            "dos_lados": true,
+            "typ": true,
+            "paso": ""
+          },
+          "texto": "FILLET 3 mm 2SIDES TYP",
+          "cuerpos": [
+            "SEGM1_261139_Ground_Boss__.5-13_48"
+          ],
+          "editado": false
+        },
+        {
+          "id": "SEGM1_261139_Stand Off Bracket 26X24_51",
+          "titulo": "SEGM1 / 261139_Stand Off Bracket 26X24_51",
+          "largo": "803 mm",
+          "clasificacion": "accesorio",
+          "clasificacion_auto": "accesorio",
+          "spec": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "spec_auto": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "texto": "FILLET 6 mm TYP",
+          "cuerpos": [
+            "SEGM1_261139_Stand_Off_Bracket_26X24_51",
+            "SEGM1_261139_Stand_Off_Bracket_26X24_51_2",
+            "SEGM1_261139_Stand_Off_Bracket_26X24_51_3",
+            "SEGM1_261139_Stand_Off_Bracket_26X24_51_4"
+          ],
+          "editado": false
+        },
+        {
+          "id": "SEGM1_261139_Boss, Gauge mounting, 8-H_54",
+          "titulo": "SEGM1 / 261139_Boss, Gauge mounting, 8-H_54",
+          "largo": "102 mm",
+          "clasificacion": "accesorio",
+          "clasificacion_auto": "accesorio",
+          "spec": {
+            "flecha": 5.0,
+            "otro": 5.0,
+            "dos_lados": true,
+            "typ": false,
+            "paso": ""
+          },
+          "spec_auto": {
+            "flecha": 5.0,
+            "otro": 5.0,
+            "dos_lados": true,
+            "typ": false,
+            "paso": ""
+          },
+          "texto": "FILLET 5 mm 2SIDES",
+          "cuerpos": [
+            "SEGM1_261139_Boss__Gauge_mounting__8-H_54"
+          ],
+          "editado": false
+        },
+        {
+          "id": "SEGM1_261139_Pipe Flange .375_55",
+          "titulo": "SEGM1 / 261139_Pipe Flange .375_55",
+          "largo": "41 mm",
+          "clasificacion": "accesorio",
+          "clasificacion_auto": "accesorio",
+          "spec": {
+            "flecha": 3.0,
+            "otro": 3.0,
+            "dos_lados": true,
+            "typ": true,
+            "paso": ""
+          },
+          "spec_auto": {
+            "flecha": 3.0,
+            "otro": 3.0,
+            "dos_lados": true,
+            "typ": true,
+            "paso": ""
+          },
+          "texto": "FILLET 3 mm 2SIDES TYP",
+          "cuerpos": [
+            "SEGM1_261139_Pipe_Flange_.375_55"
+          ],
+          "editado": false
+        },
+        {
+          "id": "SEGM1_261139_Pipe Flange .5_56",
+          "titulo": "SEGM1 / 261139_Pipe Flange .5_56",
+          "largo": "46 mm",
+          "clasificacion": "accesorio",
+          "clasificacion_auto": "accesorio",
+          "spec": {
+            "flecha": 3.0,
+            "otro": 3.0,
+            "dos_lados": true,
+            "typ": true,
+            "paso": ""
+          },
+          "spec_auto": {
+            "flecha": 3.0,
+            "otro": 3.0,
+            "dos_lados": true,
+            "typ": true,
+            "paso": ""
+          },
+          "texto": "FILLET 3 mm 2SIDES TYP",
+          "cuerpos": [
+            "SEGM1_261139_Pipe_Flange_.5_56"
+          ],
+          "editado": false
+        },
+        {
+          "id": "SEGM1_2 Pipe Half Nipple_57",
+          "titulo": "SEGM1 / 2 Pipe Half Nipple_57",
+          "largo": "56 mm",
+          "clasificacion": "accesorio",
+          "clasificacion_auto": "accesorio",
+          "spec": {
+            "flecha": 3.0,
+            "otro": 3.0,
+            "dos_lados": true,
+            "typ": true,
+            "paso": ""
+          },
+          "spec_auto": {
+            "flecha": 3.0,
+            "otro": 3.0,
+            "dos_lados": true,
+            "typ": true,
+            "paso": ""
+          },
+          "texto": "FILLET 3 mm 2SIDES TYP",
+          "cuerpos": [
+            "SEGM1_2_Pipe_Half_Nipple_57"
+          ],
+          "editado": false
+        },
+        {
+          "id": "SEGM1_Pipe Flange 1.5_58",
+          "titulo": "SEGM1 / Pipe Flange 1.5_58",
+          "largo": "77 mm",
+          "clasificacion": "accesorio",
+          "clasificacion_auto": "accesorio",
+          "spec": {
+            "flecha": 3.0,
+            "otro": 3.0,
+            "dos_lados": true,
+            "typ": true,
+            "paso": ""
+          },
+          "spec_auto": {
+            "flecha": 3.0,
+            "otro": 3.0,
+            "dos_lados": true,
+            "typ": true,
+            "paso": ""
+          },
+          "texto": "FILLET 3 mm 2SIDES TYP",
+          "cuerpos": [
+            "SEGM1_Pipe_Flange_1.5_58"
+          ],
+          "editado": false
+        },
+        {
+          "id": "SEGM1_261139_VT-4300-Receptical Box Sides_6",
+          "titulo": "SEGM1 / 261139_VT-4300-Receptical Box Sides_6",
+          "largo": "229 mm",
+          "clasificacion": "accesorio",
+          "clasificacion_auto": "accesorio",
+          "spec": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "spec_auto": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "texto": "FILLET 6 mm TYP",
+          "cuerpos": [
+            "SEGM1_261139_VT-4300-Receptical_Box_Sides_6",
+            "SEGM1_261139_VT-4300-Receptical_Box_Sides_6_2"
+          ],
+          "editado": false
+        },
+        {
+          "id": "SEGM1_261139_VT-4300-Receptical Box Bottom_All Holes_7",
+          "titulo": "SEGM1 / 261139_VT-4300-Receptical Box Bottom_All Holes_7",
+          "largo": "229 mm",
+          "clasificacion": "accesorio",
+          "clasificacion_auto": "accesorio",
+          "spec": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "spec_auto": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "texto": "FILLET 6 mm TYP",
+          "cuerpos": [
+            "SEGM1_261139_VT-4300-Receptical_Box_Bottom_All_Holes_7",
+            "SEGM1_261139_VT-4300-Receptical_Box_Bottom_All_Holes_7_2"
+          ],
+          "editado": false
+        },
+        {
+          "id": "SEGM1_261139_VT-4300-Receptical Box Top_8",
+          "titulo": "SEGM1 / 261139_VT-4300-Receptical Box Top_8",
+          "largo": "229 mm",
+          "clasificacion": "accesorio",
+          "clasificacion_auto": "accesorio",
+          "spec": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "spec_auto": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "texto": "FILLET 6 mm TYP",
+          "cuerpos": [
+            "SEGM1_261139_VT-4300-Receptical_Box_Top_8",
+            "SEGM1_261139_VT-4300-Receptical_Box_Top_8_2"
+          ],
+          "editado": false
+        },
+        {
+          "id": "SEGM1_261139_VT-4300-Receptical Box Sides_9",
+          "titulo": "SEGM1 / 261139_VT-4300-Receptical Box Sides_9",
+          "largo": "229 mm",
+          "clasificacion": "accesorio",
+          "clasificacion_auto": "accesorio",
+          "spec": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "spec_auto": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "texto": "FILLET 6 mm TYP",
+          "cuerpos": [
+            "SEGM1_261139_VT-4300-Receptical_Box_Sides_9",
+            "SEGM1_261139_VT-4300-Receptical_Box_Sides_9_2"
+          ],
+          "editado": false
+        },
+        {
+          "id": "SEGM1_261139_Brace-Front_63",
+          "titulo": "SEGM1 / 261139_Brace-Front_63",
+          "largo": "2134 mm",
+          "clasificacion": "accesorio",
+          "clasificacion_auto": "accesorio",
+          "spec": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "spec_auto": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "texto": "FILLET 6 mm TYP",
+          "cuerpos": [
+            "SEGM1_261139_Brace-Front_63",
+            "SEGM1_261139_Brace-Front_63_2"
+          ],
+          "editado": false
+        },
+        {
+          "id": "SEGM2_261139_Brace-Side_43",
+          "titulo": "SEGM2 / 261139_Brace-Side_43",
+          "largo": "1219 mm",
+          "clasificacion": "accesorio",
+          "clasificacion_auto": "accesorio",
+          "spec": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "spec_auto": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "texto": "FILLET 6 mm TYP",
+          "cuerpos": [
+            "SEGM2_261139_Brace-Side_43",
+            "SEGM2_261139_Brace-Side_43_2"
+          ],
+          "editado": false
+        },
+        {
+          "id": "SEGM2_261139_Brace-Side_66",
+          "titulo": "SEGM2 / 261139_Brace-Side_66",
+          "largo": "1219 mm",
+          "clasificacion": "accesorio",
+          "clasificacion_auto": "accesorio",
+          "spec": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "spec_auto": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "texto": "FILLET 6 mm TYP",
+          "cuerpos": [
+            "SEGM2_261139_Brace-Side_66",
+            "SEGM2_261139_Brace-Side_66_2"
+          ],
+          "editado": false
+        },
+        {
+          "id": "SEGM2_261139_Brace-Side_67",
+          "titulo": "SEGM2 / 261139_Brace-Side_67",
+          "largo": "1219 mm",
+          "clasificacion": "accesorio",
+          "clasificacion_auto": "accesorio",
+          "spec": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "spec_auto": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "texto": "FILLET 6 mm TYP",
+          "cuerpos": [
+            "SEGM2_261139_Brace-Side_67",
+            "SEGM2_261139_Brace-Side_67_2"
+          ],
+          "editado": false
+        },
+        {
+          "id": "SEGM3_Ground Pad, 316LSS, 2X3.5_23",
+          "titulo": "SEGM3 / Ground Pad, 316LSS, 2X3.5_23",
+          "largo": "89 mm",
+          "clasificacion": "accesorio",
+          "clasificacion_auto": "accesorio",
+          "spec": {
+            "flecha": 5.0,
+            "otro": 5.0,
+            "dos_lados": true,
+            "typ": false,
+            "paso": ""
+          },
+          "spec_auto": {
+            "flecha": 5.0,
+            "otro": 5.0,
+            "dos_lados": true,
+            "typ": false,
+            "paso": ""
+          },
+          "texto": "FILLET 5 mm 2SIDES",
+          "cuerpos": [
+            "SEGM3_Ground_Pad__316LSS__2X3.5_23",
+            "SEGM3_Ground_Pad__316LSS__2X3.5_23_2",
+            "SEGM3_Ground_Pad__316LSS__2X3.5_23_3",
+            "SEGM3_Ground_Pad__316LSS__2X3.5_23_4"
+          ],
+          "editado": false
+        },
+        {
+          "id": "SEGM3_261139_D3000 Lifting Lug With Chain Retainer_28",
+          "titulo": "SEGM3 / 261139_D3000 Lifting Lug With Chain Retainer_28",
+          "largo": "229 mm",
+          "clasificacion": "accesorio",
+          "clasificacion_auto": "accesorio",
+          "spec": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "spec_auto": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "texto": "FILLET 6 mm TYP",
+          "cuerpos": [
+            "SEGM3_261139_D3000_Lifting_Lug_With_Chain_Retainer_28",
+            "SEGM3_261139_D3000_Lifting_Lug_With_Chain_Retainer_28_2"
+          ],
+          "editado": false
+        },
+        {
+          "id": "SEGM3_261139_D3000 Lifting Lug With Chain Retainer_31",
+          "titulo": "SEGM3 / 261139_D3000 Lifting Lug With Chain Retainer_31",
+          "largo": "229 mm",
+          "clasificacion": "accesorio",
+          "clasificacion_auto": "accesorio",
+          "spec": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "spec_auto": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "texto": "FILLET 6 mm TYP",
+          "cuerpos": [
+            "SEGM3_261139_D3000_Lifting_Lug_With_Chain_Retainer_31",
+            "SEGM3_261139_D3000_Lifting_Lug_With_Chain_Retainer_31_2"
+          ],
+          "editado": false
+        },
+        {
+          "id": "SEGM3_261139_Brace-Front_47",
+          "titulo": "SEGM3 / 261139_Brace-Front_47",
+          "largo": "2134 mm",
+          "clasificacion": "accesorio",
+          "clasificacion_auto": "accesorio",
+          "spec": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "spec_auto": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "texto": "FILLET 6 mm TYP",
+          "cuerpos": [
+            "SEGM3_261139_Brace-Front_47",
+            "SEGM3_261139_Brace-Front_47_2"
+          ],
+          "editado": false
+        },
+        {
+          "id": "SEGM3_261139_Brace-Front_64",
+          "titulo": "SEGM3 / 261139_Brace-Front_64",
+          "largo": "2134 mm",
+          "clasificacion": "accesorio",
+          "clasificacion_auto": "accesorio",
+          "spec": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "spec_auto": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "texto": "FILLET 6 mm TYP",
+          "cuerpos": [
+            "SEGM3_261139_Brace-Front_64",
+            "SEGM3_261139_Brace-Front_64_2"
+          ],
+          "editado": false
+        },
+        {
+          "id": "SEGM3_261139_Brace-Front_68",
+          "titulo": "SEGM3 / 261139_Brace-Front_68",
+          "largo": "2134 mm",
+          "clasificacion": "accesorio",
+          "clasificacion_auto": "accesorio",
+          "spec": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "spec_auto": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "texto": "FILLET 6 mm TYP",
+          "cuerpos": [
+            "SEGM3_261139_Brace-Front_68",
+            "SEGM3_261139_Brace-Front_68_2"
+          ],
+          "editado": false
+        },
+        {
+          "id": "SEGM4_261139_Patch-LV Bushing Patch_30",
+          "titulo": "SEGM4 / 261139_Patch-LV Bushing Patch_30",
+          "largo": "864 mm",
+          "clasificacion": "accesorio",
+          "clasificacion_auto": "accesorio",
+          "spec": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "spec_auto": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "texto": "FILLET 6 mm TYP",
+          "cuerpos": [
+            "SEGM4_261139_Patch-LV_Bushing_Patch_30",
+            "SEGM4_261139_Patch-LV_Bushing_Patch_30_2"
+          ],
+          "editado": false
+        },
+        {
+          "id": "SEGM4_Ground Pad, 316LSS, 2X3.5_38",
+          "titulo": "SEGM4 / Ground Pad, 316LSS, 2X3.5_38",
+          "largo": "89 mm",
+          "clasificacion": "accesorio",
+          "clasificacion_auto": "accesorio",
+          "spec": {
+            "flecha": 5.0,
+            "otro": 5.0,
+            "dos_lados": true,
+            "typ": false,
+            "paso": ""
+          },
+          "spec_auto": {
+            "flecha": 5.0,
+            "otro": 5.0,
+            "dos_lados": true,
+            "typ": false,
+            "paso": ""
+          },
+          "texto": "FILLET 5 mm 2SIDES",
+          "cuerpos": [
+            "SEGM4_Ground_Pad__316LSS__2X3.5_38",
+            "SEGM4_Ground_Pad__316LSS__2X3.5_38_2",
+            "SEGM4_Ground_Pad__316LSS__2X3.5_38_3",
+            "SEGM4_Ground_Pad__316LSS__2X3.5_38_4"
+          ],
+          "editado": false
+        },
+        {
+          "id": "SEGM4_261139_Brace-Side_52",
+          "titulo": "SEGM4 / 261139_Brace-Side_52",
+          "largo": "1219 mm",
+          "clasificacion": "accesorio",
+          "clasificacion_auto": "accesorio",
+          "spec": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "spec_auto": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "texto": "FILLET 6 mm TYP",
+          "cuerpos": [
+            "SEGM4_261139_Brace-Side_52",
+            "SEGM4_261139_Brace-Side_52_2"
+          ],
+          "editado": false
+        },
+        {
+          "id": "SEGM4_261139_Brace-Side_65",
+          "titulo": "SEGM4 / 261139_Brace-Side_65",
+          "largo": "1219 mm",
+          "clasificacion": "accesorio",
+          "clasificacion_auto": "accesorio",
+          "spec": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "spec_auto": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "texto": "FILLET 6 mm TYP",
+          "cuerpos": [
+            "SEGM4_261139_Brace-Side_65",
+            "SEGM4_261139_Brace-Side_65_2"
+          ],
+          "editado": false
+        },
+        {
+          "id": "SEGM4_261139_Brace-Side_69",
+          "titulo": "SEGM4 / 261139_Brace-Side_69",
+          "largo": "1219 mm",
+          "clasificacion": "accesorio",
+          "clasificacion_auto": "accesorio",
+          "spec": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "spec_auto": {
+            "flecha": 6.0,
+            "otro": 0.0,
+            "dos_lados": false,
+            "typ": true,
+            "paso": ""
+          },
+          "texto": "FILLET 6 mm TYP",
+          "cuerpos": [
+            "SEGM4_261139_Brace-Side_69",
+            "SEGM4_261139_Brace-Side_69_2"
+          ],
+          "editado": false
+        }
+      ],
+      "excluidos": [
+        "SEGM1_TOP",
+        "SEGM4_TOP"
+      ]
+    }
+  }
+}

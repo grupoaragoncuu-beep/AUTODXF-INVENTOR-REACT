@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Addin Type="Standard">
+  <ClassId>{7C3E9A14-2B68-4F0D-9A51-6E8D4C1B70A2}</ClassId>
+  <ClientId>{7C3E9A14-2B68-4F0D-9A51-6E8D4C1B70A2}</ClientId>
+  <DisplayName Language="3082">Módulo Ingenieria</DisplayName>
+  <DisplayName Language="1033">Módulo Ingenieria</DisplayName>
+  <Description Language="3082">Abre el Módulo Ingenieria y descarga la versión publicada en el servidor local.</Description>
+  <Description Language="1033">Opens Módulo Ingenieria and downloads the release published on the local server.</Description>
+  <Assembly>AutoDXF\AutoDXF.AddIn.dll</Assembly>
+  <SupportedSoftwareVersionGreaterThan>30..</SupportedSoftwareVersionGreaterThan>
+  <LoadOnStartUp>1</LoadOnStartUp>
+  <LoadBehavior>1</LoadBehavior>
+  <Hidden>0</Hidden>
+  <UseInventorAssemblyContext>0</UseInventorAssemblyContext>
+</Addin>

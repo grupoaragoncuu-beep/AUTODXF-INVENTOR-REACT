@@ -1,0 +1,31 @@
+{
+  "cara": "SEGM3",
+  "look": [
+    -1.0,
+    0.0,
+    -0.0
+  ],
+  "u_axis": [
+    -0.0,
+    0.0,
+    1.0
+  ],
+  "v_axis": [
+    0.0,
+    1.0,
+    0.0
+  ],
+  "ox": -29.875,
+  "oy": -32.87500000000001,
+  "span_u": 59.75,
+  "span_v": 65.75,
+  "origen": "IL",
+  "hijos": 4,
+  "piezas": 3,
+  "modo": "alambrico",
+  "tipos": [
+    "261503_Brace Front",
+    "261503_Brace Front",
+    "261503_Brace Front"
+  ]
+}

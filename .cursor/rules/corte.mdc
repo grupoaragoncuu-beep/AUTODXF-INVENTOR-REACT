@@ -1,0 +1,15 @@
+---
+description: Fase Corte abierta. Control en corte/.
+globs: python/acotacion_run.py,corte/**
+alwaysApply: true
+---
+
+# Corte
+
+Leer `corte/CONTROL.md` y `corte/control.json` antes de cambiar acotación de piezas planas.
+
+- Cotas por referencia se publica y prueba en el Módulo **antes** de iterar Corte.
+- Mientras `fase` sea `corte` (tras esa prueba), no pasar a Doblado.
+- Un JPG por cota a orilla. Carpeta `PIEZAS_ACOTADAS/{cara}/Corte`.
+- `{cara}` = muro de las 6 placas por **instancia**, no por nombre de .ipt.
+- Cotas por referencia ya están cerradas: no tocar `vista_hlr.py` / `caras_referencia.py` salvo que Corte lo necesite para el mapa de cara.

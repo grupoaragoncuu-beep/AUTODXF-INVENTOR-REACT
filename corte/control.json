@@ -1,0 +1,10 @@
+{
+  "fase": "corte",
+  "local_debug": true,
+  "proceso": "Corte",
+  "holeAnchor": "edge",
+  "measureWalls": false,
+  "un_jpg_por_cota": true,
+  "cara_por_instancia": true,
+  "notas": "Abierta 2026-10-20. Clasificar pieza al muro de 6 planos, no por .ipt."
+}

@@ -1,0 +1,215 @@
+Imports Inventor
+
+' Prueba fuera del módulo. InteractionEvents: clic pinta, Esc cierra (como Norman).
+
+Sub Main()
+    If ThisApplication.ActiveDocumentType <> DocumentTypeEnum.kAssemblyDocumentObject Then
+        ThisApplication.StatusBarText = "Abre un ensamble (.iam)."
+        Return
+    End If
+    Dim oAsm As AssemblyDocument = ThisApplication.ActiveDocument
+    Dim clase As String = PedirClase("Elige clasificación (por instancia)", "Almacén")
+    If String.IsNullOrEmpty(clase) Then Return
+    Dim sesion As New ColorimetriaClick(ThisApplication, oAsm, clase)
+    sesion.Run()
+End Sub
+
+Function PedirClase(titulo As String, actual As String) As String
+    Dim nombres() As String = {
+        "Almacén", "Corte", "Doblado",
+        "Maquinados Tank", "Maquinados Accesorios Sueltos", "Accesorios Sueltos"
+    }
+    Dim texto As String = titulo & vbCrLf & vbCrLf
+    Dim i As Integer
+    Dim defecto As String = "1"
+    For i = 0 To nombres.Length - 1
+        texto = texto & (i + 1).ToString() & " = " & nombres(i) & vbCrLf
+        If String.Equals(nombres(i), actual, StringComparison.OrdinalIgnoreCase) Then
+            defecto = (i + 1).ToString()
+        End If
+    Next
+    Dim r As String = InputBox(texto, "Colorimetría prueba", defecto)
+    If String.IsNullOrEmpty(r) Then Return ""
+    r = r.Trim()
+    Dim n As Integer
+    If Integer.TryParse(r, n) Then
+        If n >= 1 AndAlso n <= nombres.Length Then Return nombres(n - 1)
+    End If
+    For i = 0 To nombres.Length - 1
+        If String.Equals(nombres(i), r, StringComparison.OrdinalIgnoreCase) Then Return nombres(i)
+    Next
+    Return ""
+End Function
+
+Public Class ColorimetriaClick
+    Private _inventor As Inventor.Application
+    Private oAsm As AssemblyDocument
+    Private _clase As String
+    Private _events As InteractionEvents
+    Private _select As SelectEvents
+    Private _alive As Boolean
+
+    Public Sub New(app As Inventor.Application, asm As AssemblyDocument, clase As String)
+        _inventor = app
+        oAsm = asm
+        _clase = clase
+    End Sub
+
+    Public Sub Run()
+        ActivarAparencias()
+        _alive = True
+        _events = _inventor.CommandManager.CreateInteractionEvents()
+        _inventor.StatusBarText = "Colorimetría: " & _clase & " — clic en piezas .ipt. Esc = salir."
+        _select = _events.SelectEvents
+        _select.ClearSelectionFilter()
+        _select.SingleSelectEnabled = True
+        _select.Enabled = True
+        Try
+            _select.AddSelectionFilter(SelectionFilterEnum.kAssemblyLeafOccurrenceFilter)
+            _select.AddSelectionFilter(SelectionFilterEnum.kPartFaceFilter)
+            _select.AddSelectionFilter(SelectionFilterEnum.kPartEdgeFilter)
+        Catch
+        End Try
+        AddHandler _select.OnSelect, AddressOf OnSelectOcc
+        AddHandler _events.OnTerminate, AddressOf OnTerminate
+        _events.Start()
+        Do While _alive
+            _inventor.UserInterfaceManager.DoEvents()
+        Loop
+        Try
+            _events.Stop()
+        Catch
+        End Try
+        _inventor.StatusBarText = "Colorimetría prueba cerrada."
+    End Sub
+
+    Private Sub OnTerminate()
+        _alive = False
+    End Sub
+
+    Private Sub OnSelectOcc(JustSelectedEntities As ObjectsEnumerator, SelectionDevice As SelectionDeviceEnum, ModelPosition As Inventor.Point, ViewPosition As Inventor.Point2d, ByVal View As Inventor.View)
+        If JustSelectedEntities Is Nothing Then Return
+        Dim looks() As String = NombresDe(_clase)
+        For Each sel As Object In JustSelectedEntities
+            Dim occ As ComponentOccurrence = ResolveOcc(sel)
+            If occ Is Nothing Then Continue For
+            PintarOcc(occ, looks)
+        Next
+        Try
+            _inventor.ActiveView.Update()
+        Catch
+        End Try
+    End Sub
+
+    Private Function NombresDe(clase As String) As String()
+        If String.Equals(clase, "Almacén", StringComparison.OrdinalIgnoreCase) OrElse String.Equals(clase, "Almacen", StringComparison.OrdinalIgnoreCase) Then
+            Return New String() {"Dark Green", "Verde oscuro"}
+        End If
+        If String.Equals(clase, "Corte", StringComparison.OrdinalIgnoreCase) Then
+            Return New String() {"Rojo naranja"}
+        End If
+        If String.Equals(clase, "Doblado", StringComparison.OrdinalIgnoreCase) Then
+            Return New String() {"Violeta"}
+        End If
+        If String.Equals(clase, "Maquinados Tank", StringComparison.OrdinalIgnoreCase) Then
+            Return New String() {"Blue - Wall Paint - Glossy", "Azul - Pintura mural - Brillante"}
+        End If
+        If String.Equals(clase, "Maquinados Accesorios Sueltos", StringComparison.OrdinalIgnoreCase) Then
+            Return New String() {"Cyan", "Cian", "Turquoise", "Turquesa", "Teal"}
+        End If
+        Return New String() {"Orange", "Naranja", "Orange - Wall Paint - Glossy", "Naranja - Pintura mural - Brillante"}
+    End Function
+
+    Private Sub ActivarAparencias()
+        Dim oLib As AssetLibrary = Nothing
+        Try
+            oLib = _inventor.AssetLibraries.Item("Autodesk Biblioteca de aspecto")
+        Catch
+            Try
+                oLib = _inventor.AssetLibraries.Item("Autodesk Appearance Library")
+            Catch
+            End Try
+        End Try
+        If oLib Is Nothing Then Return
+        Dim nombresClase() As String = {"Almacén", "Corte", "Doblado", "Maquinados Tank", "Maquinados Accesorios Sueltos", "Accesorios Sueltos"}
+        Dim i As Integer
+        For i = 0 To nombresClase.Length - 1
+            Dim looks() As String = NombresDe(nombresClase(i))
+            Dim j As Integer
+            For j = 0 To looks.Length - 1
+                If AssetEnEnsamble(looks(j)) IsNot Nothing Then Exit For
+                Try
+                    Dim src As Asset = oLib.AppearanceAssets.Item(looks(j))
+                    If src IsNot Nothing Then
+                        src.CopyTo(oAsm)
+                        Exit For
+                    End If
+                Catch
+                End Try
+            Next
+        Next
+    End Sub
+
+    Private Function AssetEnEnsamble(nombre As String) As Asset
+        Try
+            For Each a As Asset In oAsm.Assets
+                Try
+                    If String.Equals(a.DisplayName, nombre, StringComparison.OrdinalIgnoreCase) Then Return a
+                Catch
+                End Try
+            Next
+        Catch
+        End Try
+        Return Nothing
+    End Function
+
+    Private Sub PintarOcc(occ As ComponentOccurrence, looks() As String)
+        Dim oAsset As Asset = Nothing
+        Dim j As Integer
+        For j = 0 To looks.Length - 1
+            oAsset = AssetEnEnsamble(looks(j))
+            If oAsset IsNot Nothing Then Exit For
+        Next
+        If oAsset Is Nothing Then Return
+        Try
+            occ.AppearanceSourceType = AppearanceSourceTypeEnum.kOverrideAppearance
+        Catch
+        End Try
+        Try
+            occ.Appearance = oAsset
+        Catch
+        End Try
+    End Sub
+
+    Private Function ResolveOcc(sel As Object) As ComponentOccurrence
+        Dim occ As ComponentOccurrence = TryCast(sel, ComponentOccurrence)
+        If occ Is Nothing Then
+            Try
+                occ = DirectCast(sel, FaceProxy).ContainingOccurrence
+            Catch
+            End Try
+        End If
+        If occ Is Nothing Then
+            Try
+                occ = DirectCast(sel, EdgeProxy).ContainingOccurrence
+            Catch
+            End Try
+        End If
+        If occ Is Nothing Then Return Nothing
+        Try
+            Do While occ.DefinitionDocumentType = DocumentTypeEnum.kAssemblyDocumentObject
+                If occ.SubOccurrences IsNot Nothing AndAlso occ.SubOccurrences.Count = 1 Then
+                    occ = occ.SubOccurrences.Item(1)
+                Else
+                    Exit Do
+                End If
+            Loop
+        Catch
+        End Try
+        Try
+            If occ.DefinitionDocumentType = DocumentTypeEnum.kPartDocumentObject Then Return occ
+        Catch
+        End Try
+        Return Nothing
+    End Function
+End Class

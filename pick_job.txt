@@ -1,0 +1,10 @@
+mode=roles
+stop=C:\Users\Ing. Cano\Documents\AUTODXF INVENTOR REACT\config\pick_stop.flag
+status=C:\Users\Ing. Cano\Documents\AUTODXF INVENTOR REACT\config\pick_status.json
+className=SEGM1
+color=#7C3AED
+colorR=124
+colorG=58
+colorB=237
+appearances=
+smart=1

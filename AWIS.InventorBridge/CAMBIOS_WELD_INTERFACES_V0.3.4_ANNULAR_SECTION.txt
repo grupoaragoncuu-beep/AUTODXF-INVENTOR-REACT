@@ -1,0 +1,84 @@
+AWIS Weld Interfaces V0.3.4 — ANNULAR B-REP SECTION RECONSTRUCTION
+================================================================
+
+OBJETIVO
+--------
+Corregir el caso OTC donde una penetración/accesorio circular no llega desde
+Inventor como un solo loop circular cerrado. Transient B-Rep puede entregar
+un mismo wire anular dividido en cuatro paths:
+
+  1) arco casi 360 grados
+  2) conector radial corto
+  3) segundo arco casi 360 grados
+  4) segundo conector radial corto
+
+AWIS interpretaba los dos arcos como candidatos circulares separados y por
+eso el cordón aparecía partido/incompleto.
+
+LÓGICA NUEVA
+------------
+1. Conserva íntegramente V0.3.2 OUTER/INNER y V0.3.3 BRACE_FRAME.
+2. Solo analiza wires BREP cerrados con exactamente 4 paths.
+3. Exige exactamente:
+   - 2 curvas CURVED_OR_MULTI_SEGMENT;
+   - 2 conectores LINEAR cortos.
+4. Ajusta ambas curvas a círculos y valida:
+   - circularidad;
+   - centros concéntricos;
+   - cobertura angular >= 300 grados;
+   - diferencia de radios compatible con los dos conectores;
+   - espesor radial <= AnnularSectionMaximumThicknessMm.
+5. Elige el círculo de radio MAYOR como frontera física exterior.
+6. Reconstruye una circunferencia cerrada exacta de 360 grados y suprime:
+   - el arco interior;
+   - ambos conectores radiales.
+7. El path resultante conserva SourceKind=BREP_SECTION para compatibilidad y
+   agrega:
+   - GeometryType = CLOSED
+   - Closed = true
+   - BoundaryRole = OUTER
+   - BoundarySelectionReason = ANNULAR_BREP_SECTION_OUTER_CIRCUMFERENCE_RECONSTRUCTED
+   - PhysicalMemberType = ANNULAR_SECTION
+   - PhysicalSideRole = OUTER_CIRCUMFERENCE
+   - PhysicalBoundaryRole = OUTER_WELD_EDGE
+
+TRAZABILIDAD
+------------
+Thresholds nuevos:
+- ResolveAnnularSectionOuterWeldEdge
+- AnnularSectionMaximumThicknessMm
+- AnnularSectionCircularityToleranceMm
+- AnnularSectionCenterToleranceMm
+- AnnularSectionMinimumCoverageDeg
+- AnnularSectionTargetSampleStepMm
+
+Statistics / BoundaryFilter:
+- AnnularSectionWiresResolved
+- AnnularSectionPathsSuppressed
+- AnnularSectionPolicy = RECONSTRUCT_OUTER_CIRCUMFERENCE_ONLY
+
+CASO OTC VALIDADO MATEMÁTICAMENTE
+--------------------------------
+62223-1246-A01 / AXIS_2_POSITIVE / IF00017 / BODY_001_SECTION_WIRE_001
+registraba:
+- curva 1: 1671.605 mm
+- conector: 6.351 mm
+- curva 2: 1711.405 mm
+- conector: 6.351 mm
+
+Los ajustes circulares dan aproximadamente:
+- radio interior: 266.711 mm
+- radio exterior: 273.061 mm
+- diferencia radial: 6.350 mm
+- diferencia entre centros: < 0.001 mm
+- error radial maximo: ~0.023 mm
+- cobertura de cada arco: ~359.1 grados
+
+Por lo tanto el patrón cumple holgadamente la regla y V0.3.4 debe exportar
+un único círculo exterior cerrado.
+
+IMPORTANTE
+----------
+La regla es deliberadamente conservadora. Si un wire curvo no cumple las
+condiciones de anillo concéntrico, no se modifica automáticamente. No se
+convierte una geometría irregular o elíptica en círculo por aproximación.

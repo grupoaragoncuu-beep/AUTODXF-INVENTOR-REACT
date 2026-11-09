@@ -1,0 +1,14 @@
+{
+  "WeldInterfaces/WeldInterfaceExactDetector.cs": true,
+  "WeldInterfaces/WeldInterfaceSectionBuilder.cs": true,
+  "WeldInterfaces/WeldInterfaceBroadPhase.cs": true,
+  "WeldInterfaces/WeldInterfacePathBuilder.cs": true,
+  "WeldInterfaces/WeldInterfaceEnvelopeClipper.cs": true,
+  "WeldInterfaces/WeldPhysicalBoundarySelector.cs": true,
+  "WeldInterfaces/WeldContactPlaneResolver.cs": true,
+  "WeldInterfaces/WeldInterfaceExporter.cs": true,
+  "AddInServer.cs": true,
+  "FacePreview": true,
+  "CollisionGeometry": true,
+  "Services": true
+}

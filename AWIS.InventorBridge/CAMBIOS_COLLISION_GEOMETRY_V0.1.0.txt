@@ -1,0 +1,90 @@
+AWIS INVENTOR BRIDGE - COLLISION GEOMETRY COMPANION V0.1.0
+==========================================================
+
+OBJETIVO
+--------
+Agregar un cuarto output independiente para la futura capa de colisiones de AWIS:
+
+    AWIS_COLLISION_GEOMETRY_<TANK>.json
+
+El nuevo companion NO modifica ni invalida:
+- AWIS_TANK_DETECTION
+- AWIS_FACE_PREVIEWS
+- AWIS_WELD_INTERFACES
+
+Si Collision Geometry falla, los outputs anteriores siguen siendo válidos.
+
+FLUJO
+-----
+Se genera automáticamente al ejecutar el botón existente "Detect Tank".
+No se agregó un botón nuevo para evitar duplicar el recorrido del ensamblaje.
+
+CONTENIDO V0.1.0
+----------------
+Por cada part occurrence no suprimido y por cada SurfaceBody:
+
+1. Identidad y trazabilidad
+   - ComponentId
+   - OccurrenceName
+   - OccurrencePath
+
+2. RoleHint
+   - TANK_BOUNDARY_SOURCE cuando el occurrence fue fuente de un boundary detectado
+   - COLLISION_CANDIDATE en los demás casos
+   Nota: es solo informativo; no elimina geometría del análisis.
+
+3. Volumen físico reportado por Inventor
+   - IsSolid
+   - VolumeMm3 cuando el body es sólido
+
+4. Broad phase
+   - AssemblyAabbMm usando PreciseRangeBox
+   - TankFrameAabbMm cuando el Tank Frame puede resolverse
+
+5. Primera geometría de colisión conservadora
+   - AssemblyObbMm usando OrientedMinimumRangeBox
+   - TankFrameObbMm cuando el Tank Frame puede resolverse
+   - Corner + EdgeOne/EdgeTwo/EdgeThree
+   - Cada edge conserva dirección y longitud
+
+6. Tank Frame
+   - Se reconstruye a partir de AXIS_1/2/3 y los planos NEGATIVE detectados
+   - Convención del companion:
+       X = AXIS_1
+       Y = AXIS_2
+       Z = AXIS_3
+   - Si falta un NEGATIVE boundary, AssemblySpace se exporta de todas formas y
+     TankFrameAabbMm/TankFrameObbMm quedan sin resolver.
+
+ROBUSTEZ
+--------
+- Componentes suprimidos se ignoran.
+- Un body con fallo individual no detiene el companion completo.
+- Si el OBB mínimo no está disponible, se conserva el AABB preciso como fallback.
+- La representación V0.1.0 es conservadora: piezas irregulares pueden producir
+  falsos positivos de colisión. El contrato queda preparado para agregar mesh
+  posteriormente sin cambiar los JSON actuales de AWIS.
+
+PRUEBA RECOMENDADA
+------------------
+1. Rebuild del Add-In.
+2. Abrir un tanque conocido en Inventor.
+3. Ejecutar "Detect Tank".
+4. Verificar en Documents/AWIS:
+       AWIS_COLLISION_GEOMETRY_<TANK>.json
+5. Revisar primero 3 casos:
+   a) una solera rectangular,
+   b) un accesorio rotado,
+   c) un accesorio irregular.
+6. Comparar en Inventor:
+   - dimensiones OBB,
+   - posición Corner,
+   - altura/profundidad,
+   - VolumeMm3,
+   - OccurrencePath.
+
+PENDIENTE V0.2+
+---------------
+- Mesh triangulado para narrow phase exacto donde el OBB sea demasiado conservador.
+- Reglas de filtrado por cercanía al weld dentro de AWIS, no dentro de Inventor.
+- Integración con TOOL_COLLISION_MODEL.json.

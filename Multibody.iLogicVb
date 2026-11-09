@@ -1,0 +1,317 @@
+﻿Imports Inventor
+Imports System.Windows.Forms
+Imports System.Collections.Generic
+Imports IO = System.IO
+Imports System.Text.RegularExpressions
+
+' ============================================================
+'   MULTIBODY → IAM PRO (versión segura + material/apariencia)
+'   - Recorre el .iam activo
+'   - Cualquier .ipt con más de 1 sólido se convierte en:
+'       * Varios IPT (uno por cuerpo, sin vínculo)
+'       * Un IAM que contiene esos IPT
+'   - Copia MATERIAL y APARIENCIA del IPT original
+'   - En el ensamble, reemplaza la ocurrencia multibody por el IAM
+'     usando Add() + Delete() (seguro)
+'   - TODOS los IPT/IAM nuevos se guardan en la MISMA CARPETA
+'     donde está el .iam principal.
+' ============================================================
+
+Sub Main()
+
+    Dim asmDoc As AssemblyDocument = TryCast(ThisDoc.Document, AssemblyDocument)
+    If asmDoc Is Nothing Then
+        MessageBox.Show("Esta regla debe ejecutarse desde un archivo .iam", "Error")
+        Return
+    End If
+
+    ' === SIEMPRE usar la carpeta del ensamble principal ===
+    Dim OUTPUT_ROOT As String = IO.Path.GetDirectoryName(asmDoc.FullFileName)
+    If String.IsNullOrEmpty(OUTPUT_ROOT) Then
+        MessageBox.Show("No se pudo obtener la carpeta del ensamblaje.", "Error")
+        Return
+    End If
+    If Not IO.Directory.Exists(OUTPUT_ROOT) Then IO.Directory.CreateDirectory(OUTPUT_ROOT)
+
+    Dim processed As New List(Of String)
+    Dim failed As New Dictionary(Of String, String)
+    Dim replacements As New List(Of Tuple(Of ComponentOccurrence, String, Matrix))
+
+    ' 1) Recorremos todo el árbol del ensamblaje y preparamos conversiones
+    ProcessAssemblyRecursive(asmDoc.ComponentDefinition, OUTPUT_ROOT, processed, failed, replacements)
+
+    ' 2) Reemplazar ocurrencias multibody por sus IAMs, de forma segura
+    Dim app As Inventor.Application = ThisApplication
+
+    For Each item In replacements
+        Try
+            Dim oldOcc As ComponentOccurrence = item.Item1
+            Dim newAsmPath As String = item.Item2
+            Dim occMatrix As Matrix = item.Item3
+
+            If oldOcc Is Nothing OrElse String.IsNullOrEmpty(newAsmPath) Then Continue For
+
+            Dim parentAsm As AssemblyDocument = CType(oldOcc.Parent.Document, AssemblyDocument)
+            Dim parentDef As AssemblyComponentDefinition = parentAsm.ComponentDefinition
+
+            ' Verificar que el .iam exista
+            If Not IO.File.Exists(newAsmPath) Then
+                AddError(failed, IO.Path.GetFileName(newAsmPath), "El IAM no existe al intentar reemplazar.")
+                Continue For
+            End If
+
+            ' Primero intentamos agregar la nueva ocurrencia
+            Dim newOcc As ComponentOccurrence = parentDef.Occurrences.Add(newAsmPath, occMatrix)
+
+            ' Si llegó hasta aquí sin excepción, ya es seguro borrar la antigua
+            oldOcc.Delete()
+
+        Catch ex As Exception
+            Dim key As String = IO.Path.GetFileName(item.Item2)
+            AddError(failed, key, "No se pudo reemplazar multibody por IAM: " & ex.Message)
+        End Try
+    Next
+
+    ' 3) Reporte final
+    Dim sb As New System.Text.StringBuilder()
+    sb.AppendLine("=== RESULTADO DEL PROCESO MULTIBODY → IAM ===")
+    sb.AppendLine()
+    sb.AppendLine("Carpeta de salida:")
+    sb.AppendLine("   " & OUTPUT_ROOT)
+    sb.AppendLine()
+    sb.AppendLine("✔ Piezas procesadas:")
+    If processed.Count = 0 Then
+        sb.AppendLine("   (ninguna)")
+    Else
+        For Each n In processed
+            sb.AppendLine("   - " & n)
+        Next
+    End If
+
+    sb.AppendLine()
+    sb.AppendLine("❌ Errores:")
+    If failed.Count = 0 Then
+        sb.AppendLine("   (ninguno)")
+    Else
+        For Each kvp In failed
+            sb.AppendLine("   - " & kvp.Key & " → " & kvp.Value)
+        Next
+    End If
+
+    MessageBox.Show(sb.ToString(), "Multibody → IAM")
+
+End Sub
+
+' ============================================================
+'   Recorre recursivamente el ensamblaje
+' ============================================================
+Sub ProcessAssemblyRecursive(oAsmDef As AssemblyComponentDefinition,
+                             outputRoot As String,
+                             ByRef processed As List(Of String),
+                             ByRef failed As Dictionary(Of String, String),
+                             ByRef replacements As List(Of Tuple(Of ComponentOccurrence, String, Matrix)))
+
+    For Each oOcc As ComponentOccurrence In oAsmDef.Occurrences
+        Try
+            If oOcc.DefinitionDocumentType = DocumentTypeEnum.kAssemblyDocumentObject Then
+
+                ' Sub-ensamble → recursivo
+                Dim subAsm As AssemblyDocument = CType(oOcc.Definition.Document, AssemblyDocument)
+                ProcessAssemblyRecursive(subAsm.ComponentDefinition, outputRoot, processed, failed, replacements)
+
+            ElseIf oOcc.DefinitionDocumentType = DocumentTypeEnum.kPartDocumentObject Then
+
+                Dim partDoc As PartDocument = CType(oOcc.Definition.Document, PartDocument)
+                Dim compDef As PartComponentDefinition = partDoc.ComponentDefinition
+
+                ' Solo procesar si realmente es multibody (>1 sólido)
+                If compDef.SurfaceBodies.Count > 1 Then
+                    Dim asmPath As String = ProcessMultibodyPart(oOcc, partDoc, compDef, outputRoot, processed, failed)
+                    If Not String.IsNullOrEmpty(asmPath) Then
+                        ' Guardamos la info para luego hacer el reemplazo
+                        replacements.Add(Tuple.Create(oOcc, asmPath, oOcc.Transformation))
+                    End If
+                End If
+
+            End If
+
+        Catch ex As Exception
+            Dim name As String = IO.Path.GetFileName(oOcc.Definition.Document.FullFileName)
+            AddError(failed, name, ex.Message)
+        End Try
+    Next
+
+End Sub
+
+' ============================================================
+'   Convierte un IPT multibody en varios IPT (uno por cuerpo)
+'   y arma un IAM con esos cuerpos
+'   Devuelve la ruta del IAM nuevo
+'   NOTA: ahora usa directamente OUTPUT_ROOT (sin subcarpetas)
+' ============================================================
+Function ProcessMultibodyPart(oOcc As ComponentOccurrence,
+                              oPartDoc As PartDocument,
+                              compDef As PartComponentDefinition,
+                              outputRoot As String,
+                              ByRef processed As List(Of String),
+                              ByRef failed As Dictionary(Of String, String)) As String
+
+    Dim app As Inventor.Application = ThisApplication
+    Dim tg As TransientGeometry = app.TransientGeometry
+    Dim tb As TransientBRep = app.TransientBRep
+
+    Dim baseName As String = CleanName(IO.Path.GetFileNameWithoutExtension(oPartDoc.FullFileName))
+
+    ' === SIN SUBCARPETAS: usar directamente la carpeta del ensamblaje ===
+    Dim partFolder As String = outputRoot
+
+    Dim templatePart As String = app.FileManager.GetTemplateFile(DocumentTypeEnum.kPartDocumentObject)
+    Dim cuerposFiles As New List(Of String)
+    Dim idx As Integer = 1
+
+    ' 1) Crear un IPT por cada cuerpo sólido
+    For Each body As SurfaceBody In compDef.SurfaceBodies
+        Try
+            If Not body.IsSolid Then Continue For
+
+            Dim vol As Double = 0
+            Try
+                vol = body.Volume(0.01)
+            Catch
+                vol = 0
+            End Try
+
+            If vol <= 0 Then Continue For
+
+            ' ---------- Nuevo PART vacío ----------
+            Dim newPart As PartDocument = app.Documents.Add(DocumentTypeEnum.kPartDocumentObject, templatePart, False)
+            Dim newDef As PartComponentDefinition = newPart.ComponentDefinition
+
+            ' ===== COPIAR MATERIAL Y APARIENCIA DEL ORIGINAL =====
+            Try
+                newDef.Material = compDef.Material
+            Catch
+            End Try
+
+            Try
+                If body.Appearance IsNot Nothing Then
+                    newDef.Appearance = body.Appearance
+                Else
+                    newDef.Appearance = compDef.Appearance
+                End If
+            Catch
+            End Try
+            ' =====================================================
+
+            ' Copiar el cuerpo a un NonParametricBaseFeature (sin vínculo)
+            Dim bodyCopy As SurfaceBody = tb.Copy(body)
+            Dim npFeatures As NonParametricBaseFeatures = newDef.Features.NonParametricBaseFeatures
+            npFeatures.Add(bodyCopy)
+            newPart.Update()
+
+            ' Sketch perimetral opcional en la cara plana más grande
+            Try
+                Dim newBody As SurfaceBody = newDef.SurfaceBodies.Item(1)
+                AddPerimeterSketch(newPart, newBody)
+            Catch
+            End Try
+
+            ' Guardar IPT (en la misma carpeta del ensamblaje)
+            Dim iptName As String = baseName & "_" & idx & ".ipt"
+            Dim iptPath As String = IO.Path.Combine(partFolder, iptName)
+            If IO.File.Exists(iptPath) Then IO.File.Delete(iptPath)
+
+            newPart.SaveAs(iptPath, False)
+            newPart.Close(True)
+
+            cuerposFiles.Add(iptPath)
+            idx += 1
+
+        Catch ex As Exception
+            AddError(failed, oPartDoc.DisplayName & "_" & idx, "Error al crear IPT de cuerpo: " & ex.Message)
+        End Try
+    Next
+
+    If cuerposFiles.Count = 0 Then
+        AddError(failed, oPartDoc.DisplayName, "No se generó ningún cuerpo válido.")
+        Return ""
+    End If
+
+    ' 2) Crear el IAM que junta todos los cuerpos (también en la misma carpeta)
+    Try
+        Dim asmTemplate As String = app.FileManager.GetTemplateFile(DocumentTypeEnum.kAssemblyDocumentObject)
+        Dim newAsm As AssemblyDocument = app.Documents.Add(DocumentTypeEnum.kAssemblyDocumentObject, asmTemplate, False)
+        Dim occs = newAsm.ComponentDefinition.Occurrences
+        Dim identity As Matrix = tg.CreateMatrix()
+
+        For Each f In cuerposFiles
+            occs.Add(f, identity)
+        Next
+
+        Dim asmPath As String = IO.Path.Combine(partFolder, baseName & ".iam")
+        If IO.File.Exists(asmPath) Then IO.File.Delete(asmPath)
+
+        newAsm.SaveAs(asmPath, False)
+        newAsm.Close(True)
+
+        processed.Add(IO.Path.GetFileName(oPartDoc.FullFileName))
+        Return asmPath
+
+    Catch ex As Exception
+        AddError(failed, oPartDoc.DisplayName, "Error al crear IAM: " & ex.Message)
+        Return ""
+    End Try
+
+End Function
+
+' ============================================================
+'   Sketch perimetral en la cara plana más grande (opcional)
+' ============================================================
+Sub AddPerimeterSketch(partDoc As PartDocument, targetBody As SurfaceBody)
+
+    Dim compDef As PartComponentDefinition = partDoc.ComponentDefinition
+    Dim mainFace As Face = Nothing
+    Dim maxArea As Double = 0
+
+    For Each f As Face In targetBody.Faces
+        If f.SurfaceType = SurfaceTypeEnum.kPlaneSurface Then
+            Try
+                Dim area As Double
+                f.Evaluator.GetArea(area)
+                If area > maxArea Then
+                    maxArea = area
+                    mainFace = f
+                End If
+            Catch
+            End Try
+        End If
+    Next
+
+    If mainFace Is Nothing Then
+        Try
+            compDef.Sketches.Add(targetBody.Faces.Item(1), True).ExitEdit()
+        Catch
+        End Try
+        Return
+    End If
+
+    Try
+        compDef.Sketches.Add(mainFace, True).ExitEdit()
+    Catch
+    End Try
+
+End Sub
+
+' ============================================================
+'   Utilidades
+' ============================================================
+Sub AddError(ByRef failed As Dictionary(Of String, String), key As String, msg As String)
+    If Not failed.ContainsKey(key) Then
+        failed.Add(key, msg)
+    End If
+End Sub
+
+Function CleanName(name As String) As String
+    ' Solo letras, números, guion y guion bajo
+    Return Regex.Replace(name, "[^\w\-]", "_")
+End Function

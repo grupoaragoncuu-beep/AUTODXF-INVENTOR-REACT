@@ -1,0 +1,35 @@
+{
+  "cara": "SEGM4",
+  "look": [
+    0.0,
+    0.0,
+    -1.0
+  ],
+  "u_axis": [
+    -1.0,
+    0.0,
+    -0.0
+  ],
+  "v_axis": [
+    -0.0,
+    1.0,
+    0.0
+  ],
+  "ox": -18.750000000000387,
+  "oy": -32.87500000000023,
+  "span_u": 37.50000000000078,
+  "span_v": 65.75000000000043,
+  "origen": "IL",
+  "hijos": 8,
+  "piezas": 7,
+  "modo": "alambrico",
+  "tipos": [
+    "261503_VT-5657-R1-D3000 Lifting Lug With Chain Retainer",
+    "261503_VT-5657-R1-D3000 Lifting Lug With Chain Retainer",
+    "261503_Brace-Side",
+    "261503_Brace-Side",
+    "261503_Brace-Side",
+    "Jacking pad",
+    "Jacking pad"
+  ]
+}

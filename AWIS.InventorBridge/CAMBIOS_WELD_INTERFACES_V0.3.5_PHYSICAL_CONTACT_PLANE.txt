@@ -1,0 +1,23 @@
+AWIS Inventor Bridge — Weld Interfaces V0.3.5
+PLANO FISICO DE CONTACTO — 2026-10-04
+
+Problema
+El OTC 62223-1246-A01 tiene una pared inclinada 0.731425 grados. La seccion anterior usaba la normal canonica (0,1,0) y cortaba SP-788_137 en dos wires parciales. En el STEP el borde de ese accesorio si pertenece al plano real de la pared.
+
+Cambios por archivo
+1. WeldInterfaces/WeldContactPlaneResolver.cs (nuevo): obtiene el plano de la cara fisica nativa mediante el occurrence path, body index y face index del segmento ancla. Usa SurfaceBodies de la occurrence para trabajar en contexto assembly. Valida normal, orientacion y coplanaridad de los segmentos.
+2. WeldInterfaces/WeldInterfaceModels.cs: Version=0.3.5 y GeneratorVersion=Inventor Weld Interface Companion V0.3.5. Cada Faces[] incluye ContactPlane: Resolved, ResolutionStatus, OriginMm, Normal, TiltFromCanonicalDeg y referencias de cara fuente.
+3. WeldInterfaces/WeldInterfaceBuilder.cs: resuelve ContactPlane antes de broad phase/exact detector.
+4. WeldInterfaces/WeldInterfaceBroadPhase.cs, WeldInterfaceExactDetector.cs y WeldInterfacePathBuilder.cs: WallDepth usa el plano fisico. La comparacion de normales en exact detector usa la normal fisica.
+5. WeldInterfaces/WeldInterfaceSectionBuilder.cs: CreateWallPlane usa el plano fisico. LocalToModel eleva UV al plano fisico para mantener correctos los puntos 3D de las circunferencias reconstruidas.
+
+Contrato conservado
+OriginMm, LocalU, LocalV y OutwardNormal de Faces[] siguen siendo la referencia canonica original para AWIS. ContactPlane es independiente. No se cambia WOBJ ni la logica del generador XPL. La reconstruccion V0.3.4 sigue exigiendo circularidad, concentricidad, espesor y cobertura >=300 grados; no se convierten arcos parciales arbitrarios en circulos.
+
+Limites y fallback
+Si la cara nativa no es recuperable o no es planar, la desviacion supera 4 grados, o los paneles requieren planos distintos (separacion >0.25 mm o diferencia angular >0.01 grados), se conserva el comportamiento canonico anterior y se emite warning. Esta version no implementa secciones independientes por panel para paredes no coplanares. Revisar ContactPlane.Resolved y Warnings; no asumir que la correccion se aplico cuando hay fallback.
+
+Verificacion realizada
+OCCT/OCP sobre el STEP original: 441 solids; 6 aberturas grandes cerradas en la pared. Tres cuellos circulares, incluyendo SP-788, coinciden con el plano fisico con error numerico <1e-6 mm; seccion fisica produce sus arcos casi completos. UV lift conserva X/Z y devuelve la posicion fisica con error <1e-6 mm. Resultados en validation/OTC_CONTACT_PLANE_RESULTS.json. CollisionGeometry, FacePreview y Services se conservaron byte por byte.
+
+No se compilo con Autodesk Inventor en este entorno. No se incluyen DLL viejas ni bin/obj; la compilacion real y nueva exportacion en Inventor siguen pendientes. La prueba OCCT valida la geometria y formulas, no sustituye la ejecucion COM del Bridge.

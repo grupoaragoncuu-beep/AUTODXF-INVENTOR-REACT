@@ -1,0 +1,2 @@
+AWIS Inventor Bridge — Weld Interface Companion V0.3.8-MULTIBODY_CONTACT
+Corrección: contactos entre cuerpos de la misma occurrence; exclusión de cuerpos de pared y recorte local con tolerancia de contacto.

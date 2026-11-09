@@ -1,0 +1,48 @@
+{
+  "step_solid_count": 441,
+  "physical_wall_tilt_deg": 0.7314250499749552,
+  "large_closed_wall_loops": 6,
+  "rings": [
+    {
+      "center_x_mm": 323.85,
+      "actual_plane_max_error_mm": 3.9257486150745535e-13,
+      "canonical_depth_range_mm": [
+        2.5128869030481837,
+        9.159812583037365
+      ],
+      "real_section_curved_lengths_mm": [
+        1632.5728985364956,
+        1592.7540473526785
+      ],
+      "uv_lift_max_error_mm": 4.547473508864641e-13
+    },
+    {
+      "center_x_mm": -520.7,
+      "actual_plane_max_error_mm": 3.9257486150745535e-13,
+      "canonical_depth_range_mm": [
+        2.5128869030481837,
+        9.159812583037365
+      ],
+      "real_section_curved_lengths_mm": [
+        1632.5728985364956,
+        1592.7540473526785
+      ],
+      "uv_lift_max_error_mm": 4.547473508864641e-13
+    },
+    {
+      "center_x_mm": -1612.9,
+      "actual_plane_max_error_mm": 9.170442183403793e-13,
+      "canonical_depth_range_mm": [
+        -5.268918388166185,
+        1.3780072918229962
+      ],
+      "real_section_curved_lengths_mm": [
+        1632.5728985364956,
+        1592.7540473526785
+      ],
+      "uv_lift_max_error_mm": 9.094947017729282e-13
+    }
+  ],
+  "status": "PASS",
+  "scope": "OCCT geometry regression; Inventor COM build/export still required"
+}

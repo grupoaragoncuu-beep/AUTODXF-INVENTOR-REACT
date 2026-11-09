@@ -1,0 +1,2169 @@
+Imports System.Collections.Generic
+Imports System.Text
+Imports Inventor
+
+' Selector de componentes para Lista de largos y Colorimetría.
+' AutoDXF escribe pick_job.txt, el ingeniero hace clic en el modelo y Terminar crea pick_stop.flag.
+
+Sub Main()
+    Dim asm As AssemblyDocument = ThisApplication.ActiveDocument
+    If asm Is Nothing OrElse asm.DocumentType <> kAssemblyDocumentObject Then
+        Return
+    End If
+
+    Dim jobFile As String = "C:\Users\Ing. Cano\Documents\AUTODXF INVENTOR REACT\config\pick_job.txt"
+    If Not System.IO.File.Exists(jobFile) Then
+        jobFile = System.IO.Path.Combine(ThisDoc.Path, "pick_job.txt")
+    End If
+    If Not System.IO.File.Exists(jobFile) Then Return
+
+    Dim mode As String = "lengths"
+    Dim stopFile As String = ""
+    Dim statusFile As String = ""
+    Dim className As String = "Accesorios Sueltos"
+    Dim colorHex As String = "#0891B2"
+    Dim colorR As Integer = -1
+    Dim colorG As Integer = -1
+    Dim colorB As Integer = -1
+    Dim looks As String = ""
+    For Each line As String In System.IO.File.ReadAllLines(jobFile, Encoding.UTF8)
+        Dim text As String = line.Trim()
+        Dim eq As Integer = text.IndexOf("="c)
+        If eq < 1 Then Continue For
+        Dim key As String = text.Substring(0, eq).Trim().ToLowerInvariant()
+        Dim value As String = text.Substring(eq + 1).Trim()
+        If key = "mode" Then mode = value
+        If key = "stop" Then stopFile = value
+        If key = "status" Then statusFile = value
+        If key = "classname" Then className = value
+        If key = "color" Then colorHex = value
+        If key = "colorr" Then Integer.TryParse(value, colorR)
+        If key = "colorg" Then Integer.TryParse(value, colorG)
+        If key = "colorb" Then Integer.TryParse(value, colorB)
+        If key = "appearances" Then looks = value
+    Next
+    If stopFile = "" OrElse statusFile = "" Then Return
+
+    Dim selector As New ComponentPickSession(ThisApplication, asm, mode, stopFile, statusFile, className, colorHex, colorR, colorG, colorB, looks, jobFile)
+    selector.Run()
+End Sub
+
+Public Class ComponentPickSession
+    Private _inventor As Inventor.Application
+    Private _asm As AssemblyDocument
+    Private _mode As String
+    Private _jobFile As String
+    Private _stopFile As String
+    Private _statusFile As String
+    Private _className As String
+    Private _classAsset As Asset
+    Private _looks As New List(Of String)
+    Private _pending As New List(Of ComponentOccurrence)
+    Private _r As Integer
+    Private _g As Integer
+    Private _b As Integer
+    Private _events As InteractionEvents
+    Private _select As SelectEvents
+    Private _alive As Boolean
+    Private _selected As New Dictionary(Of String, String)(StringComparer.OrdinalIgnoreCase)
+    Private _paintedClass As New Dictionary(Of String, String)(StringComparer.OrdinalIgnoreCase)
+    Private _lengths As New Dictionary(Of String, Double)(StringComparer.OrdinalIgnoreCase)
+    Private _removed As New Dictionary(Of String, String)(StringComparer.OrdinalIgnoreCase)
+    ' Muros: clic en una placa pinta también lo montado en ella (contacto real).
+    Private _smart As Boolean = True
+    Private _asmFace As Double = -1
+    Private _hojas As List(Of Hoja)
+    Private _marcos As Dictionary(Of String, MarcoCara)
+    Private _tankCenter As Double()
+    ' Montado = toca/atraviesa la cara exterior de la placa (cm). Igual que roles_muros.montadas_en_cara.
+    Private Const ContactoCaraCm As Double = 0.3
+    Private Const SaleCaraCm As Double = 0.05
+    Private Const MargenCaraCm As Double = 0.5
+    Private Const MontajeCm As Double = 0.5
+    ' Procesamiento por bloques: iProperty Sí/No del bloque activo y la lista prop:nombre de todos.
+    Private _blockProp As String = ""
+    Private _looseProp As String = ""
+    Private _blocks As New List(Of String())
+    ' Almacén, Corte y Doblado no se combinan en una misma pieza.
+    Private _exclusive As New List(Of String)
+    ' Assy: el clic cayó en un muro (Segmento, Top, Base). ApplyLibraryNow no pisa este aviso.
+    Private _assyAviso As String = ""
+    ' El filtro de hoja marca la pieza. Al terminar el clic se sustituye por el .iam del kit.
+    Private _kitSeleccionado As ComponentOccurrence = Nothing
+    Private _ajustandoSeleccion As Boolean = False
+    Private _puntoClic As Inventor.Point = Nothing
+
+    Public Sub New(app As Inventor.Application, asm As AssemblyDocument, mode As String, stopFile As String, statusFile As String, className As String, colorHex As String, colorR As Integer, colorG As Integer, colorB As Integer, looks As String, jobFile As String)
+        _inventor = app
+        _asm = asm
+        _mode = If(mode, "lengths")
+        _jobFile = If(jobFile, "")
+        _stopFile = stopFile
+        _statusFile = statusFile
+        _className = If(String.IsNullOrWhiteSpace(className), "Accesorios Sueltos", className)
+        Dim rgb() As Integer = ParseHex(colorHex)
+        _r = If(colorR >= 0, colorR, rgb(0))
+        _g = If(colorG >= 0, colorG, rgb(1))
+        _b = If(colorB >= 0, colorB, rgb(2))
+        If Not String.IsNullOrWhiteSpace(looks) Then
+            For Each piece As String In looks.Split("|"c)
+                Dim name As String = piece.Trim()
+                If name <> "" AndAlso Not _looks.Contains(name) Then _looks.Add(name)
+            Next
+        End If
+        If _looks.Count = 0 Then
+            For Each name As String In LibraryLooks(_className)
+                _looks.Add(name)
+            Next
+        End If
+        ReadBlocks()
+    End Sub
+
+    Private Sub ReadBlocks()
+        If String.IsNullOrWhiteSpace(_jobFile) OrElse Not System.IO.File.Exists(_jobFile) Then Return
+        Dim blockProp As String = ""
+        Dim looseProp As String = ""
+        Dim pairs As New List(Of String())
+        Dim exclusive As New List(Of String)
+        Try
+            For Each line As String In System.IO.File.ReadAllLines(_jobFile, Encoding.UTF8)
+                Dim text As String = line.Trim()
+                Dim eq As Integer = text.IndexOf("="c)
+                If eq < 1 Then Continue For
+                Dim key As String = text.Substring(0, eq).Trim().ToLowerInvariant()
+                Dim value As String = text.Substring(eq + 1).Trim()
+                If key = "blockprop" Then blockProp = value
+                If key = "looseprop" Then looseProp = value
+                If key = "exclusive" Then
+                    For Each piece As String In value.Split("|"c)
+                        If piece.Trim() <> "" Then exclusive.Add(piece.Trim())
+                    Next
+                End If
+                If key = "blocks" Then
+                    For Each piece As String In value.Split("|"c)
+                        Dim colon As Integer = piece.IndexOf(":"c)
+                        If colon < 1 Then Continue For
+                        pairs.Add(New String() {piece.Substring(0, colon).Trim(), piece.Substring(colon + 1).Trim()})
+                    Next
+                End If
+            Next
+        Catch
+            Return
+        End Try
+        _blockProp = blockProp
+        _looseProp = looseProp
+        _blocks = pairs
+        _exclusive = exclusive
+    End Sub
+
+    Private Function ExclusiveConflict(doc As Document) As String
+        Dim mine As Boolean = False
+        For Each prop As String In _exclusive
+            If String.Equals(prop, _blockProp, StringComparison.OrdinalIgnoreCase) Then mine = True
+        Next
+        If Not mine Then Return ""
+        For Each prop As String In _exclusive
+            If String.Equals(prop, _blockProp, StringComparison.OrdinalIgnoreCase) Then Continue For
+            If Not BlockFlag(doc, prop) Then Continue For
+            For Each pair As String() In _blocks
+                If String.Equals(pair(0), prop, StringComparison.OrdinalIgnoreCase) Then Return pair(1)
+            Next
+            Return prop
+        Next
+        Return ""
+    End Function
+
+    Private Function BlockMode() As Boolean
+        Return String.Equals(_mode, "accessories", StringComparison.OrdinalIgnoreCase) AndAlso _blockProp <> ""
+    End Function
+
+    Private Function IsRoles() As Boolean
+        Return String.Equals(_mode, "roles", StringComparison.OrdinalIgnoreCase)
+    End Function
+
+    Private Function LivePaint() As Boolean
+        Return String.Equals(_mode, "accessories", StringComparison.OrdinalIgnoreCase) OrElse IsRoles()
+    End Function
+
+    Public Sub Run()
+        _alive = True
+        Dim accessories As Boolean = LivePaint()
+        If accessories Then ActivarAparencias()
+        _events = _inventor.CommandManager.CreateInteractionEvents()
+        _select = _events.SelectEvents
+        _select.ClearSelectionFilter()
+        _select.SingleSelectEnabled = True
+        _select.Enabled = True
+        ApplySelectFilters()
+        AddHandler _select.OnSelect, AddressOf OnSelect
+        AddHandler _events.OnTerminate, AddressOf OnTerminate
+        _events.Start()
+        If accessories Then
+            If IsRoles() Then
+                _classAsset = PaintAsset()
+                _inventor.StatusBarText = StatusHint()
+            Else
+                _classAsset = FindLibraryAsset()
+                _inventor.StatusBarText = StatusHint()
+            End If
+        Else
+            _inventor.StatusBarText = "AutoDXF largos: opacidad 75%. Clic en el modelo."
+        End If
+        WriteStatus(True)
+        Do While _alive
+            _inventor.UserInterfaceManager.DoEvents()
+            If System.IO.File.Exists(_stopFile) Then
+                _alive = False
+                Try
+                    _events.Stop()
+                Catch
+                End Try
+            End If
+        Loop
+        Try
+            _select.ResetSelections()
+        Catch
+        End Try
+        Try
+            _events.Stop()
+        Catch
+        End Try
+        accessories = LivePaint()
+        If Not accessories Then
+            For Each path As String In _selected.Keys
+                PaintDocument(path, True)
+            Next
+        End If
+        Try
+            _inventor.ActiveView.Update()
+        Catch
+        End Try
+        WriteStatus(False)
+        _inventor.StatusBarText = "AutoDXF: selección terminada."
+    End Sub
+
+    Private Sub OnTerminate()
+        _alive = False
+    End Sub
+
+    Private Sub OnSelect(JustSelectedEntities As ObjectsEnumerator, SelectionDevice As SelectionDeviceEnum, ModelPosition As Inventor.Point, ViewPosition As Inventor.Point2d, ByVal View As Inventor.View)
+        If _ajustandoSeleccion Then Return
+        If JustSelectedEntities Is Nothing Then Return
+        Dim accessories As Boolean = LivePaint()
+        If accessories Then ReloadJob()
+        _kitSeleccionado = Nothing
+        _puntoClic = ModelPosition
+        For Each item As Object In JustSelectedEntities
+            Dim occ As ComponentOccurrence = ResolveOccurrence(item)
+            If occ Is Nothing Then Continue For
+            If BlockMode() Then
+                ToggleBlock(occ)
+            ElseIf IsRoles() Then
+                ToggleRole(occ)
+            ElseIf accessories Then
+                ApplyLibraryNow(occ)
+            Else
+                Toggle(occ)
+            End If
+        Next
+        If accessories AndAlso IsAssyClass(_className) Then
+            MostrarSeleccion(_kitSeleccionado)
+        End If
+        If (Not accessories) OrElse BlockMode() OrElse IsRoles() Then
+            Try
+                _select.ResetSelections()
+            Catch
+            End Try
+            Try
+                _asm.SelectSet.Clear()
+            Catch
+            End Try
+        End If
+        Try
+            _inventor.ActiveView.Update()
+        Catch
+        End Try
+    End Sub
+
+    Private Sub ApplyLibraryNow(occ As ComponentOccurrence)
+        ReloadJob()
+        occ = ColorTarget(occ)
+        If occ Is Nothing Then
+            ' Un muro en el mismo clic no borra el kit que ya resolvió la pieza.
+            If _kitSeleccionado IsNot Nothing Then Return
+            If _assyAviso <> "" Then
+                _inventor.StatusBarText = _assyAviso
+            ElseIf IsAssyClass(_className) Then
+                _inventor.StatusBarText = "Colorimetría " & _className & ": clic en una pieza del kit, no en el Segmento, Top o Base."
+            Else
+                _inventor.StatusBarText = "Colorimetría: clic en una pieza .ipt, no en el ensamble."
+            End If
+            Return
+        End If
+        Dim assy As Boolean = IsAssyClass(_className)
+        Dim path As String = If(assy, DocumentPath(occ), OccKey(occ))
+        If path = "" Then Return
+        _selected(path) = DocumentName(occ)
+        _paintedClass(path) = _className
+        If assy Then
+            _kitSeleccionado = occ
+            LimpiarAparienciaHijos(occ)
+            PaintAssyFile(path, True)
+        Else
+            ApplyMark(occ, True)
+        End If
+        If Not IsRoles() Then EscribirClasificacion(occ)
+        Dim hijos As Integer = 0
+        If (Not IsRoles()) AndAlso IsAssyLooseClass(_className) Then
+            hijos = MarkLooseChildren(occ)
+        End If
+        WriteStatus(True)
+        If hijos > 0 Then
+            _inventor.StatusBarText = "AutoDXF Colorimetría: " & _className & " en " & DocumentName(occ) & " (.iam); Accesorios Sueltos en " & hijos.ToString() & " piezas."
+        Else
+            _inventor.StatusBarText = "AutoDXF Colorimetría: " & _className & " en " & DocumentName(occ) & If(assy, " (.iam)", " (.ipt)")
+        End If
+    End Sub
+
+    ' Muros: clic pinta la instancia con la cara activa; clic sobre una ya pintada de esa cara la quita.
+    Private Sub ToggleRole(occ As ComponentOccurrence)
+        ReloadJob()
+        occ = ColorTarget(occ)
+        If occ Is Nothing Then
+            _inventor.StatusBarText = "AutoDXF muros: clic en una pieza .ipt."
+            Return
+        End If
+        If OccKey(occ) = "" Then Return
+        Dim name As String = DocumentName(occ)
+        Dim quitar As Boolean = PaintedWithRole(occ)
+        Dim grupo As New List(Of ComponentOccurrence)
+        grupo.Add(occ)
+        Dim plate As ComponentOccurrence = If(_smart, PlateFor(occ), Nothing)
+        Dim esPlaca As Boolean = plate IsNot Nothing
+        If esPlaca Then
+            _inventor.StatusBarText = "AutoDXF muros " & _className & ": buscando lo montado en " & DocumentName(plate) & "…"
+            Dim plateKey As String = OccKey(plate)
+            If Not String.Equals(plateKey, OccKey(occ), StringComparison.OrdinalIgnoreCase) Then grupo.Add(plate)
+            For Each extra As ComponentOccurrence In MountedOn(plate)
+                If String.Equals(OccKey(extra), OccKey(occ), StringComparison.OrdinalIgnoreCase) Then Continue For
+                Dim otra As String = RoleOf(extra)
+                If quitar Then
+                    If otra = _className Then grupo.Add(extra)
+                ElseIf otra = "" OrElse otra = _className Then
+                    grupo.Add(extra)
+                End If
+            Next
+        End If
+        For Each item As ComponentOccurrence In grupo
+            Dim key As String = OccKey(item)
+            If key = "" Then Continue For
+            If quitar Then
+                _selected.Remove(key)
+                _paintedClass.Remove(key)
+                _removed(key) = DocumentName(item)
+                ApplyMark(item, False)
+            Else
+                _removed.Remove(key)
+                _selected(key) = DocumentName(item)
+                _paintedClass(key) = _className
+                ApplyMark(item, True)
+            End If
+        Next
+        Dim extras As String = If(grupo.Count > 1, " + " & (grupo.Count - 1).ToString() & " montada(s)", "")
+        If quitar Then
+            _inventor.StatusBarText = "AutoDXF muros " & _className & ": quitada " & name & extras & ". Clic de nuevo para regresarla."
+        ElseIf esPlaca Then
+            _inventor.StatusBarText = "AutoDXF muros " & _className & ": placa " & name & extras & ". Otro clic la quita."
+        Else
+            _inventor.StatusBarText = "AutoDXF muros " & _className & ": " & name & " (no es placa de muro; solo esa pieza). Otro clic la quita."
+        End If
+        WriteStatus(True)
+    End Sub
+
+    Private Function RoleOf(occ As ComponentOccurrence) As String
+        Try
+            If occ.AppearanceSourceType <> AppearanceSourceTypeEnum.kOverrideAppearance Then Return ""
+            If occ.Appearance Is Nothing Then Return ""
+            Dim display As String = occ.Appearance.DisplayName
+            If Not display.StartsWith("AutoDXF ", StringComparison.OrdinalIgnoreCase) Then Return ""
+            Dim rest As String = display.Substring(8).Trim()
+            If rest.StartsWith("Rol ", StringComparison.OrdinalIgnoreCase) Then rest = rest.Substring(4).Trim()
+            Dim cara As String = rest.Split(" "c)(0).ToUpperInvariant()
+            For Each known As String In New String() {"SEGM1", "SEGM2", "SEGM3", "SEGM4", "TOP", "BASE"}
+                If cara = known Then Return cara
+            Next
+        Catch
+        End Try
+        Return ""
+    End Function
+
+    ' Medidas de la caja: (0)=espesor, (1)=media, (2)=larga.
+    Private Function BoxDims(occ As ComponentOccurrence) As Double()
+        Try
+            Dim rb As Box = occ.RangeBox
+            Dim d() As Double = {Math.Abs(rb.MaxPoint.X - rb.MinPoint.X), Math.Abs(rb.MaxPoint.Y - rb.MinPoint.Y), Math.Abs(rb.MaxPoint.Z - rb.MinPoint.Z)}
+            Array.Sort(d)
+            Return d
+        Catch
+            Return Nothing
+        End Try
+    End Function
+
+    Private Function AssemblyFace() As Double
+        If _asmFace >= 0 Then Return _asmFace
+        _asmFace = 0
+        Try
+            Dim rb As Box = _asm.ComponentDefinition.RangeBox
+            Dim d() As Double = {Math.Abs(rb.MaxPoint.X - rb.MinPoint.X), Math.Abs(rb.MaxPoint.Y - rb.MinPoint.Y), Math.Abs(rb.MaxPoint.Z - rb.MinPoint.Z)}
+            Array.Sort(d)
+            _asmFace = d(1) * d(2)
+        Catch
+        End Try
+        Return _asmFace
+    End Function
+
+    Private Function WallName(text As String) As Boolean
+        Dim tail As String = If(text, "").Replace("\", "/")
+        If tail.Contains("/") Then tail = tail.Substring(tail.LastIndexOf("/") + 1)
+        If tail.Contains(":") Then tail = tail.Substring(0, tail.IndexOf(":"))
+        tail = System.IO.Path.GetFileNameWithoutExtension(tail).Trim()
+        tail = System.Text.RegularExpressions.Regex.Replace(tail, "^\d+[_\- ]+", "")
+        Return System.Text.RegularExpressions.Regex.IsMatch(tail, _
+            "^(?:seg(?:m|mento)?|segment)[\s_\-]*[1-4]$|^s[\s_\-]*[1-4]$|^base$|^(?:top[\s_\-]*cover|tapa(?:[\s_\-]*superior)?|cubierta|tank[\s_\-]*lid|tank[\s_\-]*base)$", _
+            System.Text.RegularExpressions.RegexOptions.IgnoreCase)
+    End Function
+
+    ' Placa de muro: nombre S1/Segmento 1/Base/Top, o una lámina delgada con al menos 20% de la cara mayor del ensamble.
+    Private Function IsWallPlate(occ As ComponentOccurrence) As Boolean
+        Try
+            If WallName(occ.Name) OrElse WallName(DocumentName(occ)) Then Return True
+        Catch
+        End Try
+        Dim d() As Double = BoxDims(occ)
+        If d Is Nothing OrElse d(1) <= 0 Then Return False
+        If d(0) > 0.15 * d(1) Then Return False
+        Dim face As Double = AssemblyFace()
+        Return face > 0 AndAlso d(1) * d(2) >= 0.2 * face
+    End Function
+
+    ' Hoja del ensamble con su caja en cm (se lee una vez por sesión del selector).
+    Private Class Hoja
+        Public Occ As ComponentOccurrence
+        Public Key As String
+        Public Mn() As Double
+        Public Mx() As Double
+        Public EsMuro As Boolean
+    End Class
+
+    ' Cara exterior de una placa: normal hacia afuera del tanque, plano exterior y rectángulo u/v.
+    Private Class MarcoCara
+        Public N() As Double
+        Public U() As Double
+        Public V() As Double
+        Public O() As Double
+        Public Exterior As Double
+        Public UMin As Double
+        Public UMax As Double
+        Public VMin As Double
+        Public VMax As Double
+    End Class
+
+    Private Function Hojas() As List(Of Hoja)
+        If _hojas IsNot Nothing Then Return _hojas
+        _hojas = New List(Of Hoja)
+        For Each leaf As ComponentOccurrence In _asm.ComponentDefinition.Occurrences.AllLeafOccurrences
+            Try
+                If leaf.Suppressed OrElse Not IsPartOcc(leaf) Then Continue For
+                Dim key As String = OccKey(leaf)
+                If key = "" Then Continue For
+                Dim rb As Box = leaf.RangeBox
+                Dim h As New Hoja
+                h.Occ = leaf
+                h.Key = key
+                h.Mn = New Double() {rb.MinPoint.X, rb.MinPoint.Y, rb.MinPoint.Z}
+                h.Mx = New Double() {rb.MaxPoint.X, rb.MaxPoint.Y, rb.MaxPoint.Z}
+                h.EsMuro = IsWallPlate(leaf)
+                _hojas.Add(h)
+            Catch
+            End Try
+        Next
+        Return _hojas
+    End Function
+
+    ' Lo montado en la cara EXTERIOR de la placa: toca o atraviesa ese plano dentro de su rectángulo,
+    ' más lo que se apoya en eso (siempre delante de la cara). Cada pieza debe tener esta placa como
+    ' muro más cercano: nada de otros segmentos. Solo cajas, sin GetMinimumDistance.
+    Private Function MountedOn(plate As ComponentOccurrence) As List(Of ComponentOccurrence)
+        Dim found As New List(Of ComponentOccurrence)
+        Dim plateKey As String = OccKey(plate)
+        Dim inner As String = WallGroupPrefix(plate)
+        Dim propia As Hoja = Nothing
+        Dim muros As New List(Of Hoja)
+        For Each h As Hoja In Hojas()
+            If String.Equals(h.Key, plateKey, StringComparison.OrdinalIgnoreCase) Then propia = h
+            If h.EsMuro Then muros.Add(h)
+        Next
+        If propia Is Nothing Then Return found
+        If Not muros.Contains(propia) Then muros.Add(propia)
+        Dim marco As MarcoCara = MarcoDe(propia)
+        If marco Is Nothing Then Return found
+        Dim dentro As New List(Of Hoja)
+        Dim delante As New List(Of Hoja)
+        For Each h As Hoja In Hojas()
+            If h Is propia Then Continue For
+            If inner <> "" AndAlso h.Key.StartsWith(inner, StringComparison.OrdinalIgnoreCase) Then
+                found.Add(h.Occ)
+                Continue For
+            End If
+            If h.EsMuro Then Continue For
+            Dim smin As Double = Double.PositiveInfinity
+            Dim smax As Double = Double.NegativeInfinity
+            For Each p As Double() In Esquinas(h)
+                Dim s As Double = Dot(p, marco.N) - marco.Exterior
+                smin = Math.Min(smin, s)
+                smax = Math.Max(smax, s)
+            Next
+            If smax < SaleCaraCm Then Continue For
+            If FueraRect(Centro(h), marco) > MargenCaraCm Then Continue For
+            If DuenoDe(h, muros) IsNot propia Then Continue For
+            If smin <= ContactoCaraCm Then dentro.Add(h) Else delante.Add(h)
+        Next
+        For ronda As Integer = 1 To 4
+            Dim nuevas As New List(Of Hoja)
+            For Each h As Hoja In delante
+                For Each b As Hoja In dentro
+                    If Cerca(b, h, MontajeCm) Then
+                        nuevas.Add(h)
+                        Exit For
+                    End If
+                Next
+            Next
+            If nuevas.Count = 0 Then Exit For
+            For Each h As Hoja In nuevas
+                delante.Remove(h)
+                dentro.Add(h)
+            Next
+        Next
+        For Each h As Hoja In dentro
+            found.Add(h.Occ)
+        Next
+        Return found
+    End Function
+
+    Private Function DuenoDe(h As Hoja, muros As List(Of Hoja)) As Hoja
+        Dim c() As Double = Centro(h)
+        Dim mejor As Hoja = Nothing
+        Dim mejorS As Double = Double.PositiveInfinity
+        For Each m As Hoja In muros
+            Dim mc As MarcoCara = MarcoDe(m)
+            If mc Is Nothing Then Continue For
+            Dim s As Double = Math.Abs(Dot(c, mc.N) - mc.Exterior) + 3.0 * FueraRect(c, mc)
+            If s < mejorS Then
+                mejorS = s
+                mejor = m
+            End If
+        Next
+        Return mejor
+    End Function
+
+    Private Function MarcoDe(h As Hoja) As MarcoCara
+        If _marcos Is Nothing Then _marcos = New Dictionary(Of String, MarcoCara)(StringComparer.OrdinalIgnoreCase)
+        Dim m As MarcoCara = Nothing
+        If _marcos.TryGetValue(h.Key, m) Then Return m
+        m = CalcMarco(h)
+        _marcos(h.Key) = m
+        Return m
+    End Function
+
+    Private Function CalcMarco(h As Hoja) As MarcoCara
+        Dim planas As New List(Of Face)
+        Dim areas As New List(Of Double)
+        Dim best As Face = Nothing
+        Dim bestArea As Double = 0
+        Try
+            For Each body As SurfaceBody In h.Occ.SurfaceBodies
+                For Each f As Face In body.Faces
+                    Try
+                        If f.SurfaceType <> SurfaceTypeEnum.kPlaneSurface Then Continue For
+                        Dim a As Double = f.Evaluator.Area
+                        planas.Add(f)
+                        areas.Add(a)
+                        If a > bestArea Then
+                            bestArea = a
+                            best = f
+                        End If
+                    Catch
+                    End Try
+                Next
+            Next
+        Catch
+        End Try
+        Dim o() As Double = Centro(h)
+        Dim n() As Double = If(best IsNot Nothing, NormalDe(best), Nothing)
+        If n Is Nothing Then
+            Dim d() As Double = {h.Mx(0) - h.Mn(0), h.Mx(1) - h.Mn(1), h.Mx(2) - h.Mn(2)}
+            Dim k As Integer = 0
+            If d(1) < d(k) Then k = 1
+            If d(2) < d(k) Then k = 2
+            n = New Double() {0, 0, 0}
+            n(k) = 1
+        End If
+        Dim tc() As Double = TankCenter()
+        If tc IsNot Nothing AndAlso Dot(n, Resta(o, tc)) < 0 Then n = New Double() {-n(0), -n(1), -n(2)}
+        Dim ext As Double = Double.NegativeInfinity
+        For i As Integer = 0 To planas.Count - 1
+            If areas(i) < bestArea * 0.5 Then Continue For
+            Dim ni() As Double = NormalDe(planas(i))
+            If ni Is Nothing OrElse Math.Abs(Dot(ni, n)) < 0.99 Then Continue For
+            Try
+                Dim p As Inventor.Point = planas(i).PointOnFace
+                ext = Math.Max(ext, Dot(New Double() {p.X, p.Y, p.Z}, n))
+            Catch
+            End Try
+        Next
+        If Double.IsNegativeInfinity(ext) Then
+            For Each p As Double() In Esquinas(h)
+                ext = Math.Max(ext, Dot(p, n))
+            Next
+        End If
+        Dim v() As Double = Aplanar(New Double() {0, 1, 0}, n)
+        If v Is Nothing Then v = Aplanar(New Double() {1, 0, 0}, n)
+        If v Is Nothing Then Return Nothing
+        Dim u() As Double = Unit(Cruz(v, n))
+        If u Is Nothing Then Return Nothing
+        Dim m As New MarcoCara
+        m.N = n
+        m.U = u
+        m.V = v
+        m.O = o
+        m.Exterior = ext
+        m.UMin = Double.PositiveInfinity
+        m.UMax = Double.NegativeInfinity
+        m.VMin = Double.PositiveInfinity
+        m.VMax = Double.NegativeInfinity
+        For Each p As Double() In Esquinas(h)
+            Dim r() As Double = Resta(p, o)
+            m.UMin = Math.Min(m.UMin, Dot(r, u))
+            m.UMax = Math.Max(m.UMax, Dot(r, u))
+            m.VMin = Math.Min(m.VMin, Dot(r, v))
+            m.VMax = Math.Max(m.VMax, Dot(r, v))
+        Next
+        Return m
+    End Function
+
+    Private Function TankCenter() As Double()
+        If _tankCenter IsNot Nothing Then Return _tankCenter
+        Try
+            Dim rb As Box = _asm.ComponentDefinition.RangeBox
+            _tankCenter = New Double() {(rb.MinPoint.X + rb.MaxPoint.X) / 2, (rb.MinPoint.Y + rb.MaxPoint.Y) / 2, (rb.MinPoint.Z + rb.MaxPoint.Z) / 2}
+        Catch
+        End Try
+        Return _tankCenter
+    End Function
+
+    Private Shared Function NormalDe(f As Face) As Double()
+        Try
+            Dim pl As Inventor.Plane = CType(f.Geometry, Inventor.Plane)
+            Return Unit(New Double() {pl.Normal.X, pl.Normal.Y, pl.Normal.Z})
+        Catch
+            Return Nothing
+        End Try
+    End Function
+
+    Private Shared Function FueraRect(p() As Double, m As MarcoCara) As Double
+        Dim r() As Double = Resta(p, m.O)
+        Dim uu As Double = Dot(r, m.U)
+        Dim vv As Double = Dot(r, m.V)
+        Dim du As Double = Math.Max(0.0, Math.Max(m.UMin - uu, uu - m.UMax))
+        Dim dv As Double = Math.Max(0.0, Math.Max(m.VMin - vv, vv - m.VMax))
+        Return du + dv
+    End Function
+
+    Private Shared Function Cerca(a As Hoja, b As Hoja, gap As Double) As Boolean
+        For i As Integer = 0 To 2
+            If b.Mx(i) < a.Mn(i) - gap OrElse b.Mn(i) > a.Mx(i) + gap Then Return False
+        Next
+        Return True
+    End Function
+
+    Private Shared Function Centro(h As Hoja) As Double()
+        Return New Double() {(h.Mn(0) + h.Mx(0)) / 2, (h.Mn(1) + h.Mx(1)) / 2, (h.Mn(2) + h.Mx(2)) / 2}
+    End Function
+
+    Private Shared Function Esquinas(h As Hoja) As List(Of Double())
+        Dim pts As New List(Of Double())
+        For Each x As Double In New Double() {h.Mn(0), h.Mx(0)}
+            For Each y As Double In New Double() {h.Mn(1), h.Mx(1)}
+                For Each z As Double In New Double() {h.Mn(2), h.Mx(2)}
+                    pts.Add(New Double() {x, y, z})
+                Next
+            Next
+        Next
+        Return pts
+    End Function
+
+    Private Shared Function Dot(a() As Double, b() As Double) As Double
+        Return a(0) * b(0) + a(1) * b(1) + a(2) * b(2)
+    End Function
+
+    Private Shared Function Resta(a() As Double, b() As Double) As Double()
+        Return New Double() {a(0) - b(0), a(1) - b(1), a(2) - b(2)}
+    End Function
+
+    Private Shared Function Cruz(a() As Double, b() As Double) As Double()
+        Return New Double() {a(1) * b(2) - a(2) * b(1), a(2) * b(0) - a(0) * b(2), a(0) * b(1) - a(1) * b(0)}
+    End Function
+
+    Private Shared Function Unit(a() As Double) As Double()
+        Dim l As Double = Math.Sqrt(Dot(a, a))
+        If l < 0.000000001 Then Return Nothing
+        Return New Double() {a(0) / l, a(1) / l, a(2) / l}
+    End Function
+
+    Private Shared Function Aplanar(a() As Double, n() As Double) As Double()
+        Dim k As Double = Dot(a, n)
+        Return Unit(New Double() {a(0) - n(0) * k, a(1) - n(1) * k, a(2) - n(2) * k})
+    End Function
+
+    ' Placa del muro clicado: la propia pieza, o la lámina mayor del subensamble de muro donde vive.
+    Private Function PlateFor(occ As ComponentOccurrence) As ComponentOccurrence
+        If IsWallPlate(occ) Then Return occ
+        Dim prefix As String = WallGroupPrefix(occ)
+        If prefix = "" Then Return Nothing
+        Dim best As ComponentOccurrence = Nothing
+        Dim bestArea As Double = -1
+        For Each leaf As ComponentOccurrence In _asm.ComponentDefinition.Occurrences.AllLeafOccurrences
+            Try
+                If leaf.Suppressed OrElse Not IsPartOcc(leaf) Then Continue For
+                If Not OccKey(leaf).StartsWith(prefix, StringComparison.OrdinalIgnoreCase) Then Continue For
+                Dim d() As Double = BoxDims(leaf)
+                If d Is Nothing Then Continue For
+                If d(1) * d(2) > bestArea Then
+                    bestArea = d(1) * d(2)
+                    best = leaf
+                End If
+            Catch
+            End Try
+        Next
+        Return best
+    End Function
+
+    ' Si la placa vive en un subensamble de muro (p. ej. "Segmento 1.iam"), todo ese subensamble va con ella.
+    Private Function WallGroupPrefix(plate As ComponentOccurrence) As String
+        Dim cur As ComponentOccurrence = Nothing
+        Try
+            cur = plate.ParentOccurrence
+        Catch
+        End Try
+        Do While cur IsNot Nothing
+            Try
+                If WallName(cur.Name) OrElse WallName(DocumentName(cur)) Then Return OccKey(cur) & "/"
+                cur = cur.ParentOccurrence
+            Catch
+                Return ""
+            End Try
+        Loop
+        Return ""
+    End Function
+
+    Private Function PaintedWithRole(occ As ComponentOccurrence) As Boolean
+        Try
+            If occ.AppearanceSourceType <> AppearanceSourceTypeEnum.kOverrideAppearance Then Return False
+            If occ.Appearance Is Nothing Then Return False
+            Return occ.Appearance.DisplayName.StartsWith("AutoDXF " & _className & " ", StringComparison.OrdinalIgnoreCase)
+        Catch
+            Return False
+        End Try
+    End Function
+
+    Private Sub ToggleBlock(occ As ComponentOccurrence)
+        occ = ColorTarget(occ)
+        If occ Is Nothing Then
+            If IsAssyClass(_className) Then
+                _inventor.StatusBarText = "Bloque " & _className & ": clic en un subensamble .iam, no en una pieza suelta."
+            Else
+                _inventor.StatusBarText = "Bloque " & _className & ": clic en una pieza .ipt, no en el ensamble."
+            End If
+            Return
+        End If
+        Dim assy As Boolean = IsAssyClass(_className)
+        Dim path As String = DocumentPath(occ)
+        If path = "" Then Return
+        Dim doc As Document = occ.Definition.Document
+        Dim adding As Boolean = Not BlockFlag(doc, _blockProp)
+        If adding Then
+            Dim otro As String = ExclusiveConflict(doc)
+            If otro <> "" Then
+                _inventor.StatusBarText = "AutoDXF: " & DocumentName(occ) & " ya está en " & otro & ". Almacén, Corte y Doblado no se combinan: reabre " & otro & " y quítala ahí."
+                Return
+            End If
+        End If
+        SetBlock(doc, _blockProp, adding)
+        If assy Then
+            PaintAssyFile(path, adding)
+        Else
+            PaintDocument(path, adding)
+        End If
+        If adding Then
+            _selected(path) = DocumentName(occ)
+            _paintedClass(path) = _className
+        Else
+            _selected.Remove(path)
+            _paintedClass.Remove(path)
+        End If
+        Dim hijos As Integer = 0
+        If adding AndAlso IsAssyLooseClass(_className) AndAlso _looseProp <> "" Then
+            Dim seen As New Dictionary(Of String, Boolean)(StringComparer.OrdinalIgnoreCase)
+            MarkLooseBlock(occ.SubOccurrences, seen)
+            hijos = seen.Count
+        End If
+        WriteStatus(True)
+        Dim accion As String = If(adding, "marcado en ", "quitado de ")
+        Dim extra As String = If(hijos > 0, "; " & hijos.ToString() & " piezas también en Accesorios Sueltos.", ".")
+        _inventor.StatusBarText = "AutoDXF: " & DocumentName(occ) & " " & accion & _className & extra & " Clic de nuevo para deshacer."
+    End Sub
+
+    Private Sub MarkLooseBlock(occurrences As ComponentOccurrences, seen As Dictionary(Of String, Boolean))
+        If occurrences Is Nothing Then Return
+        For Each child As ComponentOccurrence In occurrences
+            Try
+                If child.Suppressed Then Continue For
+                If IsAssyOcc(child) Then
+                    MarkLooseBlock(child.SubOccurrences, seen)
+                    Continue For
+                End If
+                If Not IsPartOcc(child) Then Continue For
+                Dim path As String = DocumentPath(child)
+                If path = "" OrElse seen.ContainsKey(path) Then Continue For
+                seen(path) = True
+                SetBlock(child.Definition.Document, _looseProp, True)
+            Catch
+            End Try
+        Next
+    End Sub
+
+    Private Function UserProps(doc As Document, create As Boolean) As PropertySet
+        If doc Is Nothing Then Return Nothing
+        Try
+            Return doc.PropertySets.Item("Inventor User Defined Properties")
+        Catch
+        End Try
+        If Not create Then Return Nothing
+        Try
+            Return doc.PropertySets.Add("Inventor User Defined Properties", "{D5CDD505-2E9C-101B-9397-08002B2CF9AE}")
+        Catch
+            Return Nothing
+        End Try
+    End Function
+
+    Private Function PropValue(props As PropertySet, name As String) As Object
+        Try
+            Return props.Item(name).Value
+        Catch
+            Return Nothing
+        End Try
+    End Function
+
+    Private Sub WriteProp(props As PropertySet, name As String, value As Object)
+        Try
+            props.Item(name).Value = value
+            Return
+        Catch
+        End Try
+        Try
+            props.Add(value, name)
+        Catch
+        End Try
+    End Sub
+
+    Private Function IsTrue(value As Object) As Boolean
+        If value Is Nothing Then Return False
+        If TypeOf value Is Boolean Then Return CBool(value)
+        Dim text As String = value.ToString().Trim().ToLowerInvariant()
+        Return text = "true" OrElse text = "sí" OrElse text = "si" OrElse text = "yes" OrElse text = "1" OrElse text = "-1" OrElse text = "verdadero"
+    End Function
+
+    Private Function CanonName(token As String) As String
+        Dim text As String = If(token, "").Trim().ToLowerInvariant()
+        If text = "almacen" Then Return "almacén"
+        If text = "maquinado" Then Return "maquinados"
+        If text = "assy loose accessories" Then Return "assy loose accesories"
+        Return text
+    End Function
+
+    Private Function ClassTokens(props As PropertySet) As List(Of String)
+        Dim tokens As New List(Of String)
+        Dim raw As Object = PropValue(props, "Clasificación")
+        If raw Is Nothing Then Return tokens
+        For Each piece As String In raw.ToString().Split(New Char() {";"c, "|"c})
+            If piece.Trim() <> "" Then tokens.Add(piece.Trim())
+        Next
+        Return tokens
+    End Function
+
+    Private Function IsBlockName(token As String) As Boolean
+        For Each pair As String() In _blocks
+            If CanonName(token) = CanonName(pair(1)) Then Return True
+        Next
+        Return False
+    End Function
+
+    Private Function HasBlockProps(props As PropertySet) As Boolean
+        For Each pair As String() In _blocks
+            If PropValue(props, pair(0)) IsNot Nothing Then Return True
+        Next
+        Return False
+    End Function
+
+    Private Function BlockFlag(doc As Document, prop As String) As Boolean
+        Dim props As PropertySet = UserProps(doc, False)
+        If props Is Nothing Then Return False
+        Dim value As Object = PropValue(props, prop)
+        If value IsNot Nothing Then Return IsTrue(value)
+        If HasBlockProps(props) Then Return False
+        For Each pair As String() In _blocks
+            If Not String.Equals(pair(0), prop, StringComparison.OrdinalIgnoreCase) Then Continue For
+            For Each token As String In ClassTokens(props)
+                If CanonName(token) = CanonName(pair(1)) Then Return True
+            Next
+        Next
+        Return False
+    End Function
+
+    Private Sub SetBlock(doc As Document, prop As String, adding As Boolean)
+        Dim props As PropertySet = UserProps(doc, True)
+        If props Is Nothing Then Return
+        If Not HasBlockProps(props) Then
+            Dim legacy As List(Of String) = ClassTokens(props)
+            For Each pair As String() In _blocks
+                For Each token As String In legacy
+                    If CanonName(token) = CanonName(pair(1)) Then WriteProp(props, pair(0), True)
+                Next
+            Next
+        End If
+        WriteProp(props, prop, adding)
+        Dim names As New List(Of String)
+        For Each pair As String() In _blocks
+            If IsTrue(PropValue(props, pair(0))) Then names.Add(pair(1))
+        Next
+        For Each token As String In ClassTokens(props)
+            If Not IsBlockName(token) Then names.Add(token)
+        Next
+        WriteProp(props, "Clasificación", String.Join("; ", names))
+    End Sub
+
+    Private Sub EscribirClasificacion(occ As ComponentOccurrence)
+        If occ Is Nothing OrElse String.IsNullOrWhiteSpace(_className) Then Return
+        If IsAssyClass(_className) AndAlso Not IsAssyOcc(occ) Then Return
+        If (Not IsAssyClass(_className)) AndAlso IsAssyOcc(occ) Then Return
+        EscribirClasificacionDoc(occ.Definition.Document, _className, False)
+    End Sub
+
+    Private Sub EscribirClasificacionDoc(occDoc As Document, className As String, Optional guardar As Boolean = False)
+        If occDoc Is Nothing OrElse String.IsNullOrWhiteSpace(className) Then Return
+        Try
+            Dim customProps As PropertySet = Nothing
+            Try
+                customProps = occDoc.PropertySets.Item("Inventor User Defined Properties")
+            Catch
+                customProps = occDoc.PropertySets.Add("Inventor User Defined Properties", "{D5CDD505-2E9C-101B-9397-08002B2CF9AE}")
+            End Try
+            If customProps Is Nothing Then Return
+            Try
+                Dim prop As [Property] = customProps.Item("Clasificación")
+                prop.Value = className
+            Catch
+                customProps.Add(className, "Clasificación")
+            End Try
+            If Not guardar Then Return
+            Try
+                If occDoc.ReadOnly = False Then occDoc.Save()
+            Catch
+            End Try
+        Catch
+        End Try
+    End Sub
+
+    Private Function MarkLooseChildren(kit As ComponentOccurrence) As Integer
+        If kit Is Nothing OrElse Not IsAssyOcc(kit) Then Return 0
+        Dim seen As New Dictionary(Of String, Boolean)(StringComparer.OrdinalIgnoreCase)
+        Dim childAsset As Asset = AssetForClass("Accesorios Sueltos")
+        MarkLooseWalk(kit.SubOccurrences, seen, childAsset)
+        Return seen.Count
+    End Function
+
+    Private Sub MarkLooseWalk(occurrences As ComponentOccurrences, seen As Dictionary(Of String, Boolean), childAsset As Asset)
+        If occurrences Is Nothing Then Return
+        For Each child As ComponentOccurrence In occurrences
+            Try
+                If child.Suppressed Then Continue For
+                If IsAssyOcc(child) Then
+                    MarkLooseWalk(child.SubOccurrences, seen, childAsset)
+                    Continue For
+                End If
+                If Not IsPartOcc(child) Then Continue For
+                Dim path As String = DocumentPath(child)
+                If path = "" Then Continue For
+                If Not seen.ContainsKey(path) Then
+                    seen(path) = True
+                    EscribirClasificacionDoc(child.Definition.Document, "Accesorios Sueltos", False)
+                    _selected(path) = DocumentName(child)
+                    _paintedClass(path) = "Accesorios Sueltos"
+                End If
+                ApplyAsset(child, childAsset)
+            Catch
+            End Try
+        Next
+    End Sub
+
+    Private Function AssetForClass(className As String) As Asset
+        For Each nombre As String In LibraryLooks(className)
+            Dim hit As Asset = AppearanceByName(nombre)
+            If hit IsNot Nothing Then Return hit
+        Next
+        For Each nombre As String In LibraryLooks(className)
+            Dim hit As Asset = CopyFromAspecto(nombre)
+            If hit IsNot Nothing Then Return hit
+        Next
+        Return Nothing
+    End Function
+
+    Private Sub ApplyAsset(occ As ComponentOccurrence, asset As Asset)
+        If occ Is Nothing OrElse asset Is Nothing Then Return
+        Try
+            occ.AppearanceSourceType = AppearanceSourceTypeEnum.kOverrideAppearance
+        Catch
+        End Try
+        Try
+            occ.Appearance = asset
+        Catch
+        End Try
+    End Sub
+
+    Private Sub ReloadJob()
+        If String.IsNullOrWhiteSpace(_jobFile) Then Return
+        If Not System.IO.File.Exists(_jobFile) Then Return
+        Dim looks As String = ""
+        Try
+            For Each line As String In System.IO.File.ReadAllLines(_jobFile, Encoding.UTF8)
+                Dim text As String = line.Trim()
+                Dim eq As Integer = text.IndexOf("="c)
+                If eq < 1 Then Continue For
+                Dim key As String = text.Substring(0, eq).Trim().ToLowerInvariant()
+                Dim value As String = text.Substring(eq + 1).Trim()
+                If key = "classname" AndAlso value <> "" Then _className = value
+                If key = "smart" Then _smart = (value <> "0")
+                If key = "appearances" Then looks = value
+                If key = "colorr" Then Integer.TryParse(value, _r)
+                If key = "colorg" Then Integer.TryParse(value, _g)
+                If key = "colorb" Then Integer.TryParse(value, _b)
+                If key = "color" AndAlso value <> "" Then
+                    Dim rgb() As Integer = ParseHex(value)
+                    If _r < 0 Then _r = rgb(0)
+                    If _g < 0 Then _g = rgb(1)
+                    If _b < 0 Then _b = rgb(2)
+                    If rgb(0) >= 0 Then _r = rgb(0)
+                    If rgb(1) >= 0 Then _g = rgb(1)
+                    If rgb(2) >= 0 Then _b = rgb(2)
+                End If
+            Next
+        Catch
+            Return
+        End Try
+        _looks.Clear()
+        If Not String.IsNullOrWhiteSpace(looks) Then
+            For Each piece As String In looks.Split("|"c)
+                Dim name As String = piece.Trim()
+                If name <> "" AndAlso Not _looks.Contains(name) Then _looks.Add(name)
+            Next
+        End If
+        If _looks.Count = 0 Then
+            For Each name As String In LibraryLooks(_className)
+                _looks.Add(name)
+            Next
+        End If
+        If IsRoles() Then
+            _classAsset = PaintAsset()
+        Else
+            _classAsset = FindLibraryAsset()
+        End If
+        ApplySelectFilters()
+    End Sub
+
+    Private Function StatusHint() As String
+        If IsRoles() Then
+            Return "AutoDXF muros " & _className & ": clic en la placa (suma lo montado) o en piezas sueltas; otro clic la quita. Esc o Terminar."
+        End If
+        If BlockMode() Then
+            Dim target As String = If(IsAssyClass(_className), "subensamble .iam", "pieza .ipt")
+            Return "AutoDXF bloque " & _className & ": clic en cada " & target & " para marcarla; otro clic la quita. Esc o Terminar."
+        End If
+        If IsAssyLooseClass(_className) Then
+            Return "AutoDXF Colorimetría " & _className & ": clic en un subensamble .iam. El kit queda Assy Loose; cada .ipt, Accesorios Sueltos."
+        End If
+        If IsAssyClass(_className) Then
+            Return "AutoDXF Colorimetría " & _className & ": clic en el kit. Queda seleccionado el subensamble, no la pieza. Esc o Terminar."
+        End If
+        Return "AutoDXF Colorimetría: " & _className & " — clic en una pieza .ipt. Esc o Terminar."
+    End Function
+
+    Private Sub ApplySelectFilters()
+        If _select Is Nothing Then Return
+        Try
+            _select.ClearSelectionFilter()
+        Catch
+        End Try
+        If String.Equals(_mode, "accessories", StringComparison.OrdinalIgnoreCase) AndAlso IsAssyClass(_className) Then
+            ' Cara y hoja para llegar a la pieza anidada. El filtro de ensamble deja poder
+            ' dejar seleccionado el .iam del kit después del clic (si no, Inventor se queda en la pieza).
+            Try
+                _select.AddSelectionFilter(SelectionFilterEnum.kAssemblyLeafOccurrenceFilter)
+            Catch
+            End Try
+            Try
+                _select.AddSelectionFilter(SelectionFilterEnum.kAssemblyOccurrenceFilter)
+            Catch
+            End Try
+            Try
+                _select.AddSelectionFilter(SelectionFilterEnum.kPartFaceFilter)
+                _select.AddSelectionFilter(SelectionFilterEnum.kPartEdgeFilter)
+            Catch
+            End Try
+            Return
+        End If
+        Try
+            _select.AddSelectionFilter(SelectionFilterEnum.kAssemblyLeafOccurrenceFilter)
+        Catch
+        End Try
+        Try
+            _select.AddSelectionFilter(SelectionFilterEnum.kAssemblyOccurrenceFilter)
+        Catch
+        End Try
+        Try
+            _select.AddSelectionFilter(SelectionFilterEnum.kPartFaceFilter)
+            _select.AddSelectionFilter(SelectionFilterEnum.kPartEdgeFilter)
+        Catch
+        End Try
+    End Sub
+
+    Private Function IsAssyClass(className As String) As Boolean
+        Dim key As String = If(className, "").Trim()
+        Return key.StartsWith("Assy", StringComparison.OrdinalIgnoreCase)
+    End Function
+
+    Private Function IsAssyLooseClass(className As String) As Boolean
+        Dim key As String = If(className, "").Trim()
+        Return key.IndexOf("Assy Loose", StringComparison.OrdinalIgnoreCase) >= 0
+    End Function
+
+    Private Function LibraryLooks(className As String) As String()
+        Dim key As String = If(className, "").Trim()
+        If String.Equals(key, "Almacén", StringComparison.OrdinalIgnoreCase) OrElse String.Equals(key, "Almacen", StringComparison.OrdinalIgnoreCase) Then
+            Return New String() {"Dark Green", "Verde oscuro"}
+        End If
+        If String.Equals(key, "Corte", StringComparison.OrdinalIgnoreCase) Then
+            Return New String() {"Rojo naranja"}
+        End If
+        If String.Equals(key, "Doblado", StringComparison.OrdinalIgnoreCase) Then
+            Return New String() {"Violeta"}
+        End If
+        If String.Equals(key, "Assy Tanks", StringComparison.OrdinalIgnoreCase) Then
+            Return New String() {"Pine", "Pine Green", "Verde pino"}
+        End If
+        If key.IndexOf("Assy Loose", StringComparison.OrdinalIgnoreCase) >= 0 Then
+            Return New String() {"Gold", "Amarillo oro", "Yellow", "Amarillo"}
+        End If
+        If String.Equals(key, "Accesorios Sueltos", StringComparison.OrdinalIgnoreCase) Then
+            Return New String() {"Orange", "Naranja", "Orange - Wall Paint - Glossy", "Naranja - Pintura mural - Brillante"}
+        End If
+        If key.IndexOf("Maquinados Accesorios", StringComparison.OrdinalIgnoreCase) >= 0 Then
+            Return New String() {"Cyan", "Cian", "Turquoise", "Turquesa", "Teal"}
+        End If
+        If key.IndexOf("Tank", StringComparison.OrdinalIgnoreCase) >= 0 OrElse String.Equals(key, "Maquinado", StringComparison.OrdinalIgnoreCase) OrElse String.Equals(key, "Maquinados", StringComparison.OrdinalIgnoreCase) Then
+            Return New String() {"Blue - Wall Paint - Glossy", "Azul - Pintura mural - Brillante"}
+        End If
+        Return New String() {"Orange", "Naranja", "Orange - Wall Paint - Glossy", "Naranja - Pintura mural - Brillante"}
+    End Function
+
+    Private Sub ActivarAparencias()
+        Dim oLib As AssetLibrary = Nothing
+        Try
+            oLib = _inventor.AssetLibraries.Item("Autodesk Biblioteca de aspecto")
+        Catch
+            Try
+                oLib = _inventor.AssetLibraries.Item("Autodesk Appearance Library")
+            Catch
+            End Try
+        End Try
+        If oLib Is Nothing Then Return
+        Dim clases() As String = {
+            "Almacén", "Corte", "Doblado",
+            "Maquinados Tank", "Maquinados Accesorios Sueltos", "Accesorios Sueltos",
+            "Assy Tanks", "Assy Loose Accesories"
+        }
+        Dim i As Integer
+        For i = 0 To clases.Length - 1
+            Dim looks() As String = LibraryLooks(clases(i))
+            Dim j As Integer
+            For j = 0 To looks.Length - 1
+                If AppearanceByName(looks(j)) IsNot Nothing Then Exit For
+                Try
+                    Dim src As Asset = oLib.AppearanceAssets.Item(looks(j))
+                    If src IsNot Nothing Then
+                        src.CopyTo(_asm)
+                        Exit For
+                    End If
+                Catch
+                End Try
+            Next
+        Next
+        _classAsset = FindLibraryAsset()
+    End Sub
+
+    Private Function FindLibraryAsset() As Asset
+        For Each nombre As String In _looks
+            Dim hit As Asset = AppearanceByName(nombre)
+            If hit IsNot Nothing Then Return hit
+        Next
+        For Each nombre As String In _looks
+            Dim hit As Asset = CopyFromAspecto(nombre)
+            If hit IsNot Nothing Then Return hit
+        Next
+        Return Nothing
+    End Function
+
+    Private Function CopyFromAspecto(nombre As String) As Asset
+        For Each libName As String In New String() {"Autodesk Biblioteca de aspecto", "Autodesk Appearance Library"}
+            Try
+                Dim oLib As AssetLibrary = _inventor.AssetLibraries.Item(libName)
+                Dim src As Asset = oLib.AppearanceAssets.Item(nombre)
+                If src IsNot Nothing Then Return src.CopyTo(_asm)
+            Catch
+            End Try
+        Next
+        Return CopyFromLibrary(nombre)
+    End Function
+
+    Private Function UnwrapOcc(occ As ComponentOccurrence) As ComponentOccurrence
+        If occ Is Nothing Then Return Nothing
+        Try
+            If occ.DefinitionDocumentType = kAssemblyDocumentObject Then
+                If occ.SubOccurrences IsNot Nothing AndAlso occ.SubOccurrences.Count = 1 Then
+                    Return UnwrapOcc(occ.SubOccurrences.Item(1))
+                End If
+            End If
+        Catch
+        End Try
+        Return occ
+    End Function
+
+    Private Function ColorTarget(occ As ComponentOccurrence) As ComponentOccurrence
+        If occ Is Nothing Then Return Nothing
+        If IsAssyClass(_className) Then
+            Return NearestAssyOcc(occ)
+        End If
+        occ = UnwrapOcc(occ)
+        If occ Is Nothing Then Return Nothing
+        If IsPartOcc(occ) Then Return occ
+        Return Nothing
+    End Function
+
+    Private Function NearestAssyOcc(occ As ComponentOccurrence) As ComponentOccurrence
+        ' El clic llega a la pieza. El seleccionado tiene que ser el .iam del kit, no el .ipt.
+        _assyAviso = ""
+        If EsAssyDeKit(occ) Then
+            If Not EsMuroAssy(occ) Then Return occ
+            ' El filtro de ensamble entrega el Segmento. El punto del clic sigue estando en el kit.
+            Dim bajoMuro As ComponentOccurrence = PiezaBajoPunto(_puntoClic)
+            If bajoMuro IsNot Nothing Then
+                Dim kitMuro As ComponentOccurrence = KitDePieza(bajoMuro)
+                If kitMuro IsNot Nothing AndAlso Not EsMuroAssy(kitMuro) Then
+                    _assyAviso = ""
+                    Return kitMuro
+                End If
+            End If
+            Return AvisoMuro()
+        End If
+        Dim candidato As ComponentOccurrence = KitDePieza(occ)
+        If candidato Is Nothing Then candidato = AssyEnRuta(occ)
+        If candidato Is Nothing Then candidato = PrimerAssyPadre(occ)
+        If candidato Is Nothing Then Return Nothing
+        If EsMuroAssy(candidato) Then Return AvisoMuro()
+        Return candidato
+    End Function
+
+    Private Function PiezaBajoPunto(pt As Inventor.Point) As ComponentOccurrence
+        If pt Is Nothing Then Return Nothing
+        Dim mejor As ComponentOccurrence = Nothing
+        Dim mejorD As Double = 1.0E+30
+        Try
+            For Each leaf As ComponentOccurrence In _asm.ComponentDefinition.Occurrences.AllLeafOccurrences
+                Try
+                    If leaf.Suppressed Then Continue For
+                    If Not IsPartOcc(leaf) Then Continue For
+                    Dim box As Box = leaf.RangeBox
+                    Const tol As Double = 0.2
+                    If pt.X < box.MinPoint.X - tol OrElse pt.X > box.MaxPoint.X + tol Then Continue For
+                    If pt.Y < box.MinPoint.Y - tol OrElse pt.Y > box.MaxPoint.Y + tol Then Continue For
+                    If pt.Z < box.MinPoint.Z - tol OrElse pt.Z > box.MaxPoint.Z + tol Then Continue For
+                    Dim cx As Double = (box.MinPoint.X + box.MaxPoint.X) / 2.0
+                    Dim cy As Double = (box.MinPoint.Y + box.MaxPoint.Y) / 2.0
+                    Dim cz As Double = (box.MinPoint.Z + box.MaxPoint.Z) / 2.0
+                    Dim d As Double = (pt.X - cx) * (pt.X - cx) + (pt.Y - cy) * (pt.Y - cy) + (pt.Z - cz) * (pt.Z - cz)
+                    If d < mejorD Then
+                        mejorD = d
+                        mejor = leaf
+                    End If
+                Catch
+                End Try
+            Next
+        Catch
+        End Try
+        Return mejor
+    End Function
+
+    Private Function AvisoMuro() As ComponentOccurrence
+        _assyAviso = "AutoDXF " & _className & ": ese ensamble es un muro (Segmento, Top o Base). Elige el subensamble del kit."
+        Try
+            _inventor.StatusBarText = _assyAviso
+        Catch
+        End Try
+        Return Nothing
+    End Function
+
+    ' Busca la pieza en el árbol del tanque y devuelve el .iam que la contiene.
+    Private Function KitDePieza(pista As ComponentOccurrence) As ComponentOccurrence
+        If pista Is Nothing OrElse Not IsPartOcc(pista) Then Return Nothing
+        Dim archivo As String = DocumentPath(pista)
+        Dim nombre As String = ""
+        Try
+            nombre = pista.Name
+        Catch
+        End Try
+        Dim ruta As New List(Of String)
+        Try
+            For Each hop As ComponentOccurrence In pista.OccurrencePath
+                ruta.Add(hop.Name)
+            Next
+        Catch
+        End Try
+        Try
+            If ruta.Count > 1 Then
+                Dim porRuta As ComponentOccurrence = BuscarKit(_asm.ComponentDefinition.Occurrences, archivo, nombre, ruta, New List(Of ComponentOccurrence))
+                If porRuta IsNot Nothing Then Return porRuta
+            End If
+            Return BuscarKit(_asm.ComponentDefinition.Occurrences, archivo, nombre, New List(Of String), New List(Of ComponentOccurrence))
+        Catch
+            Return Nothing
+        End Try
+    End Function
+
+    Private Function BuscarKit(occurrences As ComponentOccurrences, archivo As String, nombre As String, ruta As List(Of String), pila As List(Of ComponentOccurrence)) As ComponentOccurrence
+        If occurrences Is Nothing Then Return Nothing
+        For Each occ As ComponentOccurrence In occurrences
+            Try
+                If occ.Suppressed Then Continue For
+            Catch
+                Continue For
+            End Try
+            If IsAssyOcc(occ) Then
+                pila.Add(occ)
+                Dim hit As ComponentOccurrence = BuscarKit(occ.SubOccurrences, archivo, nombre, ruta, pila)
+                pila.RemoveAt(pila.Count - 1)
+                If hit IsNot Nothing Then Return hit
+            ElseIf IsPartOcc(occ) AndAlso PiezaClicada(occ, archivo, nombre, ruta, pila) Then
+                Dim kit As ComponentOccurrence = KitEnPila(pila)
+                If kit IsNot Nothing Then Return kit
+            End If
+        Next
+        Return Nothing
+    End Function
+
+    Private Function PiezaClicada(occ As ComponentOccurrence, archivo As String, nombre As String, ruta As List(Of String), pila As List(Of ComponentOccurrence)) As Boolean
+        If ruta IsNot Nothing AndAlso ruta.Count > 0 Then
+            If ruta.Count <> pila.Count + 1 Then Return False
+            For i As Integer = 0 To pila.Count - 1
+                Dim hop As String = ""
+                Try
+                    hop = pila(i).Name
+                Catch
+                End Try
+                If Not String.Equals(hop, ruta(i), StringComparison.OrdinalIgnoreCase) Then Return False
+            Next
+            Dim leaf As String = ""
+            Try
+                leaf = occ.Name
+            Catch
+            End Try
+            Return String.Equals(leaf, ruta(ruta.Count - 1), StringComparison.OrdinalIgnoreCase)
+        End If
+        If archivo <> "" AndAlso Not String.Equals(DocumentPath(occ), archivo, StringComparison.OrdinalIgnoreCase) Then Return False
+        If nombre <> "" AndAlso Not String.Equals(occ.Name, nombre, StringComparison.OrdinalIgnoreCase) Then Return False
+        Return archivo <> "" OrElse nombre <> ""
+    End Function
+
+    Private Function KitEnPila(pila As List(Of ComponentOccurrence)) As ComponentOccurrence
+        For i As Integer = pila.Count - 1 To 0 Step -1
+            Dim occ As ComponentOccurrence = pila(i)
+            If EsDocumentoRaiz(occ) Then Continue For
+            If EsMuroAssy(occ) Then
+                _assyAviso = "AutoDXF " & _className & ": ese ensamble es un muro (Segmento, Top o Base). Elige el subensamble del kit."
+                Return Nothing
+            End If
+            Return occ
+        Next
+        Return Nothing
+    End Function
+
+    Private Sub LimpiarAparienciaHijos(occ As ComponentOccurrence)
+        If occ Is Nothing OrElse Not IsAssyOcc(occ) Then Return
+        Try
+            LimpiarAparienciaWalk(occ.SubOccurrences)
+        Catch
+        End Try
+    End Sub
+
+    Private Sub LimpiarAparienciaWalk(occurrences As ComponentOccurrences)
+        If occurrences Is Nothing Then Return
+        For Each child As ComponentOccurrence In occurrences
+            Try
+                If child.Suppressed Then Continue For
+                child.AppearanceSourceType = AppearanceSourceTypeEnum.kPartAppearance
+                If IsAssyOcc(child) Then LimpiarAparienciaWalk(child.SubOccurrences)
+            Catch
+            End Try
+        Next
+    End Sub
+
+    Private Sub MostrarSeleccion(occ As ComponentOccurrence)
+        If _ajustandoSeleccion Then Return
+        _ajustandoSeleccion = True
+        Try
+            Try
+                _select.ResetSelections()
+            Catch
+            End Try
+            Try
+                _asm.SelectSet.Clear()
+            Catch
+            End Try
+            If occ Is Nothing Then Return
+            ' SelectSet acepta el .iam anidado. El filtro de hoja solo deja marcar la pieza.
+            Try
+                _asm.SelectSet.Select(occ)
+            Catch
+            End Try
+            Try
+                _select.AddToSelectedEntities(occ)
+            Catch
+            End Try
+        Finally
+            _ajustandoSeleccion = False
+        End Try
+    End Sub
+
+    Private Function PrimerAssyPadre(occ As ComponentOccurrence) As ComponentOccurrence
+        Dim cur As ComponentOccurrence = occ
+        Do While cur IsNot Nothing
+            If EsAssyDeKit(cur) Then Return cur
+            Try
+                cur = cur.ParentOccurrence
+            Catch
+                Return Nothing
+            End Try
+        Loop
+        Return Nothing
+    End Function
+
+    ' OccurrencePath va de la raíz a la hoja. El último .iam antes de la pieza es el kit.
+    Private Function AssyEnRuta(occ As ComponentOccurrence) As ComponentOccurrence
+        If occ Is Nothing Then Return Nothing
+        Dim elegido As ComponentOccurrence = Nothing
+        Try
+            For Each hop As ComponentOccurrence In occ.OccurrencePath
+                If EsAssyDeKit(hop) Then elegido = hop
+            Next
+        Catch
+        End Try
+        Return elegido
+    End Function
+
+    Private Function EsAssyDeKit(occ As ComponentOccurrence) As Boolean
+        If occ Is Nothing OrElse Not IsAssyOcc(occ) Then Return False
+        Return Not EsDocumentoRaiz(occ)
+    End Function
+
+    Private Function EsDocumentoRaiz(occ As ComponentOccurrence) As Boolean
+        Try
+            Dim raiz As String = _asm.FullFileName.Replace("\", "/")
+            Return String.Equals(DocumentPath(occ), raiz, StringComparison.OrdinalIgnoreCase)
+        Catch
+            Return False
+        End Try
+    End Function
+
+    Private Function EsMuroAssy(occ As ComponentOccurrence) As Boolean
+        Dim name As String = DocumentName(occ).Trim().ToLowerInvariant()
+        If name = "" Then Return False
+        Dim tokens As String() = {
+            "segmento", "segm1", "segm2", "segm3", "segm4",
+            "top cover", "tapa superior", "tank lid", "tank-lid",
+            "base de soleras", "cuadro base", "base plate", "tank base", "tank-base"
+        }
+        For Each token As String In tokens
+            If name.Contains(token) Then Return True
+        Next
+        ' "Base" o "Tapa" al inicio. "Parking Stand w base" no es el muro.
+        If name = "base" OrElse name = "tapa" OrElse name.StartsWith("base ") OrElse name.StartsWith("tapa ") Then Return True
+        Return False
+    End Function
+
+    Private Function IsPartOcc(occ As ComponentOccurrence) As Boolean
+        If occ Is Nothing Then Return False
+        Try
+            Return occ.DefinitionDocumentType = kPartDocumentObject
+        Catch
+            Return False
+        End Try
+    End Function
+
+    Private Function IsAssyOcc(occ As ComponentOccurrence) As Boolean
+        If occ Is Nothing Then Return False
+        Try
+            Return occ.DefinitionDocumentType = kAssemblyDocumentObject
+        Catch
+            Return False
+        End Try
+    End Function
+
+    Private Sub PaintAssyFile(filePath As String, adding As Boolean)
+        PaintAssyWalk(_asm.ComponentDefinition.Occurrences, filePath, adding)
+    End Sub
+
+    Private Sub PaintAssyWalk(occurrences As ComponentOccurrences, filePath As String, adding As Boolean)
+        If occurrences Is Nothing Then Return
+        For Each occ As ComponentOccurrence In occurrences
+            Try
+                If occ.Suppressed Then Continue For
+                If IsAssyOcc(occ) AndAlso String.Equals(DocumentPath(occ), filePath, StringComparison.OrdinalIgnoreCase) Then
+                    ApplyMark(occ, adding)
+                End If
+                If IsAssyOcc(occ) Then PaintAssyWalk(occ.SubOccurrences, filePath, adding)
+            Catch
+            End Try
+        Next
+    End Sub
+
+    Private Sub ClearAncestorOverrides(occ As ComponentOccurrence)
+        If occ Is Nothing Then Return
+        Dim parent As ComponentOccurrence = Nothing
+        Try
+            parent = occ.ParentOccurrence
+        Catch
+            parent = Nothing
+        End Try
+        Do While parent IsNot Nothing
+            Try
+                parent.AppearanceSourceType = AppearanceSourceTypeEnum.kPartAppearance
+            Catch
+            End Try
+            Try
+                parent.Appearance = Nothing
+            Catch
+            End Try
+            Try
+                parent = parent.ParentOccurrence
+            Catch
+                parent = Nothing
+            End Try
+        Loop
+    End Sub
+
+    Private Sub Toggle(occ As ComponentOccurrence)
+        occ = LeafOccurrence(occ)
+        If occ Is Nothing Then Return
+        Dim accessories As Boolean = String.Equals(_mode, "accessories", StringComparison.OrdinalIgnoreCase)
+        Dim path As String = If(accessories, OccKey(occ), DocumentPath(occ))
+        If path = "" Then Return
+        Dim name As String = DocumentName(occ)
+        If _selected.ContainsKey(path) Then
+            _selected.Remove(path)
+            _lengths.Remove(path)
+            If accessories Then
+                ApplyMark(occ, False)
+            Else
+                PaintDocument(path, False)
+            End If
+        Else
+            _selected(path) = name
+            If Not accessories Then _lengths(path) = MeasureInches(occ)
+            If accessories Then
+                ApplyMark(occ, True)
+            Else
+                PaintDocument(path, True)
+            End If
+        End If
+        WriteStatus(True)
+        Try
+            _inventor.ActiveView.Update()
+        Catch
+        End Try
+    End Sub
+
+    Private Sub PaintDocument(path As String, yellow As Boolean)
+        For Each occ As ComponentOccurrence In _asm.ComponentDefinition.Occurrences.AllLeafOccurrences
+            Try
+                If String.Equals(DocumentPath(occ), path, StringComparison.OrdinalIgnoreCase) Then
+                    ApplyMark(occ, yellow)
+                End If
+            Catch
+            End Try
+        Next
+    End Sub
+
+    Private Sub ApplyMark(occ As ComponentOccurrence, adding As Boolean)
+        Dim accessories As Boolean = LivePaint()
+        If Not accessories Then
+            ApplyFade(occ, adding)
+            Return
+        End If
+        If adding Then
+            If (Not IsRoles()) AndAlso IsAssyClass(_className) Then
+                If Not IsAssyOcc(occ) Then Return
+            ElseIf Not IsPartOcc(occ) Then
+                Return
+            End If
+            If IsRoles() Then
+                _classAsset = PaintAsset()
+            Else
+                _classAsset = FindLibraryAsset()
+            End If
+            ApplyAsset(occ, _classAsset)
+            Return
+        End If
+        Try
+            occ.AppearanceSourceType = AppearanceSourceTypeEnum.kPartAppearance
+        Catch
+        End Try
+        Try
+            occ.Appearance = Nothing
+        Catch
+        End Try
+    End Sub
+
+    Private Sub ApplyFade(occ As ComponentOccurrence, adding As Boolean)
+        If Not adding Then
+            RestaurarColorimetria(occ)
+            Return
+        End If
+        Dim src As Asset = CurrentAppearance(occ)
+        Dim display As String = "AutoDXF Fade " & Math.Abs(DocumentPath(occ).GetHashCode())
+        Dim clone As Asset = NuevoGeneric(display)
+        If clone Is Nothing Then Return
+        CopiarColor(src, clone)
+        SetOpacity(clone, 0.75)
+        Try
+            occ.Appearance = clone
+        Catch
+        End Try
+    End Sub
+
+    Private Function CurrentAppearance(occ As ComponentOccurrence) As Asset
+        Try
+            If occ.Appearance IsNot Nothing Then Return occ.Appearance
+        Catch
+        End Try
+        Try
+            Dim part As PartDocument = TryCast(occ.Definition.Document, PartDocument)
+            If part IsNot Nothing AndAlso part.ActiveAppearance IsNot Nothing Then Return part.ActiveAppearance
+        Catch
+        End Try
+        Return Nothing
+    End Function
+
+    Private Function NuevoGeneric(display As String) As Asset
+        Dim existing As Asset = AppearanceByName(display)
+        If existing IsNot Nothing Then Return existing
+        For Each libName As String In New String() {"Autodesk Biblioteca de aspecto", "Autodesk Appearance Library"}
+            For Each proto As String In New String() {"Generic", "Genérico"}
+                Try
+                    Dim oLib As AssetLibrary = _inventor.AssetLibraries.Item(libName)
+                    Dim src As Asset = oLib.AppearanceAssets.Item(proto)
+                    If src Is Nothing Then Continue For
+                    Dim clone As Asset = src.CopyTo(_asm)
+                    If clone Is Nothing Then Continue For
+                    Try
+                        clone.DisplayName = display
+                    Catch
+                    End Try
+                    Return clone
+                Catch
+                End Try
+            Next
+        Next
+        Return Nothing
+    End Function
+
+    Private Sub CopiarColor(src As Asset, dest As Asset)
+        If src Is Nothing OrElse dest Is Nothing Then Return
+        Dim chosen As Color = Nothing
+        Try
+            For Each item As AssetValue In src
+                Try
+                    Dim tint As ColorAssetValue = TryCast(item, ColorAssetValue)
+                    If tint Is Nothing Then Continue For
+                    Dim label As String = ""
+                    Try
+                        label = item.Name.ToLowerInvariant()
+                    Catch
+                    End Try
+                    If label.IndexOf("tint") >= 0 Then Continue For
+                    If label.IndexOf("bump") >= 0 OrElse label.IndexOf("self_illum") >= 0 Then Continue For
+                    chosen = tint.Value
+                    If label.IndexOf("diffuse") >= 0 OrElse label = "metal_color" OrElse label = "generic_color" Then
+                        Exit For
+                    End If
+                Catch
+                End Try
+            Next
+        Catch
+        End Try
+        If chosen Is Nothing Then Return
+        For Each key As String In New String() {"generic_diffuse", "Generic_Diffuse"}
+            Try
+                Dim slot As ColorAssetValue = dest.Item(key)
+                slot.Value = chosen
+                Return
+            Catch
+            End Try
+        Next
+    End Sub
+
+    Private Sub RestaurarColorimetria(occ As ComponentOccurrence)
+        Dim clase As String = ""
+        Try
+            Dim occDoc As Document = occ.Definition.Document
+            clase = occDoc.PropertySets.Item("Inventor User Defined Properties").Item("Clasificación").Value.ToString()
+            clase = clase.Split(New Char() {";"c, "|"c})(0).Trim()
+        Catch
+            clase = ""
+        End Try
+        If Not String.IsNullOrWhiteSpace(clase) Then
+            Dim looks() As String = LibraryLooks(clase)
+            Dim asset As Asset = Nothing
+            Dim i As Integer
+            For i = 0 To looks.Length - 1
+                asset = AppearanceByName(looks(i))
+                If asset IsNot Nothing Then Exit For
+            Next
+            If asset IsNot Nothing Then
+                Try
+                    occ.AppearanceSourceType = AppearanceSourceTypeEnum.kOverrideAppearance
+                    occ.Appearance = asset
+                    Return
+                Catch
+                End Try
+            End If
+        End If
+        Try
+            occ.AppearanceSourceType = AppearanceSourceTypeEnum.kPartAppearance
+        Catch
+        End Try
+        Try
+            occ.Appearance = Nothing
+        Catch
+        End Try
+    End Sub
+
+    Private Function SetOpacity(asset As Asset, opacity As Double) As Boolean
+        If asset Is Nothing Then Return False
+        Dim amount As Double = opacity
+        If amount < 0.05 Then amount = 0.05
+        If amount > 1 Then amount = 1
+        Try
+            Dim value As FloatAssetValue = asset.Item("generic_transparency")
+            value.Value = 1.0 - amount
+            Return True
+        Catch
+            Return False
+        End Try
+    End Function
+
+    Private Function ParseHex(hex As String) As Integer()
+        Dim text As String = If(hex, "").Trim().TrimStart("#"c)
+        If text.Length = 3 Then
+            text = New String(text(0), 2) & New String(text(1), 2) & New String(text(2), 2)
+        End If
+        If text.Length <> 6 Then Return New Integer() {8, 145, 178}
+        Try
+            Return New Integer() {
+                Convert.ToInt32(text.Substring(0, 2), 16),
+                Convert.ToInt32(text.Substring(2, 2), 16),
+                Convert.ToInt32(text.Substring(4, 2), 16)
+            }
+        Catch
+            Return New Integer() {8, 145, 178}
+        End Try
+    End Function
+
+    Private Function CurrentMark(occ As ComponentOccurrence) As String
+        Try
+            If occ.AppearanceSourceType <> AppearanceSourceTypeEnum.kOverrideAppearance Then Return ""
+            If occ.Appearance Is Nothing Then Return ""
+            Dim name As String = occ.Appearance.DisplayName
+            If IsName(name, "AutoDXF Ambos", "Orange", "Naranja", "Naranja - Pintura mural - Brillante") Then Return "ambos"
+            If IsName(name, "AutoDXF Accesorio", "Cyan", "Cian", "Turquoise", "Turquesa") Then Return "accesorio"
+            If IsName(name, "AutoDXF Largo", "Yellow", "Amarillo", "Yellow - Wall Paint - Glossy", "Amarillo - Pintura mural - Brillante") Then Return "largo"
+        Catch
+        End Try
+        Return ""
+    End Function
+
+    Private Function IsName(value As String, ParamArray names() As String) As Boolean
+        For Each name As String In names
+            If String.Equals(value, name, StringComparison.OrdinalIgnoreCase) Then Return True
+        Next
+        Return False
+    End Function
+
+    Private Function MeasureInches(occ As ComponentOccurrence) As Double
+        Dim longest As Double = 0
+        Try
+            Dim part As PartDocument = occ.Definition.Document
+            For Each body As SurfaceBody In part.ComponentDefinition.SurfaceBodies
+                For Each edge As Edge In body.Edges
+                    Try
+                        Dim evaluator As CurveEvaluator = edge.Evaluator
+                        Dim startParam As Double
+                        Dim endParam As Double
+                        evaluator.GetParamExtents(startParam, endParam)
+                        Dim edgeLength As Double
+                        evaluator.GetLengthAtParam(startParam, endParam, edgeLength)
+                        If edgeLength > longest Then longest = edgeLength
+                    Catch
+                    End Try
+                Next
+            Next
+        Catch
+        End Try
+        If longest <= 0 Then
+            longest = BoxLength(Nothing, occ)
+        End If
+        Return Math.Round(longest * 0.393701, 3)
+    End Function
+
+    Private Function BoxLength(part As PartDocument, occ As ComponentOccurrence) As Double
+        Try
+            Dim source As PartDocument = part
+            If source Is Nothing Then source = DirectCast(occ.Definition.Document, PartDocument)
+            Dim partBox As Box = source.ComponentDefinition.RangeBox
+            Dim partSize As Double = Math.Max(Math.Abs(partBox.MaxPoint.X - partBox.MinPoint.X), Math.Abs(partBox.MaxPoint.Y - partBox.MinPoint.Y))
+            Return Math.Max(partSize, Math.Abs(partBox.MaxPoint.Z - partBox.MinPoint.Z))
+        Catch
+        End Try
+        Try
+            Dim occBox As Box = occ.RangeBox
+            Dim occSize As Double = Math.Max(Math.Abs(occBox.MaxPoint.X - occBox.MinPoint.X), Math.Abs(occBox.MaxPoint.Y - occBox.MinPoint.Y))
+            Return Math.Max(occSize, Math.Abs(occBox.MaxPoint.Z - occBox.MinPoint.Z))
+        Catch
+            Return 0
+        End Try
+    End Function
+
+    Private Function PaintAsset() As Asset
+        Dim display As String = "AutoDXF " & _className & " " & _r.ToString() & "-" & _g.ToString() & "-" & _b.ToString()
+        Dim asset As Asset = AppearanceByName(display)
+        If asset Is Nothing Then
+            Try
+                asset = _asm.Assets.Add(AssetTypeEnum.kAssetTypeAppearance, "Generic", display)
+            Catch
+            End Try
+        End If
+        If asset Is Nothing Then
+            Try
+                asset = _asm.Assets.Add(AssetTypeEnum.kAssetTypeAppearance, "Genérico", display)
+            Catch
+            End Try
+        End If
+        If asset Is Nothing Then
+            asset = CopyFromLibrary("Generic")
+            If asset Is Nothing Then asset = CopyFromLibrary("Genérico")
+            If asset IsNot Nothing Then
+                Try
+                    asset.DisplayName = display
+                Catch
+                End Try
+            End If
+        End If
+        TintAsset(asset, _r, _g, _b)
+        SetOpacity(asset, 1.0)
+        Return asset
+    End Function
+
+    Private Function EnsureMark(displayName As String, candidates() As String, red As Integer, green As Integer, blue As Integer) As Asset
+        Dim copied As Asset = Nothing
+        For Each candidate As String In candidates
+            copied = CopyFromLibrary(candidate)
+            If copied IsNot Nothing Then Exit For
+        Next
+        If copied Is Nothing Then copied = AppearanceByName(displayName)
+        If copied Is Nothing Then Return Nothing
+        Try
+            copied.DisplayName = displayName
+        Catch
+        End Try
+        TintAsset(copied, red, green, blue)
+        SetOpacity(copied, 1.0)
+        Return copied
+    End Function
+
+    Private Sub TintAsset(asset As Asset, red As Integer, green As Integer, blue As Integer)
+        If asset Is Nothing Then Return
+        Dim rr As Byte = CByte(Math.Max(0, Math.Min(255, red)))
+        Dim gg As Byte = CByte(Math.Max(0, Math.Min(255, green)))
+        Dim bb As Byte = CByte(Math.Max(0, Math.Min(255, blue)))
+        Dim shade As Color = _inventor.TransientObjects.CreateColor(rr, gg, bb)
+        For Each key As String In New String() {"generic_diffuse", "Generic_Diffuse", "generic_color", "color"}
+            Try
+                Dim tint As ColorAssetValue = asset.Item(key)
+                tint.Value = shade
+                Try
+                    Dim cur As Color = tint.Value
+                    cur.Red = rr
+                    cur.Green = gg
+                    cur.Blue = bb
+                    tint.Value = cur
+                Catch
+                End Try
+                Return
+            Catch
+            End Try
+        Next
+        Try
+            For Each item As AssetValue In asset
+                Try
+                    Dim tint As ColorAssetValue = TryCast(item, ColorAssetValue)
+                    If tint Is Nothing Then Continue For
+                    tint.Value = shade
+                    Return
+                Catch
+                End Try
+            Next
+        Catch
+        End Try
+    End Sub
+
+    Private Function AppearanceByName(name As String) As Asset
+        Try
+            For Each asset As Asset In _asm.AppearanceAssets
+                Try
+                    If String.Equals(asset.DisplayName, name, StringComparison.OrdinalIgnoreCase) Then Return asset
+                    If String.Equals(asset.Name, name, StringComparison.OrdinalIgnoreCase) Then Return asset
+                Catch
+                End Try
+            Next
+        Catch
+            Try
+                For Each asset As Asset In _asm.Assets
+                    Try
+                        If asset.AssetType <> AssetTypeEnum.kAssetTypeAppearance Then Continue For
+                        If String.Equals(asset.DisplayName, name, StringComparison.OrdinalIgnoreCase) Then Return asset
+                    Catch
+                    End Try
+                Next
+            Catch
+            End Try
+        End Try
+        Return Nothing
+    End Function
+
+    Private Function CopyFromLibrary(name As String) As Asset
+        Try
+            For Each library As AssetLibrary In _inventor.AssetLibraries
+                Try
+                    Dim source As Asset = library.AppearanceAssets.Item(name)
+                    If source IsNot Nothing Then Return source.CopyTo(_asm)
+                Catch
+                End Try
+            Next
+        Catch
+        End Try
+        Return Nothing
+    End Function
+
+    Private Function CopyAppearance(name As String) As Asset
+        Try
+            For Each asset As Asset In _asm.Assets
+                Try
+                    If asset.AssetType <> AssetTypeEnum.kAssetTypeAppearance Then Continue For
+                    If String.Equals(asset.DisplayName, name, StringComparison.OrdinalIgnoreCase) Then Return asset
+                    If String.Equals(asset.Name, name, StringComparison.OrdinalIgnoreCase) Then Return asset
+                Catch
+                End Try
+            Next
+        Catch
+        End Try
+        Try
+            For Each library As AssetLibrary In _inventor.AssetLibraries
+                Try
+                    Dim source As Asset = library.AppearanceAssets.Item(name)
+                    If source IsNot Nothing Then Return source.CopyTo(_asm)
+                Catch
+                End Try
+            Next
+        Catch
+        End Try
+        Return Nothing
+    End Function
+
+    Private Sub WriteStatus(picking As Boolean)
+        Dim sb As New StringBuilder()
+        sb.Append("{""picking"":").Append(If(picking, "true", "false"))
+        sb.Append(",""count"":").Append(_selected.Count)
+        sb.Append(",""paths"":[")
+        Dim first As Boolean = True
+        For Each path As String In _selected.Keys
+            If Not first Then sb.Append(",")
+            first = False
+            sb.Append("""").Append(Json(path)).Append("""")
+        Next
+        sb.Append("],""names"":[")
+        first = True
+        For Each name As String In _selected.Values
+            If Not first Then sb.Append(",")
+            first = False
+            sb.Append("""").Append(Json(name)).Append("""")
+        Next
+        sb.Append("],""lengths"":[")
+        first = True
+        For Each path As String In _selected.Keys
+            If Not first Then sb.Append(",")
+            first = False
+            Dim inches As Double = 0
+            If _lengths.ContainsKey(path) Then inches = _lengths(path)
+            sb.Append(inches.ToString(System.Globalization.CultureInfo.InvariantCulture))
+        Next
+        sb.Append("],""classes"":[")
+        first = True
+        For Each path As String In _selected.Keys
+            If Not first Then sb.Append(",")
+            first = False
+            Dim painted As String = ""
+            If _paintedClass.ContainsKey(path) Then painted = _paintedClass(path)
+            sb.Append("""").Append(Json(painted)).Append("""")
+        Next
+        sb.Append("],""removed"":[")
+        first = True
+        For Each path As String In _removed.Keys
+            If Not first Then sb.Append(",")
+            first = False
+            sb.Append("""").Append(Json(path)).Append("""")
+        Next
+        sb.Append("]}")
+        System.IO.File.WriteAllText(_statusFile, sb.ToString(), Encoding.UTF8)
+    End Sub
+
+    Private Function LeafOccurrence(occ As ComponentOccurrence) As ComponentOccurrence
+        If occ Is Nothing Then Return Nothing
+        Try
+            If occ.DefinitionDocumentType = kPartDocumentObject Then Return occ
+        Catch
+        End Try
+        Try
+            Dim leaves As ComponentOccurrencesEnumerator = occ.Definition.Occurrences.AllLeafOccurrences
+            If leaves.Count = 1 Then Return LeafOccurrence(leaves.Item(1))
+        Catch
+        End Try
+        Return occ
+    End Function
+
+    Private Function OccKey(occ As ComponentOccurrence) As String
+        Dim names As New List(Of String)
+        Try
+            For Each hop As ComponentOccurrence In occ.OccurrencePath
+                names.Add(hop.Name)
+            Next
+        Catch
+        End Try
+        If names.Count = 0 Then
+            Try
+                names.Add(occ.Name)
+            Catch
+                Return ""
+            End Try
+        End If
+        Return String.Join("/", names)
+    End Function
+
+    Private Function FindOcc(key As String) As ComponentOccurrence
+        Try
+            For Each occ As ComponentOccurrence In _asm.ComponentDefinition.Occurrences.AllLeafOccurrences
+                If String.Equals(OccKey(occ), key, StringComparison.OrdinalIgnoreCase) Then Return occ
+            Next
+        Catch
+        End Try
+        Return FindOccWalk(_asm.ComponentDefinition.Occurrences, key)
+    End Function
+
+    Private Function FindOccWalk(occurrences As ComponentOccurrences, key As String) As ComponentOccurrence
+        For Each occ As ComponentOccurrence In occurrences
+            Try
+                If occ.Suppressed Then Continue For
+                If String.Equals(OccKey(occ), key, StringComparison.OrdinalIgnoreCase) Then Return occ
+                If occ.DefinitionDocumentType = kAssemblyDocumentObject Then
+                    Dim hit As ComponentOccurrence = FindOccWalk(occ.SubOccurrences, key)
+                    If hit IsNot Nothing Then Return hit
+                End If
+            Catch
+            End Try
+        Next
+        Return Nothing
+    End Function
+
+    Private Function ResolveOccurrence(sel As Object) As ComponentOccurrence
+        Dim occ As ComponentOccurrence = TryCast(sel, ComponentOccurrence)
+        If occ Is Nothing Then
+            Try
+                occ = DirectCast(sel, FaceProxy).ContainingOccurrence
+            Catch
+            End Try
+        End If
+        If occ Is Nothing Then
+            Try
+                occ = DirectCast(sel, EdgeProxy).ContainingOccurrence
+            Catch
+            End Try
+        End If
+        If occ Is Nothing Then
+            Try
+                occ = DirectCast(sel, SurfaceBodyProxy).ContainingOccurrence
+            Catch
+            End Try
+        End If
+        If occ Is Nothing Then Return Nothing
+        If String.Equals(_mode, "accessories", StringComparison.OrdinalIgnoreCase) Then
+            Return occ
+        End If
+        Return LeafOccurrence(occ)
+    End Function
+
+    Private Function DocumentPath(occ As ComponentOccurrence) As String
+        Try
+            Return occ.Definition.Document.FullFileName.Replace("\", "/")
+        Catch
+            Return ""
+        End Try
+    End Function
+
+    Private Function DocumentName(occ As ComponentOccurrence) As String
+        Try
+            Return System.IO.Path.GetFileNameWithoutExtension(occ.Definition.Document.FullFileName)
+        Catch
+            Return occ.Name
+        End Try
+    End Function
+
+    Private Function Json(value As String) As String
+        Return If(value, "").Replace("\", "\\").Replace("""", "\""")
+    End Function
+End Class

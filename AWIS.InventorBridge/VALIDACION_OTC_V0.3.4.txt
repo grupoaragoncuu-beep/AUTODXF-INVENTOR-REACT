@@ -1,0 +1,24 @@
+VALIDACIÓN OTC — WELD INTERFACES V0.3.4
+=========================================
+
+Caso de referencia extraído del JSON real del OTC:
+AXIS_2_POSITIVE_IF00017 / BODY_001_SECTION_WIRE_001.
+
+La simulación offline del mismo criterio de V0.3.4 sobre el JSON V0.3.2
+encontró exactamente UN wire que cumple el patrón anular en todo el archivo:
+el IF00017 que corresponde al círculo visualmente partido.
+
+No se detectaron otros grupos BREP como anulares bajo estas tolerancias.
+Esto reduce el riesgo de transformar geometría curva no relacionada.
+
+Después de compilar/ejecutar:
+1. Confirmar Version = 0.3.4.
+2. Buscar AnnularSectionWiresResolved > 0.
+3. En IF circular buscar un solo path con:
+   GeometryType = CLOSED
+   Closed = true
+   PhysicalMemberType = ANNULAR_SECTION
+   PhysicalSideRole = OUTER_CIRCUMFERENCE
+4. AWIS debe mostrar un único candidato circular completo de 360 grados.
+5. Confirmar que los BRACE_FRAME de V0.3.3 siguen mostrando un candidato
+   por lado físico.

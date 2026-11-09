@@ -1,0 +1,41 @@
+AWIS INVENTOR BRIDGE - WELD INTERFACES V0.3.1
+FACE PREVIEW remains V0.4.0
+
+OBJECTIVE
+---------
+Promote each valid PhysicalWall.StructuralSeam into Faces[].Interfaces[] so AWIS can consume the panel-to-panel seam through the same candidate contract as the rest of the weld interfaces.
+
+CHANGES
+-------
+1. StructuralSeams[] remains in PhysicalWall for manufacturing traceability.
+2. Each valid GEOMETRY_DETECTED seam is ALSO exported as a WeldInterfaceRecord.
+3. New Interface fields:
+   - CandidateKind
+   - StructuralSeamId
+   - SegmentAId / SegmentBId
+   - Classification
+   - WeldClassification
+   - DetectionStatus
+   - GapMm
+4. Structural seam candidate uses:
+   ContactState = STRUCTURAL_SEAM
+   ResolutionStatus = resolved_structural_seam_from_face_preview
+   SourceKind = STRUCTURAL_SEAM_CENTERLINE
+   GeometryType = LINEAR
+5. The candidate contains both FaceLocalPointsMm and Model3DPointsMm.
+6. Model3DPointsMm are reconstructed deterministically from the canonical Face frame:
+   ModelPoint = Origin + LocalU*u + LocalV*v
+7. Structural seam candidates are appended AFTER ordinary component interfaces so the previous IF numbering remains stable.
+8. Added Statistics.StructuralSeamCandidatesExported.
+
+EXPECTED OTC 62223-1246-A01
+---------------------------
+- 6 logical faces
+- 8 physical wall segments
+- 2 StructuralSeams
+- 2 additional Interfaces[] with CandidateKind = STRUCTURAL_SEAM
+- Existing component interface IDs should remain unchanged; the seam candidates are appended at the end of the corresponding face list.
+
+IMPORTANT
+---------
+WeldClassification intentionally remains UNCONFIRMED. Geometry detection does not infer the welding process/type.

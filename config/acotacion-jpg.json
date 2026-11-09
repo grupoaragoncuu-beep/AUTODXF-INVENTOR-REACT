@@ -1,0 +1,324 @@
+{
+  "paths": {
+    "corporateRoot": "\\\\192.168.2.80\\Users\\Administrator\\Desktop\\Grupo Arga Metals\\ARGA METALS CORPORATE SYSTEM",
+    "cotasProject": "C:\\Users\\Ing. Cano\\Documents\\Cotas Dossier Python+React+Inventor\\Planos",
+    "machote": "C:\\Users\\Ing. Cano\\Documents\\Cotas Dossier Python+React+Inventor\\Planos\\MACHOTE PLANOS.dwg",
+    "localJpg": "C:\\Users\\Ing. Cano\\Documents\\AUTODXF INVENTOR REACT\\JPG",
+    "dossierFolder": "DOSSIER FILES",
+    "jpgsFolder": "JPGS"
+  },
+  "classify": [
+    {
+      "id": "board-nombre",
+      "field": "nombre",
+      "pattern": "BOARD|GIGA\\s+BOARD|\\d{3,5}\\s*[-_]?\\s*BOARD",
+      "tipo": "BOARD",
+      "familia": "BOARD",
+      "enabled": true
+    },
+    {
+      "id": "tanque-nombre",
+      "field": "nombre",
+      "pattern": "VANTRAN|SUNBELT|\\bOTC\\b|\\bSWE\\b|SEGMENTO|TOP[\\s_-]?COVER|\\bTANK\\b|CASCO|SOLERA|1246|1247|1248",
+      "tipo": "TANQUE",
+      "familia": "TANQUE",
+      "enabled": true
+    },
+    {
+      "id": "board-ruta",
+      "field": "ruta",
+      "pattern": "ENCLOSURES|GIGA\\\\|9919[-_ ]?BOARD",
+      "tipo": "BOARD",
+      "familia": "BOARD",
+      "enabled": true
+    },
+    {
+      "id": "tanque-ruta",
+      "field": "ruta",
+      "pattern": "\\\\TANKS\\\\|VANTRAN|\\\\OTC\\\\",
+      "tipo": "TANQUE",
+      "familia": "TANQUE",
+      "enabled": true
+    }
+  ],
+  "defaultTipo": "TANQUE",
+  "flows": {
+    "BOARD": {
+      "label": "Gabinete",
+      "dossierProduct": "ENCLOSURES NEMA 1",
+      "unit": "mm",
+      "picks": [],
+      "views": [
+        "FRONT",
+        "BACK",
+        "TOP",
+        "BOTTOM",
+        "RIGHT",
+        "LEFT"
+      ],
+      "omit": [
+        "Almacén"
+      ],
+      "despliegue": true,
+      "copperPrefixes": [
+        "ABB",
+        "GENE",
+        "RLG"
+      ]
+    },
+    "TANQUE": {
+      "label": "Tank",
+      "dossierProduct": "TANKS",
+      "unit": "in",
+      "picks": [
+        "TOP COVER",
+        "SEGM1",
+        "SEGM2",
+        "SEGM3",
+        "SEGM4",
+        "BASE"
+      ],
+      "views": [],
+      "omit": [
+        "Almacén"
+      ],
+      "despliegue": false,
+      "copperPrefixes": [],
+      "corte": {
+        "classes": [
+          "Maquinados Tank",
+          "Maquinados Accesorios Sueltos",
+          "Corte",
+          "Maquinado",
+          "Maquinados",
+          "Accesorios Sueltos"
+        ],
+        "holeAnchor": "edge",
+        "measureWalls": false
+      },
+      "doblado": {
+        "classes": [
+          "Doblado"
+        ],
+        "holeAnchor": "edge",
+        "measureWalls": true
+      },
+      "armado": {
+        "classes": [
+          "Assy Tanks",
+          "Assy Loose Accesories"
+        ]
+      },
+      "referencia": {
+        "faces": {
+          "TOP": [
+            "top cover",
+            "tapa superior",
+            "tank lid",
+            "tank-lid",
+            "tapa"
+          ],
+          "SEGM1": [
+            "segmento 1",
+            "segmento #1",
+            "segm1",
+            "s1"
+          ],
+          "SEGM2": [
+            "segmento 2",
+            "segmento #2",
+            "segm2",
+            "s2"
+          ],
+          "SEGM3": [
+            "segmento 3",
+            "segmento #3",
+            "segm3",
+            "s3"
+          ],
+          "SEGM4": [
+            "segmento 4",
+            "segmento #4",
+            "segm4",
+            "s4"
+          ],
+          "BASE": [
+            "base de soleras",
+            "cuadro base",
+            "base plate",
+            "tank base",
+            "tank-base",
+            "base"
+          ]
+        }
+      }
+    }
+  },
+  "measures": [
+    {
+      "id": "LENGTH",
+      "label": "Largo",
+      "enabled": true
+    },
+    {
+      "id": "WIDTH",
+      "label": "Ancho",
+      "enabled": true
+    },
+    {
+      "id": "THK",
+      "label": "Espesor",
+      "enabled": true
+    },
+    {
+      "id": "HEIGHT",
+      "label": "Alto",
+      "enabled": true
+    },
+    {
+      "id": "LEG",
+      "label": "Pata",
+      "enabled": true
+    },
+    {
+      "id": "OD",
+      "label": "Ø exterior",
+      "enabled": true
+    },
+    {
+      "id": "ID",
+      "label": "Ø interior",
+      "enabled": true
+    },
+    {
+      "id": "HOLE",
+      "label": "Barrenos",
+      "enabled": true
+    },
+    {
+      "id": "XCENTRO",
+      "label": "X centro (flat)",
+      "enabled": true
+    },
+    {
+      "id": "YCENTRO",
+      "label": "Y centro (flat)",
+      "enabled": true
+    }
+  ],
+  "photoLayout": {
+    "rootName": "PIEZAS_ACOTADAS",
+    "items": {
+      "root": {
+        "name": "PIEZAS_ACOTADAS",
+        "children": [
+          "corte",
+          "doblado",
+          "armado",
+          "estanado_busbar",
+          "sin"
+        ]
+      },
+      "corte": {
+        "name": "Corte",
+        "children": [
+          "plasma",
+          "maquinado"
+        ]
+      },
+      "plasma": {
+        "name": "Plasma y Laser",
+        "children": [
+          "plasma_metal",
+          "plasma_busbar"
+        ]
+      },
+      "plasma_metal": {
+        "name": "Corte metal",
+        "children": []
+      },
+      "plasma_busbar": {
+        "name": "Corte Busbar",
+        "children": []
+      },
+      "maquinado": {
+        "name": "Maquinado",
+        "children": [
+          "maquinados_metal",
+          "corte_busbar",
+          "piezas_soldadas",
+          "accesorios_sueltos",
+          "inspeccion_visual",
+          "accesorios_por_pieza"
+        ]
+      },
+      "maquinados_metal": {
+        "name": "Maquinados metal",
+        "children": []
+      },
+      "corte_busbar": {
+        "name": "Corte Busbar",
+        "children": []
+      },
+      "piezas_soldadas": {
+        "name": "Piezas Soldadas",
+        "children": []
+      },
+      "accesorios_sueltos": {
+        "name": "Accesorios Sueltos",
+        "children": []
+      },
+      "inspeccion_visual": {
+        "name": "Inspeccion Visual",
+        "children": []
+      },
+      "accesorios_por_pieza": {
+        "name": "Accesorios Sueltos por pieza",
+        "children": []
+      },
+      "doblado": {
+        "name": "Doblado",
+        "children": [
+          "metal",
+          "busbar"
+        ]
+      },
+      "metal": {
+        "name": "Metal",
+        "children": []
+      },
+      "busbar": {
+        "name": "Busbar",
+        "children": []
+      },
+      "armado": {
+        "name": "Armado",
+        "children": [
+          "assy_tanks",
+          "assy_loose"
+        ]
+      },
+      "assy_tanks": {
+        "name": "Assy Tanks",
+        "children": []
+      },
+      "assy_loose": {
+        "name": "Assy Loose Accesories",
+        "children": []
+      },
+      "estanado_busbar": {
+        "name": "Estañado Busbar",
+        "children": []
+      },
+      "sin": {
+        "name": "SIN CLASIFICACION",
+        "children": []
+      }
+    },
+    "slots": {
+      "F": "corte_busbar",
+      "B": "busbar",
+      "ISO": "estanado_busbar"
+    }
+  }
+}

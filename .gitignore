@@ -1,0 +1,10 @@
+ui/node_modules/
+plugin/**/bin/
+plugin/**/obj/
+ui/dist/
+config/autodxf.local.json
+autodxf_job.json
+autodxf_result.json
+herinox_sync.local.json
+python/_probe_db.py
+tools/InventorGenerativo/

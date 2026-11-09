@@ -1,0 +1,24 @@
+VALIDACIÓN GEOMÉTRICA OFFLINE - OTC 62223-1246-A01
+=================================================
+
+Fuente revisada: AWIS_WELD_INTERFACES V0.3.2 generado 2026-09-26.
+La misma regla implementada en WeldPhysicalBoundarySelector V0.3.3 se simuló
+sobre ese JSON para comprobar qué grupos serían reconocidos.
+
+AXIS_1_NEGATIVE / .../62223-1248-A13_224
+  IF00008 P001 -> RIGHT  : X=812.800, Y=60.325..1889.125
+  IF00008 P002 -> LEFT   : X=635.000, Y=60.325..1889.125
+  IF00009 P001 -> BOTTOM : Y=1895.475, X=628.650..819.150
+  IF00010 P001 -> TOP    : Y=53.975, X=628.650..819.150
+
+Este es el caso específico discutido en AWIS: dos candidatos largos por cada
+cara angosta pasan a UN candidato por lado físico y forman cuatro lados del
+brace.
+
+La simulación también detectó otros frames 2H+2V coherentes en el mismo OTC.
+Esto es esperado: la regla no depende del nombre de la pieza sino de la
+estructura geométrica completa del frame bajo un mismo parent occurrence.
+
+No se transforman grupos con geometría incompleta, orientación distinta a
+2H+2V o más/menos de cuatro tiras angostas. En esos casos V0.3.3 conserva el
+JSON sin adivinar.

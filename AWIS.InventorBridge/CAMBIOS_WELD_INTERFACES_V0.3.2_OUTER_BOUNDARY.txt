@@ -1,0 +1,53 @@
+AWIS INVENTOR BRIDGE - WELD INTERFACES V0.3.2
+PHYSICAL OUTER BOUNDARY / HOLLOW MEMBER FILTER
+Fecha: 2026-09-26
+
+OBJETIVO
+Evitar que perfiles huecos, braces y accesorios con cavidades exporten dos candidatos por cada lado físico cuando Inventor reporta un loop exterior y un loop interior sobre la cara de programación.
+
+CAMBIOS
+1. COINCIDENT FACE LOOPS
+   - Se consulta EdgeLoop.IsOuterEdgeLoop de Inventor.
+   - Solo se exporta el loop exterior que encierra material.
+   - Los loops interiores (void/hole) se suprimen antes de crear candidatos de soldadura.
+   - Si la propiedad no está disponible en un contexto proxy/legacy, se usa como fallback el loop cerrado con mayor área proyectada.
+
+2. B-REP SECTION WIRES
+   - Se usa SurfaceBody.Wires / Wire.EdgeUses para conservar la topología de cada contorno seccionado.
+   - Wires cerrados contenidos dentro de otro wire cerrado del mismo body se clasifican como INNER_VOID y se suprimen.
+   - Wires exteriores o islas de material válidas se conservan.
+   - Wires abiertos no se descartan automáticamente.
+
+3. BRACES / SOLERAS
+   - Esta versión NO fuerza Paired Members.
+   - Un brace hueco conserva un único perímetro exterior: sus cuatro lados físicos siguen disponibles para soldadura.
+   - Una solera/perfil conserva su frontera exterior; la clasificación posterior puede seguir resolviendo sus lados largos como par.
+   - La separación entre lados NO se usa para eliminar un brace.
+
+4. AUDITORÍA JSON
+   Cada WeldInterfacePath puede incluir:
+   - BoundaryRole
+   - BoundarySelectionReason
+   - BoundaryGroupId
+
+   Cada WeldInterfaceRecord incluye BoundaryFilter con:
+   - CoincidentFaceLoopPolicy
+   - SectionWirePolicy
+   - InnerCoincidentFaceLoopsSuppressed
+   - NestedSectionWiresSuppressed
+   - Applied
+
+   Statistics agrega:
+   - CoincidentFaceLoopsVisited
+   - InnerCoincidentFaceLoopsSuppressed
+   - SectionWiresVisited
+   - NestedSectionWiresSuppressed
+
+VALIDACIÓN ESPERADA EN OTC 62223-1246-A01
+- Donde antes un lado físico del brace aparecía como dos líneas paralelas (perímetro exterior + perímetro interior), debe quedar una sola línea por lado.
+- Un brace rectangular válido debe conservar 4 lados exteriores soldables.
+- No se debe eliminar un lado solo por estar separado del lado opuesto.
+- Los pares/brace se deben formar después con los candidatos ya depurados, sin inventar líneas faltantes.
+
+IMPORTANTE
+El paquete entregado contiene código fuente actualizado. Los directorios bin/obj/.vs se eliminan para evitar distribuir DLLs compiladas con la versión anterior. Recompilar en la PC con Inventor/Visual Studio usando la referencia Autodesk.Inventor.Interop configurada en el .csproj.

@@ -1,0 +1,44 @@
+AWIS INVENTOR BRIDGE V0.3.6 — INTERIOR / EXTERIOR POR SEGMENTO
+
+ALCANCE
+Etapa de geometria del Bridge. La cara elegida se soldara presentada hacia arriba, como segmento separado. El soldador realiza el volteo. Esta entrega no agrega botones a AWIS ni genera orientaciones robot para soldadura interior.
+
+INSTALACION
+1. Cerrar Inventor.
+2. Extraer este ZIP en carpeta nueva y abrir AWIS.InventorBridge.slnx.
+3. Mantener la referencia Autodesk.Inventor.Interop correspondiente a tu instalacion. El csproj conserva el HintPath que tenia tu ZIP.
+4. Recompilar en Visual Studio y comprobar que el .addin cargue esta DLL.
+5. Abrir el OTC y ejecutar nuevamente el Bridge.
+
+SALIDA
+El mismo AWIS_WELD_INTERFACES_<TankName>.json contiene:
+- Version = 0.3.6.
+- GeneratorVersion = Inventor Weld Interface Companion V0.3.6.
+- Faces[]: flujo exterior legacy conservado, mismos IDs y datos geometricos del algoritmo anterior.
+- SurfaceVariants[]: dos registros por segmento fisico disponible, EXTERIOR e INTERIOR.
+
+Cada variante incluye SurfaceId unico, ParentFaceId, SegmentId, SurfaceSide, Resolved, ResolutionStatus, SurfaceNormal, MeasuredWallThicknessMm (solo INTERIOR resuelto), Geometry, Statistics y Warnings.
+Geometry contiene ContactPlane, limites del segmento y Interfaces[] con UV canonico y puntos 3D reales. Cada interfaz identifica SurfaceId, SurfaceSide y SegmentId. Las listas de lados no se mezclan.
+
+Resolved certifica solamente que la superficie nativa pudo identificarse. No certifica completitud de todos los contactos: revisar Statistics.ExactAnalysisFailures/SectionFailures/EdgeSamplingFailures y warnings.
+ReadyForProgramming permanece false para las variantes: falta la seleccion y presentacion de la superficie en AWIS, la referencia de trabajo y validacion de trayectorias. No afecta al bloque Faces[] exterior ya utilizado por AWIS.
+InteriorViewRule describe el espejo para la vista interior, pero NO modifica los puntos UV ni aplica un giro fisico al robot. La rotacion dentro del plano queda pendiente de resolver en interfaz.
+
+VALIDACION EN INVENTOR
+- Confirmar Version y GeneratorVersion.
+- Buscar ParentFaceId=AXIS_2_POSITIVE, SurfaceSide=INTERIOR.
+- Resolved debe ser true; Geometry.ContactPlane.ResolutionStatus=native_physical_inner_wall_plane.
+- El espesor esperado para esta pared es aproximadamente 9.525 mm, obtenido del modelo.
+- Buscar 62223-1247-P03_122 y los demas refuerzos dentro de Geometry.Interfaces. Revisar Paths, coordenadas, cierre y metadata.
+- Contrastar SurfaceNormal INTERIOR frente a EXTERIOR: deben ser opuestas para el mismo segmento.
+- Confirmar que Faces[] sigue entregando los seis circulos exteriores completos.
+- No interpretar la ausencia de internos en AWIS V5.6 como fallo de exportacion: esa interfaz aun consume Faces[], no SurfaceVariants[].
+
+LIMITES
+Solo pares de superficies planares del mismo body. Se exige paralelismo, area comparable y huella UV equivalente; el espesor se mide, no se aplica constante. Si no hay pareja compatible, la variante interior queda unresolved con Interfaces vacio y warning; no se utiliza el plano exterior como sustituto.
+Las juntas entre segmentos ensamblados siguen en Faces[]. Las variantes de un segmento separado no incluyen esas structural seams.
+La busqueda inspecciona contactos con cada plano; no clasifica la pertenencia volumetrica de todos los accesorios del tanque. Un componente pasante puede tener contactos legitimos en ambos lados.
+
+PRUEBAS
+Pasaron las pruebas geometricas OCCT sobre el STEP original del OTC: identificacion de cara interior, espesor, contacto rectangular cerrado de P03, normal opuesta y regresion de circulos exteriores. Resultados en validation/.
+No se ejecuto compilacion ni exportacion COM con Autodesk Inventor en este entorno. Incluye codigo fuente; no DLL compilada ni bin/obj.

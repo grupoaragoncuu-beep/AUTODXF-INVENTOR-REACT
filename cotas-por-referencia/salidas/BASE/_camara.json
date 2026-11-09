@@ -1,0 +1,31 @@
+{
+  "cara": "BASE",
+  "look": [
+    0.0,
+    -1.0,
+    0.0
+  ],
+  "u_axis": [
+    0.0,
+    -0.0,
+    -1.0
+  ],
+  "v_axis": [
+    1.0,
+    0.0,
+    -0.0
+  ],
+  "ox": -30.00000000000001,
+  "oy": -19.312500000000014,
+  "span_u": 60.000000000000014,
+  "span_v": 38.62500000000003,
+  "origen": "IL",
+  "hijos": 4,
+  "piezas": 3,
+  "modo": "alambrico",
+  "tipos": [
+    "261503_Bottom tank Angle bracket",
+    "261503_Bottom tank Angle bracket",
+    "261503_Tank-Base_Default_As Machined_"
+  ]
+}

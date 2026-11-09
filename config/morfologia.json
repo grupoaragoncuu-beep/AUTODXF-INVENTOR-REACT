@@ -1,0 +1,4124 @@
+{
+  "paths": {
+    "1_27": {
+      "name": "1_27",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "2_28": {
+      "name": "2_28",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "BASE_1": {
+      "name": "BASE_1",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "C:\\Users\\Ing. Cano\\Desktop\\Giga Tank Parametric Design\\L5\\CAJAS\\S2\\1500KVA\\BRACE FRONTAL.iam": {
+      "name": "BRACE FRONTAL",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "BRACE FRONTAL_17/BRACE FRONTAL_69": {
+      "name": "BRACE FRONTAL_69",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "BRACE FRONTAL_18/BRACE FRONTAL_69": {
+      "name": "BRACE FRONTAL_69",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "BRACE FRONTAL_16/BRACE FRONTAL_69": {
+      "name": "BRACE FRONTAL_69",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "BRACE LATERAL_15/BRACE LATERAL_72": {
+      "name": "BRACE LATERAL_72",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "BRACE LATERAL_14/BRACE LATERAL_72": {
+      "name": "BRACE LATERAL_72",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "BRACE LATERAL_13/BRACE LATERAL_72": {
+      "name": "BRACE LATERAL_72",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "BRACE LATERAL_12/BRACE LATERAL_72": {
+      "name": "BRACE LATERAL_72",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "BRACE LATERAL_11/BRACE LATERAL_72": {
+      "name": "BRACE LATERAL_72",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "BRACE LATERAL_10/BRACE LATERAL_72": {
+      "name": "BRACE LATERAL_72",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "C:\\Users\\Ing. Cano\\Desktop\\Giga Tank Parametric Design\\L5\\CAJAS\\S2\\1500KVA\\GUARDA1.iam": {
+      "name": "GUARDA1",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "JACKIN PAD_32/JP1_66": {
+      "name": "JP1_66",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "JACKIN PAD_33/JP1_66": {
+      "name": "JP1_66",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "JACKIN PAD_30/JP1_66": {
+      "name": "JP1_66",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "JACKIN PAD_31/JP1_66": {
+      "name": "JP1_66",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "JACKIN PAD_32/JP2_68": {
+      "name": "JP2_68",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "JACKIN PAD_33/JP2_68": {
+      "name": "JP2_68",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "JACKIN PAD_30/JP2_68": {
+      "name": "JP2_68",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "JACKIN PAD_31/JP2_68": {
+      "name": "JP2_68",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "JACKIN PAD_32/JP3_67": {
+      "name": "JP3_67",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "JACKIN PAD_33/JP3_67": {
+      "name": "JP3_67",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "JACKIN PAD_30/JP3_67": {
+      "name": "JP3_67",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "JACKIN PAD_31/JP3_67": {
+      "name": "JP3_67",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "LIFTINLUG1_6": {
+      "name": "LIFTINLUG1_6",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "LIFTINLUG1_7": {
+      "name": "LIFTINLUG1_7",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "LIFTINLUG1_8": {
+      "name": "LIFTINLUG1_8",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "LIFTINLUG1_9": {
+      "name": "LIFTINLUG1_9",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "C:\\Users\\Ing. Cano\\Desktop\\Giga Tank Parametric Design\\L5\\CAJAS\\S2\\1500KVA\\MARCO TOPCOVER.iam": {
+      "name": "MARCO TOPCOVER",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "REFUERSO BASE_22": {
+      "name": "REFUERSO BASE_22",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "REFUERSO BASE_23": {
+      "name": "REFUERSO BASE_23",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "REFUERSO BASE_24": {
+      "name": "REFUERSO BASE_24",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "REFUERSO BASE_25": {
+      "name": "REFUERSO BASE_25",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "REFUERSO BASE_26": {
+      "name": "REFUERSO BASE_26",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "REFUERSO SEG1_29": {
+      "name": "REFUERSO SEG1_29",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "SEG1_2": {
+      "name": "SEG1_2",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "SEG2_3": {
+      "name": "SEG2_3",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "SEG3_5": {
+      "name": "SEG3_5",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "SEG4L_4": {
+      "name": "SEG4L_4",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "BRACE FRONTAL_16/TAPA BRACE_70": {
+      "name": "TAPA BRACE_70",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "BRACE FRONTAL_18/TAPA BRACE_70": {
+      "name": "TAPA BRACE_70",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "BRACE FRONTAL_17/TAPA BRACE_70": {
+      "name": "TAPA BRACE_70",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "BRACE FRONTAL_16/TAPA BRACE_71": {
+      "name": "TAPA BRACE_71",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "BRACE FRONTAL_18/TAPA BRACE_71": {
+      "name": "TAPA BRACE_71",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "BRACE FRONTAL_17/TAPA BRACE_71": {
+      "name": "TAPA BRACE_71",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "BRACE LATERAL_13/TAPA BRACE_73": {
+      "name": "TAPA BRACE_73",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "BRACE LATERAL_14/TAPA BRACE_73": {
+      "name": "TAPA BRACE_73",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "BRACE LATERAL_15/TAPA BRACE_73": {
+      "name": "TAPA BRACE_73",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "BRACE LATERAL_12/TAPA BRACE_73": {
+      "name": "TAPA BRACE_73",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "BRACE LATERAL_11/TAPA BRACE_73": {
+      "name": "TAPA BRACE_73",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "BRACE LATERAL_10/TAPA BRACE_73": {
+      "name": "TAPA BRACE_73",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "BRACE LATERAL_15/TAPA BRACE_74": {
+      "name": "TAPA BRACE_74",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "BRACE LATERAL_14/TAPA BRACE_74": {
+      "name": "TAPA BRACE_74",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "BRACE LATERAL_13/TAPA BRACE_74": {
+      "name": "TAPA BRACE_74",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "BRACE LATERAL_10/TAPA BRACE_74": {
+      "name": "TAPA BRACE_74",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "BRACE LATERAL_11/TAPA BRACE_74": {
+      "name": "TAPA BRACE_74",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "BRACE LATERAL_12/TAPA BRACE_74": {
+      "name": "TAPA BRACE_74",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "TOP45_19": {
+      "name": "TOP45_19",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "TOP45_20": {
+      "name": "TOP45_20",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "TOPCOVER_21": {
+      "name": "TOPCOVER_21",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "Base de soleras:1/Base Vantran solera Ansi Aisc rectangular 1X1.2 :1/AISC 1x1/2 - 43.253:2": {
+      "name": "2 - 43",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "Base de soleras:1/Base Vantran solera Ansi Aisc rectangular 1X1.2 :1/AISC 1x1/2 - 43.253:1": {
+      "name": "2 - 43",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "Base de soleras:1/Base Vantran solera Ansi Aisc rectangular 1X1.2 :1/AISC 1x1/2 - 46.474:2": {
+      "name": "2 - 46",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "Base de soleras:1/Base Vantran solera Ansi Aisc rectangular 1X1.2 :1/AISC 1x1/2 - 46.753:2": {
+      "name": "2 - 46",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "Base de soleras:1/Base Vantran solera Ansi Aisc rectangular 1X1.2 :1/AISC 1x1/2 - 46.753:1": {
+      "name": "2 - 46",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "Base de soleras:1/Base Vantran solera Ansi Aisc rectangular 1X1.2 :1/AISC 1x1/2 - 46.474:1": {
+      "name": "2 - 46",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "Base de soleras:1/Base Vantran solera Ansi Aisc rectangular 1X1.2 :1/AISC 1x1/2 - 69.5:1": {
+      "name": "2 - 69",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "Base de soleras:1/Base Vantran solera Ansi Aisc rectangular 1X1.2 :1/AISC 1x1/2 - 69.5:2": {
+      "name": "2 - 69",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "Base de soleras:1/CUADRO BASE:20": {
+      "name": "CUADRO BASE:20",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "Base de soleras:1/CUADRO BASE:22": {
+      "name": "CUADRO BASE:22",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "Base de soleras:1/CUADRO BASE:23": {
+      "name": "CUADRO BASE:23",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "Base de soleras:1/CUADRO BASE:9": {
+      "name": "CUADRO BASE:9",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "Top_Cover_Assembly1:1/Inspection_Plate:1": {
+      "name": "Inspection_Plate:1",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "Assembly Segmento 4:1/JACKING PADS ASSEMBLY:1/jacking pads:1": {
+      "name": "jacking pads:1",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "Assembly Segmento 2:1/JACKING PADS ASSEMBLY:1/jacking pads:1": {
+      "name": "jacking pads:1",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "Assembly Segmento 1:1/PIPE FLANGE 0.500:1": {
+      "name": "PIPE FLANGE 0",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "Assembly Segmento 1:1/PIPE FLANGE 0.250:1": {
+      "name": "PIPE FLANGE 0",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "Assembly Segmento 1:1/PIPE FLANGE 0.250:2": {
+      "name": "PIPE FLANGE 0",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "Assembly Segmento 1:1/PIPE FLANGE 1:1": {
+      "name": "PIPE FLANGE 1:1",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "Assembly Segmento 1:1/PIPE HALF NIPPLE 1:1": {
+      "name": "PIPE HALF NIPPLE 1:1",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "Base de soleras:1/Placa Base de Soleras:1": {
+      "name": "Placa Base de Soleras:1",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "Assembly Segmento 1:1/Placa Segmento 1:1": {
+      "name": "Placa Segmento 1:1",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "Assembly Segmento 2:1/Placa Segmento 2:1": {
+      "name": "Placa Segmento 2:1",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "Assembly Segmento 3:1/Placa Segmento 3:1": {
+      "name": "Placa Segmento 3:1",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "Assembly Segmento 4:1/Placa Segmento 4:1": {
+      "name": "Placa Segmento 4:1",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "Assembly Segmento 4:1/JACKING PADS ASSEMBLY:1/Solera Jacking Pad:1": {
+      "name": "Solera Jacking Pad:1",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "Assembly Segmento 2:1/JACKING PADS ASSEMBLY:1/Solera Jacking Pad:1": {
+      "name": "Solera Jacking Pad:1",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "Assembly Segmento 4:1/Solera Segmento 1:1": {
+      "name": "Solera Segmento 1:1",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "Assembly Segmento 3:1/Solera Segmento 1:1": {
+      "name": "Solera Segmento 1:1",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "Assembly Segmento 1:1/Solera Segmento 1:1": {
+      "name": "Solera Segmento 1:1",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "Assembly Segmento 2:1/Solera Segmento 1:1": {
+      "name": "Solera Segmento 1:1",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "Assembly Segmento 4:1/Solera Segmento 1:2": {
+      "name": "Solera Segmento 1:2",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "Assembly Segmento 3:1/Solera Segmento 1:2": {
+      "name": "Solera Segmento 1:2",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "Assembly Segmento 1:1/Solera Segmento 1:2": {
+      "name": "Solera Segmento 1:2",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "Assembly Segmento 2:1/Solera Segmento 1:2": {
+      "name": "Solera Segmento 1:2",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "Assembly Segmento 4:1/Solera Segmento 1:3": {
+      "name": "Solera Segmento 1:3",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "Assembly Segmento 3:1/Solera Segmento 1:3": {
+      "name": "Solera Segmento 1:3",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "Assembly Segmento 1:1/Solera Segmento 1:3": {
+      "name": "Solera Segmento 1:3",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "Assembly Segmento 2:1/Solera Segmento 1:3": {
+      "name": "Solera Segmento 1:3",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "Assembly Segmento 1:1/STAINLESS GROUND PAD:1": {
+      "name": "STAINLESS GROUND PAD:1",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "Assembly Segmento 1:1/STAINLESS GROUND PAD:2": {
+      "name": "STAINLESS GROUND PAD:2",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "Assembly Segmento 1:1/STAINLESS GROUND PAD:5": {
+      "name": "STAINLESS GROUND PAD:5",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "Assembly Segmento 1:1/STAINLESS GROUND PAD:6": {
+      "name": "STAINLESS GROUND PAD:6",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "Assembly Segmento 1:1/SWITCH PATCH:1": {
+      "name": "SWITCH PATCH:1",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "Assembly Segmento 1:1/TIERRA REDONDA:1": {
+      "name": "TIERRA REDONDA:1",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "Assembly Segmento 1:1/TIERRA REDONDA:2": {
+      "name": "TIERRA REDONDA:2",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "Assembly Segmento 1:1/TIERRA REDONDA:3": {
+      "name": "TIERRA REDONDA:3",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "Top_Cover_Assembly1:1/Top_Cover_1:1": {
+      "name": "Top_Cover_1:1",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "Assembly Segmento 4:1/VT-5657-R1-D3000 Lifting Lug With Chain Retainer:1": {
+      "name": "VT-5657-R1-D3000 Lifting Lug With Chain Retainer:1",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "Assembly Segmento 2:1/VT-5657-R1-D3000 Lifting Lug With Chain Retainer:1": {
+      "name": "VT-5657-R1-D3000 Lifting Lug With Chain Retainer:1",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "Assembly Segmento 4:1/VT-5657-R1-D3000 Lifting Lug With Chain Retainer:2": {
+      "name": "VT-5657-R1-D3000 Lifting Lug With Chain Retainer:2",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "Assembly Segmento 2:1/VT-5657-R1-D3000 Lifting Lug With Chain Retainer:2": {
+      "name": "VT-5657-R1-D3000 Lifting Lug With Chain Retainer:2",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "Assembly Segmento 1:1/VT-5676-H.V Parking Stands:10": {
+      "name": "VT-5676-H",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "Assembly Segmento 1:1/VT-5676-H.V Parking Stands:11": {
+      "name": "VT-5676-H",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "Assembly Segmento 1:1/VT-5676-H.V Parking Stands:12": {
+      "name": "VT-5676-H",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "Assembly Segmento 2:1/JACKING PADS ASSEMBLY:2/Solera Jacking Pad:1": {
+      "name": "Solera Jacking Pad:1",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "Assembly Segmento 4:1/JACKING PADS ASSEMBLY:2/Solera Jacking Pad:1": {
+      "name": "Solera Jacking Pad:1",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "261503_Brace Front_20": {
+      "name": "261503_Brace Front_20",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "261503_Brace Front_21": {
+      "name": "261503_Brace Front_21",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "261503_Brace Front_22": {
+      "name": "261503_Brace Front_22",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "261503_Brace Front_23": {
+      "name": "261503_Brace Front_23",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "261503_Brace Front_24": {
+      "name": "261503_Brace Front_24",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "261503_Brace-Side_25": {
+      "name": "261503_Brace-Side_25",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "261503_Brace-Side_26": {
+      "name": "261503_Brace-Side_26",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "261503_Brace-Side_27": {
+      "name": "261503_Brace-Side_27",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "261503_Brace-Side_28": {
+      "name": "261503_Brace-Side_28",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "261503_Brace-Side_37": {
+      "name": "261503_Brace-Side_37",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "261503_Brace-Side_38": {
+      "name": "261503_Brace-Side_38",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "261503_LV Bushing patch (2)_29": {
+      "name": "261503_LV Bushing patch (2)_29",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "261503_Pipe Nipple 1_31": {
+      "name": "261503_Pipe Nipple 1_31",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "261503_Tank-Base_Default<As Machined>_36": {
+      "name": "261503_Tank-Base_Default<As Machined>_36",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "261503_Tank-Lid_3": {
+      "name": "261503_Tank-Lid_3",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "261503_Tap Changer Patch_12": {
+      "name": "261503_Tap Changer Patch_12",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "261503_VT-5657-R1-D3000 Lifting Lug With Chain Retainer_6": {
+      "name": "261503_VT-5657-R1-D3000 Lifting Lug With Chain Retainer_6",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "261503_VT-5657-R1-D3000 Lifting Lug With Chain Retainer_7": {
+      "name": "261503_VT-5657-R1-D3000 Lifting Lug With Chain Retainer_7",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "261503_VT-5657-R1-D3000 Lifting Lug With Chain Retainer_8": {
+      "name": "261503_VT-5657-R1-D3000 Lifting Lug With Chain Retainer_8",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "261503_VT-5657-R1-D3000 Lifting Lug With Chain Retainer_9": {
+      "name": "261503_VT-5657-R1-D3000 Lifting Lug With Chain Retainer_9",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "261503_VT-5676-H.V Parking Stands_34": {
+      "name": "261503_VT-5676-H",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "261503_VT-5676-H.V Parking Stands_16": {
+      "name": "261503_VT-5676-H",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "261503_VT-5676-H.V Parking Stands_14": {
+      "name": "261503_VT-5676-H",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "261503_VT-5676-H.V Parking Stands_15": {
+      "name": "261503_VT-5676-H",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "261503_VT-5676-H.V Parking Stands_33": {
+      "name": "261503_VT-5676-H",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "TANK:1/BASE:1": {
+      "name": "BASE:1",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "Ground Pad, 316LSS, 2X3.5_10": {
+      "name": "Ground Pad, 316LSS, 2X3",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "Ground Pad, 316LSS, 2X3.5_11": {
+      "name": "Ground Pad, 316LSS, 2X3",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "Ground Pad, 316LSS, 2X3.5_30": {
+      "name": "Ground Pad, 316LSS, 2X3",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "Inspection Plate- 16 x 30_With Hole_35": {
+      "name": "Inspection Plate- 16 x 30_With Hole_35",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "Jacking pad_39": {
+      "name": "Jacking pad_39",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "Jacking pad_40": {
+      "name": "Jacking pad_40",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "Jacking pad_41": {
+      "name": "Jacking pad_41",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "Jacking pad_42": {
+      "name": "Jacking pad_42",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "Pipe Flange .5_19": {
+      "name": "Pipe Flange",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "Pipe Flange .25_43": {
+      "name": "Pipe Flange",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "Pipe Flange .25_5": {
+      "name": "Pipe Flange",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "Pipe Flange 1_4": {
+      "name": "Pipe Flange 1_4",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "Pipe Nipple 1_32": {
+      "name": "Pipe Nipple 1_32",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "TANK:1/S1:1": {
+      "name": "S1:1",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "TANK:1/S2:1": {
+      "name": "S2:1",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "TANK:1/S3:1": {
+      "name": "S3:1",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "TANK:1/S4:1": {
+      "name": "S4:1",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "VT-5531-Oil Gauge Mounting Boss- 8 Hole_13": {
+      "name": "VT-5531-Oil Gauge Mounting Boss- 8 Hole_13",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "2 Pipe Half Nipple_50": {
+      "name": "2 Pipe Half Nipple_50",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "261097-Brace-Front_32": {
+      "name": "261097-Brace-Front_32",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "261097-Brace-Front_34": {
+      "name": "261097-Brace-Front_34",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "261097-Brace-Front_40": {
+      "name": "261097-Brace-Front_40",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "261097-Brace-Front_41": {
+      "name": "261097-Brace-Front_41",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "261097-Brace-Front_42": {
+      "name": "261097-Brace-Front_42",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "261097-Brace-Front_43": {
+      "name": "261097-Brace-Front_43",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "261097-Brace-Side_33": {
+      "name": "261097-Brace-Side_33",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "261097-Brace-Side_35": {
+      "name": "261097-Brace-Side_35",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "261097-Brace-Side_36": {
+      "name": "261097-Brace-Side_36",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "261097-Brace-Side_37": {
+      "name": "261097-Brace-Side_37",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "261097-Brace-Side_38": {
+      "name": "261097-Brace-Side_38",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "261097-Brace-Side_39": {
+      "name": "261097-Brace-Side_39",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "261097-Control Box Bracket_49": {
+      "name": "261097-Control Box Bracket_49",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "261097_HV hood-Fixing Angles_Default<As Machined>_51": {
+      "name": "261097_HV hood-Fixing Angles_Default<As Machined>_51",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "261097_HV hood-Fixing Angles_Default<As Machined>_52": {
+      "name": "261097_HV hood-Fixing Angles_Default<As Machined>_52",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "261097_LV hood-Fixing Angles-1_Default<As Machined>_53": {
+      "name": "261097_LV hood-Fixing Angles-1_Default<As Machined>_53",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "261097_LV hood-Fixing Angles-1_Default<As Machined>_54": {
+      "name": "261097_LV hood-Fixing Angles-1_Default<As Machined>_54",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "261097_Patch-LV Bushing Patch_48": {
+      "name": "261097_Patch-LV Bushing Patch_48",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "261097_TAG PLATE_55": {
+      "name": "261097_TAG PLATE_55",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "261097_Tank-Base_Default<As Machined>_4": {
+      "name": "261097_Tank-Base_Default<As Machined>_4",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "261097_Tank-Lid_3": {
+      "name": "261097_Tank-Lid_3",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "Boss, Gauge mounting, 8-H other_16": {
+      "name": "Boss, Gauge mounting, 8-H other_16",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "Build Up-12 x 24_47": {
+      "name": "Build Up-12 x 24_47",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "D3000 Lifting Lug With Chain Retainer_12": {
+      "name": "D3000 Lifting Lug With Chain Retainer_12",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "D3000 Lifting Lug With Chain Retainer_13": {
+      "name": "D3000 Lifting Lug With Chain Retainer_13",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "D3000 Lifting Lug With Chain Retainer_14": {
+      "name": "D3000 Lifting Lug With Chain Retainer_14",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "D3000 Lifting Lug With Chain Retainer_15": {
+      "name": "D3000 Lifting Lug With Chain Retainer_15",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "Ground Boss_56": {
+      "name": "Ground Boss_56",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "Ground Boss_57": {
+      "name": "Ground Boss_57",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "Ground Boss_58": {
+      "name": "Ground Boss_58",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "Ground Boss_59": {
+      "name": "Ground Boss_59",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "Ground Boss_60": {
+      "name": "Ground Boss_60",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "Ground Boss_61": {
+      "name": "Ground Boss_61",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "Ground Pad, 316LSS, 2X3.5_27": {
+      "name": "Ground Pad, 316LSS, 2X3",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "12 x 24-Inspection plate-Handle assmbly - PRD_46/Inspection Plate-12'''' x 24''''-WITH PRD_63": {
+      "name": "Inspection Plate-12'''' x 24''''-WITH PRD_63",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "5X9 NP_26/Nameplate mock up-5'''' x 9''''_66": {
+      "name": "Nameplate mock up-5'''' x 9''''_66",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "Pipe Flange .25_31": {
+      "name": "Pipe Flange",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "Pipe Flange .5_9": {
+      "name": "Pipe Flange",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "Pipe Flange .25_19": {
+      "name": "Pipe Flange",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "Pipe Flange .25_44": {
+      "name": "Pipe Flange",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "Pipe Flange .375_45": {
+      "name": "Pipe Flange",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "Pipe Flange 1_17": {
+      "name": "Pipe Flange 1_17",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "Pipe Nipple 1_30": {
+      "name": "Pipe Nipple 1_30",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "Specialty Switch Boss_18": {
+      "name": "Specialty Switch Boss_18",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "C:\\Users\\Ing. Cano\\Desktop\\SouthWesth 10,000\\IPTS\\10000-1246-A01 REV 1\\10000-1250-A01.iam": {
+      "name": "10000-1250-A01",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "C:\\Users\\Ing. Cano\\Desktop\\SouthWesth 10,000\\IPTS\\10000-1246-A01 REV 1\\10000-1250-P01.ipt": {
+      "name": "10000-1250-P01",
+      "signature": "---------|h0|r0|f0.0",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "C:\\Users\\Ing. Cano\\Desktop\\SouthWesth 10,000\\IPTS\\10000-1246-A01 REV 1\\10000-1250-P02.ipt": {
+      "name": "10000-1250-P02",
+      "signature": "---------|h0|r0|f0.0",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "C:\\Users\\Ing. Cano\\Desktop\\SouthWesth 10,000\\IPTS\\10000-1246-A01 REV 1\\10000-1250-P04.ipt": {
+      "name": "10000-1250-P04",
+      "signature": "---------|h0|r0|f0.0",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "C:\\Users\\Ing. Cano\\Desktop\\SouthWesth 10,000\\IPTS\\10000-1246-A01 REV 1\\10000-1251-A01.iam": {
+      "name": "10000-1251-A01",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "C:\\Users\\Ing. Cano\\Desktop\\SouthWesth 10,000\\IPTS\\10000-1246-A01 REV 1\\10000-1251-P03_TAB.ipt": {
+      "name": "10000-1251-P03_TAB",
+      "signature": "---------|h0|r0|f0.0",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "C:\\Users\\Ing. Cano\\Desktop\\SouthWesth 10,000\\IPTS\\10000-1246-A01 REV 1\\10000-1251-P04.ipt": {
+      "name": "10000-1251-P04",
+      "signature": "---------|h0|r0|f0.0",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "C:\\Users\\Ing. Cano\\Desktop\\SouthWesth 10,000\\IPTS\\10000-1246-A01 REV 1\\10000-1251-P05_Default_As Machined_.ipt": {
+      "name": "10000-1251-P05_Default_As Machined_",
+      "signature": "---------|h0|r1|f0.0",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "C:\\Users\\Ing. Cano\\Desktop\\SouthWesth 10,000\\IPTS\\10000-1246-A01 REV 1\\10000-1251-P06_ROD.ipt": {
+      "name": "10000-1251-P06_ROD",
+      "signature": "---------|h0|r1|f0.0",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "C:\\Users\\Ing. Cano\\Desktop\\SouthWesth 10,000\\IPTS\\10000-1246-A01 REV 1\\10000-1251-P07_ROD.ipt": {
+      "name": "10000-1251-P07_ROD",
+      "signature": "---------|h0|r1|f0.0",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "C:\\Users\\Ing. Cano\\Desktop\\SouthWesth 10,000\\IPTS\\10000-1246-A01 REV 1\\10000-1253-A01.iam": {
+      "name": "10000-1253-A01",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "C:\\Users\\Ing. Cano\\Desktop\\SouthWesth 10,000\\IPTS\\10000-1246-A01 REV 1\\10000-1253-P01.ipt": {
+      "name": "10000-1253-P01",
+      "signature": "---------|h0|r0|f0.0",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "C:\\Users\\Ing. Cano\\Desktop\\SouthWesth 10,000\\IPTS\\10000-1246-A01 REV 1\\10000-1253-P02.ipt": {
+      "name": "10000-1253-P02",
+      "signature": "---------|h0|r0|f0.0",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "C:\\Users\\Ing. Cano\\Desktop\\SouthWesth 10,000\\IPTS\\10000-1246-A01 REV 1\\10000-1253-P03.ipt": {
+      "name": "10000-1253-P03",
+      "signature": "---------|h0|r1|f0.0",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "C:\\Users\\Ing. Cano\\Desktop\\SouthWesth 10,000\\IPTS\\10000-1246-A01 REV 1\\10000-1253-P04.ipt": {
+      "name": "10000-1253-P04",
+      "signature": "---------|h0|r0|f0.0",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "C:\\Users\\Ing. Cano\\Desktop\\SouthWesth 10,000\\IPTS\\10000-1246-A01 REV 1\\10000-1253-P07.ipt": {
+      "name": "10000-1253-P07",
+      "signature": "---------|h0|r1|f0.0",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "121/100": {
+      "name": "100",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "121/104/101": {
+      "name": "101",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "121/104/102": {
+      "name": "102",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "121/104/103": {
+      "name": "103",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "121/108/105": {
+      "name": "105",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "121/108/106": {
+      "name": "106",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "121/108/107": {
+      "name": "107",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "121/109": {
+      "name": "109",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "121/113/110": {
+      "name": "110",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "121/113/111": {
+      "name": "111",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "121/113/112": {
+      "name": "112",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "121/116": {
+      "name": "116",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "121/117": {
+      "name": "117",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "121/118": {
+      "name": "118",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "121/119": {
+      "name": "119",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "121/20/17": {
+      "name": "17",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "121/20/18": {
+      "name": "18",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "121/20/19": {
+      "name": "19",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "121/24/21": {
+      "name": "21",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "121/24/22": {
+      "name": "22",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "121/24/23": {
+      "name": "23",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "121/28/25": {
+      "name": "25",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "121/28/26": {
+      "name": "26",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "121/TANK:1/261429_BASE:1": {
+      "name": "261429_BASE:1",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "121/TANK:1/261429_S1:1": {
+      "name": "261429_S1:1",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "121/TANK:1/261429_S2:1": {
+      "name": "261429_S2:1",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "121/TANK:1/261429_S3:1": {
+      "name": "261429_S3:1",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "121/TANK:1/261429_S4:1": {
+      "name": "261429_S4:1",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "121/28/27": {
+      "name": "27",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "121/32/29": {
+      "name": "29",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "121/32/30": {
+      "name": "30",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "121/32/31": {
+      "name": "31",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "121/36/33": {
+      "name": "33",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "121/36/34": {
+      "name": "34",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "121/36/35": {
+      "name": "35",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "121/40/37": {
+      "name": "37",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "121/40/38": {
+      "name": "38",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "121/40/39": {
+      "name": "39",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "121/44/41": {
+      "name": "41",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "121/44/42": {
+      "name": "42",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "121/44/43": {
+      "name": "43",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "121/48/45": {
+      "name": "45",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "121/48/46": {
+      "name": "46",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "121/48/47": {
+      "name": "47",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "121/53": {
+      "name": "53",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "121/54": {
+      "name": "54",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "121/66/56": {
+      "name": "56",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "121/66/57": {
+      "name": "57",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "121/66/58": {
+      "name": "58",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "121/66/59": {
+      "name": "59",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "121/66/60": {
+      "name": "60",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "121/66/61": {
+      "name": "61",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "121/66/62": {
+      "name": "62",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "121/66/63": {
+      "name": "63",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "121/66/64": {
+      "name": "64",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "121/66/65": {
+      "name": "65",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "121/69": {
+      "name": "69",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "121/70": {
+      "name": "70",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "121/73/71": {
+      "name": "71",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "121/75": {
+      "name": "75",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "121/76": {
+      "name": "76",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "121/77": {
+      "name": "77",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "121/78": {
+      "name": "78",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "121/79": {
+      "name": "79",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "121/87/84": {
+      "name": "84",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "121/87/85": {
+      "name": "85",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "121/87/86": {
+      "name": "86",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "121/88": {
+      "name": "88",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "121/92/89": {
+      "name": "89",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "121/92/90": {
+      "name": "90",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "121/92/91": {
+      "name": "91",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "121/93": {
+      "name": "93",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "121/97/94": {
+      "name": "94",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "121/97/95": {
+      "name": "95",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "121/97/96": {
+      "name": "96",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "121/98": {
+      "name": "98",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "121/99": {
+      "name": "99",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "10": {
+      "name": "10",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "11": {
+      "name": "11",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "12": {
+      "name": "12",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "13": {
+      "name": "13",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "14": {
+      "name": "14",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "17": {
+      "name": "17",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "18": {
+      "name": "18",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "19": {
+      "name": "19",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "21": {
+      "name": "21",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "22": {
+      "name": "22",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "23": {
+      "name": "23",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "24": {
+      "name": "24",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "25": {
+      "name": "25",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "26": {
+      "name": "26",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "TANK:1/261068_BASE:1": {
+      "name": "261068_BASE:1",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "TANK:1/261068_S1:1": {
+      "name": "261068_S1:1",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "TANK:1/261068_S2:1": {
+      "name": "261068_S2:1",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "TANK:1/261068_S3:1": {
+      "name": "261068_S3:1",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "TANK:1/261068_S4:1": {
+      "name": "261068_S4:1",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "37/27": {
+      "name": "27",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "37/28": {
+      "name": "28",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "37/29": {
+      "name": "29",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "37/30": {
+      "name": "30",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "37/31": {
+      "name": "31",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "37/32": {
+      "name": "32",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "37/33": {
+      "name": "33",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "37/34": {
+      "name": "34",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "37/35": {
+      "name": "35",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "37/36": {
+      "name": "36",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "38": {
+      "name": "38",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "39": {
+      "name": "39",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "43": {
+      "name": "43",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "44": {
+      "name": "44",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "45": {
+      "name": "45",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "46": {
+      "name": "46",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "49/47": {
+      "name": "47",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "49/48": {
+      "name": "48",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "50": {
+      "name": "50",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "52": {
+      "name": "52",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "53": {
+      "name": "53",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "55": {
+      "name": "55",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "56": {
+      "name": "56",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "57": {
+      "name": "57",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "58": {
+      "name": "58",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "59": {
+      "name": "59",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "62/60": {
+      "name": "60",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "62/61": {
+      "name": "61",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "63": {
+      "name": "63",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "64": {
+      "name": "64",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "65": {
+      "name": "65",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "66": {
+      "name": "66",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "67": {
+      "name": "67",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "73/68": {
+      "name": "68",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "73/69": {
+      "name": "69",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "73/70": {
+      "name": "70",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "73/71": {
+      "name": "71",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "73/72": {
+      "name": "72",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "75": {
+      "name": "75",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "12/10": {
+      "name": "10",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "12/11": {
+      "name": "11",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "16": {
+      "name": "16",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "24/22": {
+      "name": "22",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "24/23": {
+      "name": "23",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "TANK:1/261428_S1:1": {
+      "name": "261428_S1:1",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "TANK:1/261428_S2:1": {
+      "name": "261428_S2:1",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "TANK:1/261428_S3:1": {
+      "name": "261428_S3:1",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "TANK:1/261428_S4:1": {
+      "name": "261428_S4:1",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "27": {
+      "name": "27",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "28": {
+      "name": "28",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "29": {
+      "name": "29",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "30": {
+      "name": "30",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "31": {
+      "name": "31",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "32": {
+      "name": "32",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "33": {
+      "name": "33",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "34": {
+      "name": "34",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "35": {
+      "name": "35",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "40/36": {
+      "name": "36",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "40/37": {
+      "name": "37",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "40/38": {
+      "name": "38",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "40/39": {
+      "name": "39",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "41": {
+      "name": "41",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "47": {
+      "name": "47",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "48": {
+      "name": "48",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "49": {
+      "name": "49",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "70/68": {
+      "name": "68",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "71": {
+      "name": "71",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "72": {
+      "name": "72",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "73": {
+      "name": "73",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "74": {
+      "name": "74",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "76": {
+      "name": "76",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "77": {
+      "name": "77",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "78": {
+      "name": "78",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "79": {
+      "name": "79",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "80": {
+      "name": "80",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "81": {
+      "name": "81",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "82": {
+      "name": "82",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "84": {
+      "name": "84",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "9": {
+      "name": "9",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "TANK:1/261428_BASE:1": {
+      "name": "261428_BASE:1",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "63/51": {
+      "name": "51",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "63/52": {
+      "name": "52",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "63/53": {
+      "name": "53",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "63/54": {
+      "name": "54",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "63/55": {
+      "name": "55",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "63/56": {
+      "name": "56",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "63/57": {
+      "name": "57",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "63/58": {
+      "name": "58",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "63/59": {
+      "name": "59",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "63/60": {
+      "name": "60",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "63/61": {
+      "name": "61",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    },
+    "63/62": {
+      "name": "62",
+      "signature": "",
+      "included": false,
+      "family": "",
+      "rejectedFamily": "",
+      "accessory": true,
+      "process": "",
+      "herinox": ""
+    }
+  }
+}
