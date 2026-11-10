@@ -162,7 +162,7 @@ def _pauta_vantran(junta: dict) -> dict:
         for marca in ("flange", "nipple", "oil boss", "oil_boss", "oil gauge", "oil_gauge", "ground", "tierra", "boss")
     ):
         return {"leg": "6", "other": "", "pitch": "", "sides": 1, "typ": True}
-    if "jacking" in texto:
+    if "jacking" in texto or "hv_bushing" in texto or "hv bushing" in texto:
         return {"leg": "6", "other": "", "pitch": "", "sides": 1, "typ": True}
     if "parking" in texto:
         return {"leg": "3", "other": "", "pitch": "", "sides": 1, "typ": True}

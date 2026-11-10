@@ -62,7 +62,7 @@ Hasta que el usuario lo edite, `simbolo()` en `python/weld_juntas.py` propone:
 
 Presets de la herramienta: 3 mm 2 lados TYP, 5 mm 2 lados, 6 mm TYP, 8 mm TYP, 6/8 mm 100-300, 6 mm 2 lados 100-300, 3 mm 2 lados 10-60. Catetos de taller: 3, 5, 6, 8. Pasos: continuo, 10-60, 100-300.
 
-En un tanque (pulgadas) esa tabla no se publica. `aplicar_pauta_vantran` usa los dos planos Vantran: unión de paredes y de pared con base a 1/4" continuo; brida, niple, oil boss, tierra y jacking pad a 1/4"; cáncamo a 3/8"; H.V. parking a 1/8"; marco de base a la placa a 5/16" completo por fuera y 5/16" 4-20 por dentro. Lo que el plano no nombra sigue con el cateto de taller. Un gabinete en milímetros no entra en esta pauta.
+En un tanque (pulgadas) esa tabla no se publica. `aplicar_pauta_vantran` usa los dos planos Vantran: unión de paredes y de pared con base a 1/4" continuo; brida, niple, oil boss, tierra, jacking pad y HV bushing patch a 1/4"; cáncamo a 3/8"; H.V. parking a 1/8"; marco de base a la placa a 5/16" completo por fuera y 5/16" 4-20 por dentro. Lo que el plano no nombra sigue con el cateto de taller. Un gabinete en milímetros no entra en esta pauta.
 
 Lo editado queda en `config/weld_nomenclatura.json`, por ruta de ensamble. Un pase nuevo no pisa la clasificación ni el símbolo marcados como editados. El JPG usa el símbolo editado; si nadie lo editó, usa la pauta vigente.
 

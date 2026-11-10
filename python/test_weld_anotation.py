@@ -80,9 +80,10 @@ class WeldAnotationTests(unittest.TestCase):
                 {"kind": "accesorio", "title": "SEGM1 / Brace-Side", "weld": {"leg": "5", "pitch": "10-60", "sides": 1}},
                 {"kind": "accesorio", "title": "SEGM2 / Jacking_pad_41", "weld": {"leg": "5", "sides": 2}},
                 {"kind": "accesorio", "title": "SEGM1 / H.V_parking_Std_26", "weld": {"leg": "5", "sides": 2}},
+                {"kind": "accesorio", "title": "SEGM1 / 261080_HV_Bushing_Patch_1_36", "weld": {"leg": "5", "sides": 2}},
             ]
         )
-        pared, base, brida, niple, oreja, marco, brace, jacking, parking = (item["weld"] for item in juntas_pauta)
+        pared, base, brida, niple, oreja, marco, brace, jacking, parking, bushing = (item["weld"] for item in juntas_pauta)
         self.assertEqual(pared["leg"], "6")
         self.assertEqual(pared["other"], "6")
         self.assertEqual(pared["pitch"], "")
@@ -101,7 +102,10 @@ class WeldAnotationTests(unittest.TestCase):
         self.assertEqual(brace["pitch"], "10-60")
         self.assertEqual(jacking["leg"], "6")
         self.assertEqual(parking["leg"], "3")
+        self.assertEqual(bushing["leg"], "6")
         import weld_nomenclatura as nom
+
+        self.assertEqual(nom.presentar_weld(bushing, "in")["leg"], "1/4")
 
         hoja = nom.presentar_weld(marco, "in")
         self.assertEqual(hoja["leg"], "5/16")
