@@ -78,9 +78,11 @@ class WeldAnotationTests(unittest.TestCase):
                 {"kind": "accesorio", "title": "SEGM2 / D3000 Lifting Lug", "weld": {"leg": "6", "sides": 1}},
                 {"kind": "accesorio", "title": "BASE / 261080_Tank-Base", "weld": {"leg": "6", "sides": 1}},
                 {"kind": "accesorio", "title": "SEGM1 / Brace-Side", "weld": {"leg": "5", "pitch": "10-60", "sides": 1}},
+                {"kind": "accesorio", "title": "SEGM2 / Jacking_pad_41", "weld": {"leg": "5", "sides": 2}},
+                {"kind": "accesorio", "title": "SEGM1 / H.V_parking_Std_26", "weld": {"leg": "5", "sides": 2}},
             ]
         )
-        pared, base, brida, niple, oreja, marco, brace = (item["weld"] for item in juntas_pauta)
+        pared, base, brida, niple, oreja, marco, brace, jacking, parking = (item["weld"] for item in juntas_pauta)
         self.assertEqual(pared["leg"], "6")
         self.assertEqual(pared["other"], "6")
         self.assertEqual(pared["pitch"], "")
@@ -97,6 +99,8 @@ class WeldAnotationTests(unittest.TestCase):
         self.assertEqual(marco["sides"], 2)
         self.assertEqual(brace["leg"], "5")
         self.assertEqual(brace["pitch"], "10-60")
+        self.assertEqual(jacking["leg"], "6")
+        self.assertEqual(parking["leg"], "3")
         import weld_nomenclatura as nom
 
         hoja = nom.presentar_weld(marco, "in")
