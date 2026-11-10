@@ -35,8 +35,10 @@ def evidencias_weld(carpeta: str, *, job: str, cliente: str, producto: str) -> l
     if not root.is_dir():
         return []
     filas = []
-    for src in sorted(root.iterdir()):
-        if not src.is_file() or src.suffix.lower() not in {".jpg", ".jpeg"}:
+    archivos = [src for src in root.glob("*.jpg")]
+    archivos.extend(src for src in root.glob("*/*.jpg"))
+    for src in sorted(archivos):
+        if src.suffix.lower() not in {".jpg", ".jpeg"}:
             continue
         filas.append(
             {

@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button"
 import { Field, FieldLabel } from "@/components/ui/field"
 import { Switch } from "@/components/ui/switch"
 import { toolbarApi, type WeldCordon, type WeldNomList, type WeldSpec } from "@/bridge"
-import { VACIO, formatSpec, specFromText } from "@/weld-spec"
+import { VACIO, etiquetaCateto, etiquetaPaso, formatSpec, specFromText } from "@/weld-spec"
 
 export function WeldCordonTool() {
   const [tabla, setTabla] = useState<WeldNomList | null>(null)
@@ -125,6 +125,40 @@ export function WeldCordonTool() {
     }
   }
 
+  async function borrarTodos() {
+    const api = toolbarApi()
+    if (!api?.weld_run) {
+      setAviso("Cierra la barra y ábrela de nuevo.")
+      return
+    }
+    if (!window.confirm("Borra todos los cordones de este tanque. No genera otros.")) return
+    setGenerando(true)
+    setAviso("Borrando cordones…")
+    try {
+      const started = await api.weld_run(JSON.stringify({ assemblyPath: ruta, job, fase: "borrar" }))
+      if (!started.ok && !started.started) {
+        setAviso(started.message || "No arrancó.")
+        return
+      }
+      for (;;) {
+        const next = await api.weld_progress()
+        const texto = String(next.piece || next.message || "")
+        if (texto) setAviso(texto)
+        if (next.running === false && (next.done || next.result)) {
+          setAviso(String(next.result?.message || next.message || "Cordones borrados."))
+          setElegido("")
+          await refrescar(ruta)
+          return
+        }
+        await new Promise((resolve) => window.setTimeout(resolve, 280))
+      }
+    } catch (error) {
+      setAviso(error instanceof Error ? error.message : "No se pudieron borrar los cordones.")
+    } finally {
+      setGenerando(false)
+    }
+  }
+
   async function generarJpg() {
     const api = toolbarApi()
     if (!api?.weld_run) {
@@ -160,7 +194,9 @@ export function WeldCordonTool() {
   const presets = tabla?.presets || []
   const sizes = tabla?.sizes || ["3", "5", "6", "8"]
   const pitches = tabla?.pitches || ["", "10-60", "100-300"]
+  const unit = tabla?.unit
   const texto = formatSpec(spec)
+  const visible = formatSpec(spec, unit)
   const fila = cordones.find((item) => item.id === elegido)
 
   return (
@@ -171,7 +207,7 @@ export function WeldCordonTool() {
       </header>
       <p className="text-muted-foreground text-xs">{aviso || tabla?.message || "Genera los cordones 3D en el módulo."}</p>
       {cordones.length > 0 ? (
-        <ul className="max-h-36 space-y-1 overflow-auto">
+        <ul className="max-h-28 space-y-1 overflow-auto">
           {cordones.map((item) => (
             <li key={item.id}>
               <button
@@ -214,7 +250,7 @@ export function WeldCordonTool() {
                 <option value="">Personalizado</option>
                 {presets.map((preset) => (
                   <option key={preset} value={preset}>
-                    {preset}
+                    {formatSpec(specFromText(preset), unit)}
                   </option>
                 ))}
               </select>
@@ -234,7 +270,7 @@ export function WeldCordonTool() {
               >
                 {sizes.map((size) => (
                   <option key={size} value={size}>
-                    {size}
+                    {etiquetaCateto(size, unit)}
                   </option>
                 ))}
               </select>
@@ -250,7 +286,7 @@ export function WeldCordonTool() {
                 >
                   {sizes.map((size) => (
                     <option key={`otro-${size}`} value={size}>
-                      {size}
+                      {etiquetaCateto(size, unit)}
                     </option>
                   ))}
                 </select>
@@ -266,7 +302,7 @@ export function WeldCordonTool() {
               >
                 {pitches.map((pitch) => (
                   <option key={pitch || "continuo"} value={pitch}>
-                    {pitch || "continuo"}
+                    {etiquetaPaso(pitch, unit)}
                   </option>
                 ))}
               </select>
@@ -297,7 +333,7 @@ export function WeldCordonTool() {
             </Field>
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <p className="text-xs font-medium">{texto}</p>
+            <p className="text-xs font-medium">{visible}</p>
             {fila?.largo ? <Badge variant="outline" size="sm">{fila.largo}</Badge> : null}
             <Button size="sm" disabled={ocupado} onClick={() => void aplicar()}>
               Aplicar
@@ -309,6 +345,9 @@ export function WeldCordonTool() {
         </section>
       ) : null}
       <div className="mt-auto space-y-2 border-t pt-2">
+        <Button className="w-full" variant="outline" disabled={ocupado || generando || !ruta} onClick={() => void borrarTodos()}>
+          Borrar cordones
+        </Button>
         <Button className="w-full" disabled={ocupado || generando || cordones.length === 0} onClick={() => void generarJpg()}>
           Generar JPGs
         </Button>

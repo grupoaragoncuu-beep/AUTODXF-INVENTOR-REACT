@@ -6,17 +6,40 @@ function short(valor: number): string {
   return String(valor).replace(/\.0+$/, "").replace(/(\.\d*?)0+$/, "$1")
 }
 
-export function formatSpec(spec: WeldSpec): string {
+const CATETO_IN: Record<string, string> = { "3": "1/8", "5": "3/16", "6": "1/4", "8": "5/16", "9.525": "3/8" }
+
+export function etiquetaCateto(valor: string | number, unit?: string): string {
+  const texto = String(valor)
+  if (unit !== "in") return texto
+  return CATETO_IN[texto] || texto
+}
+
+export function etiquetaPaso(valor: string, unit?: string): string {
+  if (!valor) return "continuo"
+  if (unit !== "in") return valor
+  const partes = valor.split("-")
+  if (partes.length !== 2) return valor
+  const inicio = Number(partes[0])
+  const fin = Number(partes[1])
+  if (!Number.isFinite(inicio) || !Number.isFinite(fin) || inicio < 30) return valor
+  return `${(inicio / 25.4).toFixed(2)}-${(fin / 25.4).toFixed(2)}`
+}
+
+export function formatSpec(spec: WeldSpec, unit?: string): string {
   const flecha = spec.flecha || 6
   const dos = spec.dos_lados
   const otro = dos ? spec.otro || flecha : 0
+  const pulgadas = unit === "in"
+  const marca = pulgadas ? "in" : "mm"
+  const flechaTxt = pulgadas ? etiquetaCateto(flecha, "in") : short(flecha)
+  const otroTxt = pulgadas ? etiquetaCateto(otro, "in") : short(otro)
   let texto =
     dos && Math.abs(otro - flecha) > 0.05
-      ? `FILLET ${short(flecha)}/${short(otro)} mm`
+      ? `FILLET ${flechaTxt}/${otroTxt} ${marca}`
       : dos
-        ? `FILLET ${short(flecha)} mm 2SIDES`
-        : `FILLET ${short(flecha)} mm`
-  if (spec.paso) texto += ` ${spec.paso}`
+        ? `FILLET ${flechaTxt} ${marca} 2SIDES`
+        : `FILLET ${flechaTxt} ${marca}`
+  if (spec.paso) texto += ` ${etiquetaPaso(spec.paso, unit)}`
   if (spec.typ) texto += " TYP"
   return texto
 }

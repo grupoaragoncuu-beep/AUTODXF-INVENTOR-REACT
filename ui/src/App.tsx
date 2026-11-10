@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react"
 import { Popover } from "@base-ui/react/popover"
-import { CheckIcon, FolderOpenIcon, ListFilterIcon, MinusIcon, PlayIcon, RefreshCwIcon, RulerIcon } from "lucide-react"
+import { BoxesIcon, CheckIcon, FolderOpenIcon, ListFilterIcon, MinusIcon, PlayIcon, RefreshCwIcon, RulerIcon } from "lucide-react"
 import { Badge, badgeVariants } from "@/components/reui/badge"
 import { IconStack } from "@/components/reui/icon-stack"
 import { Frame, FramePanel } from "@/components/reui/frame"
@@ -22,6 +22,7 @@ import {
   previewSnapshot,
   toolbarApi,
   type ExportResult,
+  type MultibodyResult,
   type SheetRuleCatalog,
   type SheetRulesResult,
   type Snapshot,
@@ -63,10 +64,11 @@ export default function App() {
   const [setASide, setSetASide] = useState(true)
   const [writeCsv, setWriteCsv] = useState(true)
   const [closeOpened, setCloseOpened] = useState(true)
-  const [busy, setBusy] = useState<"refresh" | "export" | "rules" | null>(null)
+  const [busy, setBusy] = useState<"refresh" | "export" | "rules" | "multibody" | null>(null)
   const [partsLoading, setPartsLoading] = useState(false)
   const [log, setLog] = useState(previewSnapshot.message)
   const [missingFlats, setMissingFlats] = useState<string[]>([])
+  const [multibodyErrors, setMultibodyErrors] = useState<{ name: string; message: string }[]>([])
   const [ruleCatalog, setRuleCatalog] = useState<SheetRuleCatalog>(defaultRuleCatalog)
   const [rulesOpen, setRulesOpen] = useState(false)
   const [view, setView] = useState<"dxf" | "lengths" | "accessories" | "cotas" | "weld" | "awis">("dxf")
@@ -133,6 +135,7 @@ export default function App() {
     setOffCalibres([])
     setOverrides({})
     setExcludedKeys([])
+    setMultibodyErrors([])
   }, [snapshot.assemblyPath])
 
   useEffect(() => {
@@ -217,6 +220,45 @@ export default function App() {
       setLog(result.message || (result.ok ? "Reglas de chapa listas." : "Quedaron piezas sin flat."))
     } catch (error) {
       setLog(error instanceof Error ? error.message : "Error al aplicar las reglas de chapa.")
+    } finally {
+      setBusy(null)
+    }
+  }
+
+  async function runMultibody() {
+    const api = toolbarApi()
+    if (!api?.multibody) {
+      setLog("Cierra AutoDXF y ábrelo de nuevo para convertir multibody.")
+      return
+    }
+    setBusy("multibody")
+    setMultibodyErrors([])
+    setLog("Separando sólidos en piezas sueltas. Inventor queda ocupado hasta que termine.")
+    try {
+      const result: MultibodyResult = await api.multibody()
+      setMultibodyErrors(result.failed || [])
+      if (result.session) {
+        setSnapshot((current) => ({
+          ...current,
+          ...result.session!,
+          parts: result.session!.parts?.length ? result.session!.parts : current.parts,
+          catalog: current.catalog,
+        }))
+      }
+      setLog(result.message || (result.ok ? "Multibody listo." : "Multibody no terminó."))
+      if ((result.replaced || 0) > 0 && api.parts) {
+        const bom = await api.parts()
+        setSnapshot((current) => ({
+          ...current,
+          inventorConnected: bom.inventorConnected !== false,
+          assemblyName: bom.assemblyName || current.assemblyName,
+          assemblyPath: bom.assemblyPath || current.assemblyPath,
+          parts: Array.isArray(bom.parts) ? bom.parts : current.parts,
+          message: bom.message || current.message,
+        }))
+      }
+    } catch (error) {
+      setLog(error instanceof Error ? error.message : "Error al convertir multibody.")
     } finally {
       setBusy(null)
     }
@@ -409,6 +451,15 @@ export default function App() {
       {view === "dxf" ? (
       <>
       <section className="flex flex-wrap items-center gap-2">
+        <Button
+          variant="outline"
+          disabled={busy !== null}
+          title="Convierte cada pieza con varios sólidos en un ensamble: un IPT por cuerpo, en la carpeta del .iam."
+          onClick={() => void runMultibody()}
+        >
+          {busy === "multibody" ? <Spinner /> : <BoxesIcon />}
+          Multibody
+        </Button>
         <Button variant="outline" disabled={busy !== null} onClick={() => void runSheetRules()}>
           {busy === "rules" ? <Spinner /> : <RulerIcon />}
           Reglas de chapa
@@ -432,6 +483,15 @@ export default function App() {
         <ul className="max-h-24 overflow-auto rounded-md border px-3 py-2 text-xs">
           {missingFlats.map((name) => (
             <li key={name}>Sin flat: {name}</li>
+          ))}
+        </ul>
+      )}
+      {multibodyErrors.length > 0 && (
+        <ul className="max-h-24 overflow-auto rounded-md border px-3 py-2 text-xs">
+          {multibodyErrors.map((item) => (
+            <li key={`${item.name}-${item.message}`}>
+              {item.name}: {item.message}
+            </li>
           ))}
         </ul>
       )}

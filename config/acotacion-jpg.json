@@ -19,7 +19,7 @@
     {
       "id": "tanque-nombre",
       "field": "nombre",
-      "pattern": "VANTRAN|SUNBELT|\\bOTC\\b|\\bSWE\\b|SEGMENTO|TOP[\\s_-]?COVER|\\bTANK\\b|CASCO|SOLERA|1246|1247|1248",
+      "pattern": "VANTRAN|SUNBELT|\\bOTC\\b|\\bSWE\\b|SEGMENTO|TOP[\\s_-]?COVER|(?<![A-Za-z])TANK(?![A-Za-z])|CASCO|SOLERA|1246|1247|1248",
       "tipo": "TANQUE",
       "familia": "TANQUE",
       "enabled": true

@@ -25,7 +25,7 @@ La ventana flotante también tiene **Generar JPGs** al fondo. Hay que cerrarla y
 ## Destino de los JPG
 
 ```
-{raiz}\{producto}\{cliente}\{job}\DOSSIER FILES\JPGS\Weld\{cordon}.jpg
+{raiz}\{producto}\{cliente}\{job}\DOSSIER FILES\JPGS\Weld\{SEGM1|SEGM2|SEGM3|SEGM4|BASE|TOP}\{cordon}.jpg
 ```
 
 Ejemplo usado en prueba:
@@ -43,7 +43,7 @@ Cada JPG lleva la cara, el detalle, la isométrica y el símbolo (cateto, largo-
 - La ventana activa de Inventor es el `.iam` del tanque, ya guardado. Una pieza, un plano o un subensamble de fondo no sirven. Si no hay ensamble: «Abre el ensamble del tanque en Inventor.»
 - Job elegido en el dossier de la barra. Sin job no arranca. Con el job de otro tanque, las fotos caen en la carpeta de ese otro job.
 - Seis muros confirmados para **ese** archivo, en `config/roles_sesion.json`: `BASE`, `TOP`, `SEGM1`, `SEGM2`, `SEGM3`, `SEGM4`. Cada cara lleva una placa (`placa_rol`) que sigue existiendo en el ensamble, con el mismo nombre de ocurrencia.
-- Las cuatro paredes van en circuito: `SEGM1`–`SEGM2`–`SEGM3`–`SEGM4`–`SEGM1`. `BASE` y `TOP` cierran contra las cuatro. Dos caras opuestas con nombres seguidos no forman costura.
+- Las cuatro paredes van en circuito: `SEGM1`–`SEGM2`–`SEGM3`–`SEGM4`–`SEGM1`. `BASE` cierra contra las cuatro. Dos caras opuestas con nombres seguidos no forman costura. Si la tapa se llama lid, cover o tapa y no es cellar, no lleva cordón. Una tapa con cellar, o sin ese nombre, sí cierra contra las cuatro. El filete de un accesorio va en la cara de la placa que la pieza toca, la que queda expuesta para la cota. En un cáncamo solo entra el borde exterior que apoya en el segmento: la ranura de la cadena y la horquilla no. En la base, una pieza apoyada encima no suelda la cara que iría al piso. Una solera colgada debajo se suelda en la esquina donde toca la placa; el canto de esa solera que iría al piso queda fuera. Si la pieza pintada ahora es un ensamble, cuenta como una sola pieza: el cordón es el borde donde ese ensamble toca su segmento. No se suelda placa interna con placa interna, ni un accesorio con otro accesorio. El azul queda entre muros. La esquina vertical se acota en SEGM2 o en SEGM4, así cada uno lleva sus dos esquinas más el cordón de la base. SEGM1 y SEGM3 no se quedan esas esquinas. El cordón azul con la base sigue en su propio segmento. El naranja es accesorio contra su segmento.
 - Dos muros que se sueldan se miran cerca de 90° (el producto de las normales no pasa de 0.5), se acercan a menos de 80 mm y comparten al menos 20 mm de arista.
 - Cada accesorio está en la cara donde va montado, no suprimido, y el apoyo mide al menos 8 mm. Si no, ese cordón no nace.
 - La placa del muro tiene una cara plana grande (área mayor a 200 mm²). Si no la hay, se usa la caja de la pieza.
@@ -60,9 +60,11 @@ Hasta que el usuario lo edite, `simbolo()` en `python/weld_juntas.py` propone:
 - Accesorio medio, menos de 160 mm: `FILLET 5 mm 2SIDES`.
 - Accesorio largo: `FILLET 6 mm TYP` (un lado).
 
-Presets de la herramienta: 3 mm 2 lados TYP, 5 mm 2 lados, 6 mm TYP, 8 mm TYP, 6/8 mm 100-300, 6 mm 2 lados 100-300, 3 mm 2 lados 10-60. Catetos permitidos: 3, 5, 6, 8. Pasos: continuo, 10-60, 100-300.
+Presets de la herramienta: 3 mm 2 lados TYP, 5 mm 2 lados, 6 mm TYP, 8 mm TYP, 6/8 mm 100-300, 6 mm 2 lados 100-300, 3 mm 2 lados 10-60. Catetos de taller: 3, 5, 6, 8. Pasos: continuo, 10-60, 100-300.
 
-Lo editado queda en `config/weld_nomenclatura.json`, por ruta de ensamble. Un pase nuevo no pisa la clasificación ni el símbolo marcados como editados. El JPG usa ese símbolo, no el automático, cuando existe.
+En un tanque (pulgadas) esa tabla no se publica. `aplicar_pauta_vantran` usa los dos planos Vantran: unión de paredes y de pared con base a 1/4" continuo; brida, niple, oil boss y tierra a 1/4"; cáncamo a 3/8"; marco de base a la placa a 5/16" completo por fuera y 5/16" 4-20 por dentro. Lo que el plano no nombra sigue con el cateto de taller. Un gabinete en milímetros no entra en esta pauta.
+
+Lo editado queda en `config/weld_nomenclatura.json`, por ruta de ensamble. Un pase nuevo no pisa la clasificación ni el símbolo marcados como editados. El JPG usa el símbolo editado; si nadie lo editó, usa la pauta vigente.
 
 ## Cordones 3D
 

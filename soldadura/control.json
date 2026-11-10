@@ -6,6 +6,6 @@
   "plano_inventor": false,
   "dibujo": "python/weld_vista.py + python/weld_jpg.py",
   "un_jpg_por_cordon": true,
-  "destino": "{job}/DOSSIER FILES/JPGS/Weld/{cordon}.jpg",
+  "destino": "{job}/DOSSIER FILES/JPGS/Weld/{segmento}/{cordon}.jpg",
   "notas": "Primero cordones 3D con el tanque en gris. El clic elige un cordón, no el grupo de color. Quitar un cordón queda en memoria y no se vuelve a proponer. Los JPG se publican en Weld del job y cada uno se registra en cotas_dossier con clasificación Weld."
 }

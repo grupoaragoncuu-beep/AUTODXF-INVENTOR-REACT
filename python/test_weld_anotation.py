@@ -66,6 +66,46 @@ class WeldAnotationTests(unittest.TestCase):
         self.assertLess(framed.size[0], 200)
         self.assertGreater(framed.size[0], 80)
 
+    def test_la_pauta_vantran_sigue_los_planos(self):
+        import weld_juntas as juntas
+
+        juntas_pauta = juntas.aplicar_pauta_vantran(
+            [
+                {"kind": "hermetico", "id": "SEGM2_SEGM1", "title": "SEGM2 / SEGM1", "weld": {"leg": "6", "other": "8", "pitch": "100-300", "sides": 2}},
+                {"kind": "hermetico", "id": "SEGM2_BASE", "title": "SEGM2 / BASE", "weld": {"leg": "6", "other": "8", "pitch": "100-300", "sides": 2}},
+                {"kind": "accesorio", "title": "SEGM1 / Pipe Flange .25", "weld": {"leg": "3", "sides": 1}},
+                {"kind": "accesorio", "title": "SEGM4 / Pipe Half Nipple", "weld": {"leg": "5", "sides": 1}},
+                {"kind": "accesorio", "title": "SEGM2 / D3000 Lifting Lug", "weld": {"leg": "6", "sides": 1}},
+                {"kind": "accesorio", "title": "BASE / 261080_Tank-Base", "weld": {"leg": "6", "sides": 1}},
+                {"kind": "accesorio", "title": "SEGM1 / Brace-Side", "weld": {"leg": "5", "pitch": "10-60", "sides": 1}},
+            ]
+        )
+        pared, base, brida, niple, oreja, marco, brace = (item["weld"] for item in juntas_pauta)
+        self.assertEqual(pared["leg"], "6")
+        self.assertEqual(pared["other"], "6")
+        self.assertEqual(pared["pitch"], "")
+        self.assertEqual(base["leg"], "6")
+        self.assertEqual(base["other"], "6")
+        self.assertEqual(base["pitch"], "")
+        self.assertEqual(brida["leg"], "6")
+        self.assertEqual(niple["leg"], "6")
+        self.assertEqual(oreja["leg"], "9.525")
+        self.assertEqual(marco["leg"], "8")
+        self.assertEqual(marco["other"], "8")
+        self.assertEqual(marco["pitch"], "")
+        self.assertEqual(marco["pitch_other"], "4-20")
+        self.assertEqual(marco["sides"], 2)
+        self.assertEqual(brace["leg"], "5")
+        self.assertEqual(brace["pitch"], "10-60")
+        import weld_nomenclatura as nom
+
+        hoja = nom.presentar_weld(marco, "in")
+        self.assertEqual(hoja["leg"], "5/16")
+        self.assertEqual(hoja["pitch_other"], "4-20")
+        self.assertEqual(nom.presentar_weld(oreja, "in")["leg"], "3/8")
+        self.assertEqual(nom.presentar_weld(pared, "in")["leg"], "1/4")
+        self.assertEqual(nom.presentar_weld(pared, "in")["pitch"], "")
+
     def test_cordon_entre_base_y_segmento(self):
         import weld_juntas as juntas
 
@@ -89,6 +129,40 @@ class WeldAnotationTests(unittest.TestCase):
         self.assertEqual(solidos[0]["color"], "hermetico")
         self.assertLess(solidos[0]["normal"][0], 0)
 
+    def test_la_tapa_suelta_no_se_suelda_y_la_base_solo_en_los_cabezales(self):
+        import weld_juntas as juntas
+
+        class Tapa:
+            Name = "261080_Tank-LID_11"
+
+        def muro(normal, puntos):
+            cara = juntas.marco_cara(normal, puntos)
+            cara["puntos"] = puntos
+            return cara
+
+        muros = {
+            "BASE": muro((0, -1, 0), [(x, 0, z) for x in (0, 2000) for z in (0, 800)]),
+            "TOP": muro((0, 1, 0), [(x, 1600, z) for x in (0, 2000) for z in (0, 800)]),
+            "SEGM1": muro((0, 0, -1), [(x, y, 0) for x in (0, 2000) for y in (0, 1600)]),
+            "SEGM3": muro((0, 0, 1), [(x, y, 800) for x in (0, 2000) for y in (0, 1600)]),
+            "SEGM2": muro((1, 0, 0), [(0, y, z) for y in (0, 1600) for z in (0, 800)]),
+            "SEGM4": muro((-1, 0, 0), [(2000, y, z) for y in (0, 1600) for z in (0, 800)]),
+        }
+        muros["TOP"]["occ"] = Tapa()
+        ids = {item["id"] for item in juntas.armar_juntas(muros, [])}
+        self.assertIn("SEGM1_BASE", ids)
+        self.assertIn("SEGM2_BASE", ids)
+        self.assertIn("SEGM3_BASE", ids)
+        self.assertIn("SEGM4_BASE", ids)
+        self.assertFalse(any("TOP" in ident for ident in ids))
+        self.assertIn("SEGM2_SEGM1", ids)
+        self.assertIn("SEGM2_SEGM3", ids)
+        self.assertIn("SEGM4_SEGM3", ids)
+        self.assertIn("SEGM4_SEGM1", ids)
+        self.assertNotIn("SEGM1_SEGM2", ids)
+        self.assertNotIn("SEGM3_SEGM4", ids)
+        self.assertNotIn("SEGM1_SEGM4", ids)
+
     def test_accesorio_usa_la_cara_interior_del_segmento(self):
         import weld_juntas as juntas
 
@@ -103,6 +177,143 @@ class WeldAnotationTests(unittest.TestCase):
         self.assertAlmostEqual(origen[0], 8.0, delta=0.01)
         self.assertEqual(len(aristas), 1)
         self.assertLess(normal[0], 0)
+        misma = [((8.0, 0.0, 0.0), (8.0, 400.0, 0.0))]
+        afuera, _normal, _aristas, _anillos = juntas._mejor_contacto(
+            [
+                ((0.0, 0.0, 0.0), (1.0, 0.0, 0.0), misma, []),
+                ((8.0, 0.0, 0.0), (1.0, 0.0, 0.0), misma, []),
+            ],
+            (-30.0, 200.0, 0.0),
+        )
+        self.assertAlmostEqual(afuera[0], 0.0, delta=0.01)
+
+    def test_el_cancamo_no_suelda_la_ranura_ni_la_horquilla(self):
+        import weld_juntas as juntas
+
+        exterior = [
+            ((0.0, 0.0, 0.0), (0.0, 180.0, 0.0)),
+            ((0.0, 180.0, 0.0), (90.0, 180.0, 0.0)),
+            ((90.0, 180.0, 0.0), (90.0, 0.0, 0.0)),
+            ((90.0, 0.0, 0.0), (0.0, 0.0, 0.0)),
+        ]
+        ranura = ((20.0, 150.0, 0.0), (70.0, 150.0, 0.0))
+        horquilla = ((25.0, 30.0, 0.0), (65.0, 30.0, 0.0))
+        quedaron = juntas._contorno_exterior(exterior + [ranura, horquilla], (0.0, 0.0, 1.0))
+        medios = {((a[0] + b[0]) / 2.0, (a[1] + b[1]) / 2.0) for a, b in quedaron}
+        self.assertIn((0.0, 90.0), medios)
+        self.assertIn((90.0, 90.0), medios)
+        self.assertNotIn((45.0, 150.0), medios)
+        self.assertNotIn((45.0, 30.0), medios)
+
+    def test_la_solera_interna_del_bastidor_no_la_traga_el_casco(self):
+        import weld_juntas as juntas
+
+        marco = [
+            ((0.0, 0.0, 0.0), (2000.0, 0.0, 0.0)),
+            ((0.0, 900.0, 0.0), (2000.0, 900.0, 0.0)),
+            ((0.0, 0.0, 0.0), (0.0, 900.0, 0.0)),
+            ((2000.0, 0.0, 0.0), (2000.0, 900.0, 0.0)),
+        ]
+        barra = [
+            ((0.0, 440.0, 0.0), (2000.0, 440.0, 0.0)),
+            ((0.0, 456.0, 0.0), (2000.0, 456.0, 0.0)),
+        ]
+        quedaron = juntas._contorno_exterior(marco + barra, (0.0, 0.0, 1.0))
+        centros = [((a[1] + b[1]) / 2.0) for a, b in quedaron]
+        self.assertTrue(any(430.0 < valor < 470.0 for valor in centros))
+
+    def test_la_base_no_usa_la_cara_del_piso(self):
+        import weld_juntas as juntas
+
+        arriba = (
+            (0.0, 0.0, 0.0),
+            (0.0, 1.0, 0.0),
+            [((0.0, 0.0, 0.0), (800.0, 0.0, 0.0))],
+            [],
+        )
+        piso = (
+            (0.0, -8.0, 0.0),
+            (0.0, -1.0, 0.0),
+            [((0.0, -8.0, 0.0), (800.0, -8.0, 0.0))],
+            [],
+        )
+        caras = juntas._caras_hacia_el_tanque([arriba, piso], (400.0, 800.0, 0.0))
+        self.assertEqual(len(caras), 1)
+        self.assertAlmostEqual(caras[0][0][1], 0.0, delta=0.01)
+
+    def test_la_solera_bajo_la_base_se_suelda_en_la_cara_que_toca(self):
+        import weld_juntas as juntas
+
+        arriba = (
+            (0.0, 0.0, 0.0),
+            (0.0, 1.0, 0.0),
+            [((0.0, 0.0, 0.0), (800.0, 0.0, 0.0))],
+            [],
+        )
+        abajo = (
+            (0.0, -8.0, 0.0),
+            (0.0, -1.0, 0.0),
+            [((0.0, -8.0, 0.0), (800.0, -8.0, 0.0))],
+            [],
+        )
+        self.assertTrue(juntas._pieza_del_lado_del_tanque([arriba, abajo], (400.0, 40.0, 0.0), (400.0, 800.0, 0.0)))
+        self.assertFalse(juntas._pieza_del_lado_del_tanque([arriba, abajo], (400.0, -30.0, 0.0), (400.0, 800.0, 0.0)))
+
+    def test_la_brida_cuenta_aunque_no_tenga_arista_recta(self):
+        import weld_juntas as juntas
+
+        circulo = {"centro": (40.0, 40.0, 0.0), "normal": (0.0, 0.0, 1.0), "radio": 19.0}
+        self.assertTrue(juntas._hay_apoyo([], [circulo], [((0.0, 0.0, 0.0), (0.0, 0.0, 1.0))]))
+        self.assertFalse(juntas._hay_apoyo([], [circulo], [((0.0, 0.0, 30.0), (0.0, 0.0, 1.0))]))
+
+    def test_el_accesorio_solo_se_suelda_a_su_segmento(self):
+        import weld_juntas as juntas
+
+        segm1 = {
+            "normal": (0.0, 0.0, 1.0),
+            "origen": (0.0, 0.0, 0.0),
+            "u": (1.0, 0.0, 0.0),
+            "v": (0.0, 1.0, 0.0),
+            "outline": [(0.0, 0.0), (400.0, 0.0), (400.0, 400.0), (0.0, 400.0)],
+            "occ": None,
+        }
+        segm2 = {
+            "normal": (1.0, 0.0, 0.0),
+            "origen": (10.0, 0.0, 0.0),
+            "u": (0.0, 1.0, 0.0),
+            "v": (0.0, 0.0, 1.0),
+            "outline": [(0.0, 0.0), (200.0, 0.0), (200.0, 200.0), (0.0, 200.0)],
+            "occ": None,
+        }
+        pieza = {
+            "cara": "SEGM1",
+            "occ": None,
+            "puntos": [(10.0, 20.0, 0.0), (90.0, 20.0, 0.0), (90.0, 60.0, 40.0), (10.0, 60.0, 40.0)],
+        }
+        self.assertEqual(juntas._caras_de_apoyo(pieza, {"SEGM1": segm1, "SEGM2": segm2}), ["SEGM1"])
+        pieza["cara"] = "BASE"
+        base = {
+            "normal": (0.0, 1.0, 0.0),
+            "origen": (0.0, 400.0, 0.0),
+            "u": (1.0, 0.0, 0.0),
+            "v": (0.0, 0.0, 1.0),
+            "outline": [(0.0, 0.0), (400.0, 0.0), (400.0, 400.0), (0.0, 400.0)],
+            "occ": None,
+        }
+        self.assertEqual(juntas._caras_de_apoyo(pieza, {"BASE": base, "SEGM1": segm1}), [])
+
+    def test_el_ensamble_nuevo_equivale_al_nombre_pintado(self):
+        from weld_anotation import _raiz_nombre
+
+        pares = (
+            ("261080_Tank-Base_Default<As Machined>_21", "261080_Tank-Base_Default_As_Machined_:1"),
+            ("261080_1 Drain Valve Box_49", "261080_1_Drain_Valve_Box:1"),
+            ("261080_1 Drain Valve Box_50", "261080_1_Drain_Valve_Box:2"),
+            ("Jacking pad_41", "Jacking_pad:1"),
+        )
+        for pintado, ensamble in pares:
+            self.assertEqual(_raiz_nombre(pintado), _raiz_nombre(ensamble))
+            self.assertTrue(_raiz_nombre(pintado))
 
     def test_brida_se_suelda_por_el_circulo_exterior(self):
         import weld_juntas as juntas
@@ -110,9 +321,10 @@ class WeldAnotationTests(unittest.TestCase):
         circulos = [
             {"centro": (0.0, 0.0, 0.0), "normal": (0.0, 1.0, 0.0), "radio": 11.9},
             {"centro": (0.0, 0.0, 0.0), "normal": (0.0, 1.0, 0.0), "radio": 19.1},
+            {"centro": (0.0, 8.0, 0.0), "normal": (0.0, 1.0, 0.0), "radio": 40.0},
             {"centro": (0.0, 25.4, 0.0), "normal": (0.0, 1.0, 0.0), "radio": 30.0},
         ]
-        anillos = juntas._anillos_exteriores(circulos, (0.0, 0.0, 0.0), (0.0, 1.0, 0.0), 2.5)
+        anillos = juntas._anillos_exteriores(circulos, (0.0, 0.0, 0.0), (0.0, 1.0, 0.0), 12.0)
         self.assertEqual(len(anillos), 1)
         self.assertAlmostEqual(anillos[0]["radio"], 19.1, delta=0.01)
 
@@ -333,9 +545,11 @@ class WeldAnotationTests(unittest.TestCase):
             carpeta = Path(tmp) / "TANKS" / "CLI" / "JOB" / "DOSSIER FILES" / "JPGS" / "Weld"
             carpeta.mkdir(parents=True)
             (carpeta / "SEGM1_BASE.jpg").write_bytes(b"x")
+            (carpeta / "SEGM4").mkdir()
+            (carpeta / "SEGM4" / "SEGM4_CAJA.jpg").write_bytes(b"x")
             (carpeta / "nota.txt").write_text("no", encoding="utf-8")
             filas = evidencias_weld(str(carpeta), job="JOB", cliente="CLI", producto="TANKS")
-        self.assertEqual(len(filas), 1)
+        self.assertEqual(len(filas), 2)
         fila = filas[0]
         self.assertEqual(fila["clasificacion"], "Weld")
         self.assertEqual(fila["seleccionadas"], "si")
@@ -346,6 +560,7 @@ class WeldAnotationTests(unittest.TestCase):
         self.assertEqual(fila["producto"], "TANKS")
         self.assertEqual(fila["job"], "JOB")
         self.assertIn("JPGS\\Weld\\SEGM1_BASE.jpg", fila["ruta"].replace("/", "\\"))
+        self.assertIn("JPGS\\Weld\\SEGM4\\SEGM4_CAJA.jpg", filas[1]["ruta"].replace("/", "\\"))
 
     def test_jpg_van_a_weld_del_dossier(self):
         destino = weld.carpeta_weld_de(
@@ -389,9 +604,148 @@ class WeldAnotationTests(unittest.TestCase):
         }
         encuadre = weld_vista._frente(junta, (0.0, 0.0, 0.0))
         self.assertGreater(encuadre["up"][1], 0.9)
-        self.assertTrue(encuadre["flip_x"])
+        esquina = dict(junta, kind="hermetico", cara="SEGM4", id="SEGM4_SEGM1")
+        del_lado = weld_vista._frente(esquina, (0.0, 0.0, 0.0))
+        self.assertGreater(del_lado["look"][0], 0.9)
+        con_base = dict(junta, kind="hermetico", cara="SEGM4", id="SEGM4_BASE")
+        self.assertGreater(weld_vista._frente(con_base, (0.0, 0.0, 0.0))["look"][0], 0.9)
+        self.assertFalse(encuadre["flip_x"])
+        self.assertTrue(encuadre["u_a_la_izquierda"])
         self.assertAlmostEqual(encuadre["w"], 20.0 * weld_jpg.MARGEN_FOTO, delta=0.01)
         self.assertAlmostEqual(encuadre["h"], 40.0 * weld_jpg.MARGEN_FOTO, delta=0.01)
+
+    def test_la_esquina_vertical_se_mira_por_fuera_del_filete(self):
+        import weld_vista
+
+        junta = {
+            "kind": "hermetico",
+            "cara": "SEGM2",
+            "id": "SEGM2_SEGM1",
+            "centro_tanque": (0.0, 0.0, 0.0),
+            "weld": {"footprint": (0.0, 0.0, 200.0, 400.0), "leg": 6},
+            "frame": {
+                "normal": (-1.0, 0.0, 0.0),
+                "u": (0.0, 0.0, 1.0),
+                "v": (0.0, 1.0, 0.0),
+                "origen": (100.0, 0.0, 0.0),
+            },
+            "outline": [(0.0, 0.0), (200.0, 0.0), (200.0, 400.0), (0.0, 400.0)],
+            "frame_otro": {
+                "normal": (0.0, 0.0, -1.0),
+                "u": (1.0, 0.0, 0.0),
+                "v": (0.0, 1.0, 0.0),
+                "origen": (0.0, 0.0, 100.0),
+            },
+            "outline_otro": [(0.0, 0.0), (200.0, 0.0), (200.0, 400.0), (0.0, 400.0)],
+        }
+        detalle = weld_vista._iso(junta, (0.0, 0.0, 0.0), cerrado=True)
+        self.assertGreater(detalle["look"][0], 0.55)
+        self.assertGreater(detalle["look"][2], 0.55)
+        self.assertLess(abs(detalle["look"][0] - detalle["look"][2]), 0.15)
+        self.assertGreater(detalle["look"][1], 0.2)
+        self.assertAlmostEqual(detalle["w"], 42.0, delta=0.01)
+        ancho = weld_vista._iso(junta, (0.0, 0.0, 0.0), cerrado=False)
+        self.assertAlmostEqual(ancho["look"][0], detalle["look"][0], delta=0.01)
+        self.assertAlmostEqual(ancho["w"], 78.0, delta=0.01)
+        frente = weld_vista._frente(junta, (0.0, 0.0, 0.0))
+        self.assertGreater(frente["look"][0], 0.9)
+        pieza_de_la_otra_placa = {
+            "normal": (0.0, 0.0, 1.0),
+            "lado": (1.0, 0.0, 0.0),
+            "esquina": (100.0, 0.0, 100.0),
+            "direccion": (0.0, 1.0, 0.0),
+            "largo": 400.0,
+        }
+        original = weld_vista._primer_filete
+        weld_vista._primer_filete = lambda _junta: pieza_de_la_otra_placa
+        try:
+            de_frente = weld_vista._frente(junta, (0.0, 0.0, 0.0))
+            self.assertGreater(de_frente["look"][0], 0.9)
+            self.assertLess(abs(de_frente["look"][2]), 0.2)
+            detalle_bien = weld_vista._iso(junta, (0.0, 0.0, 0.0), cerrado=True)
+        finally:
+            weld_vista._primer_filete = original
+        self.assertGreater(detalle_bien["look"][0], 0.55)
+        self.assertGreater(detalle_bien["look"][2], 0.55)
+        self.assertFalse(detalle["flip_x"])
+        self.assertFalse(ancho["flip_x"])
+        self.assertEqual(detalle["u_a_la_izquierda"], frente["u_a_la_izquierda"])
+        self.assertEqual(ancho["u_a_la_izquierda"], frente["u_a_la_izquierda"])
+        del_lado_azul = {
+            "normal": (1.0, 0.0, 0.0),
+            "lado": (0.0, 0.0, 1.0),
+            "esquina": (100.0, 0.0, 100.0),
+            "direccion": (0.0, 1.0, 0.0),
+            "largo": 400.0,
+        }
+        del_contrario = dict(del_lado_azul, lado=(0.0, 0.0, -1.0))
+        weld_vista._primer_filete = lambda _junta: del_lado_azul
+        try:
+            hacia = weld_vista._iso(junta, (0.0, 0.0, 0.0), cerrado=True)
+        finally:
+            weld_vista._primer_filete = original
+        self.assertGreater(hacia["look"][2], 0.3)
+        self.assertGreater(hacia["look"][0], 0.55)
+        weld_vista._primer_filete = lambda _junta: del_contrario
+        try:
+            regreso = weld_vista._iso(junta, (0.0, 0.0, 0.0), cerrado=True)
+        finally:
+            weld_vista._primer_filete = original
+        self.assertLess(regreso["look"][2], -0.3)
+        self.assertGreater(regreso["look"][0], 0.55)
+
+    def test_la_foto_del_segmento_lleva_todos_sus_accesorios(self):
+        import weld_anotation as weld
+
+        placa, pad, oreja, otro, ajeno = object(), object(), object(), object(), object()
+        accesorios = [
+            {"cara": "SEGM1", "occ": pad},
+            {"cara": "SEGM1", "occ": oreja},
+            {"cara": "SEGM2", "occ": ajeno},
+        ]
+        naranja = weld._visibles_de(
+            {"kind": "accesorio", "cara": "SEGM1", "host": placa, "pieza": pad},
+            accesorios,
+        )
+        self.assertEqual(naranja, [placa, pad, oreja])
+        azul = weld._visibles_de(
+            {"kind": "hermetico", "cara": "SEGM1", "host": placa, "otro": otro, "pieza": None},
+            accesorios,
+        )
+        self.assertEqual(azul, [placa, otro, pad, oreja])
+
+    def test_el_accesorio_interior_se_mira_desde_la_pieza(self):
+        import weld_vista
+
+        junta = {
+            "kind": "accesorio",
+            "centro": (80.0, 200.0, 100.0),
+            "frame": {
+                "normal": (1.0, 0.0, 0.0),
+                "u": (0.0, 0.0, 1.0),
+                "v": (0.0, 1.0, 0.0),
+                "origen": (100.0, 0.0, 0.0),
+            },
+            "outline": [(0.0, 0.0), (1600.0, 0.0), (1600.0, 2000.0), (0.0, 2000.0)],
+        }
+        encuadre = weld_vista._frente(junta, (0.0, 500.0, 800.0))
+        self.assertLess(encuadre["look"][0], -0.9)
+        self.assertAlmostEqual(encuadre["w"], 160.0 * weld_jpg.MARGEN_FOTO, delta=0.01)
+        self.assertAlmostEqual(encuadre["h"], 200.0 * weld_jpg.MARGEN_FOTO, delta=0.01)
+        detalle = weld_vista._iso(junta, (0.0, 500.0, 800.0), cerrado=True)
+        self.assertLess(detalle["look"][0], 0.0)
+
+    def test_la_ventana_ancha_conserva_el_alto_de_la_placa(self):
+        import weld_vista
+
+        ancho, alto, escala_u, escala_v = weld_vista._ajustar_aspecto(100.0, 200.0, 1.8)
+        self.assertAlmostEqual(alto, 200.0)
+        self.assertGreater(ancho, 100.0)
+        self.assertAlmostEqual(escala_v, 1.0)
+        self.assertGreater(escala_u, 1.0)
+        ventana = weld_vista._ventana_uv((50.0, 100.0, 100.0, 200.0), escala_u, escala_v)
+        self.assertAlmostEqual(ventana[3] - ventana[1], 200.0)
+        self.assertGreater(ventana[2] - ventana[0], 100.0)
 
     def test_el_circulo_cae_en_la_placa_y_no_en_el_margen(self):
         outline = [(0.0, 0.0), (200.0, 0.0), (200.0, 400.0), (0.0, 400.0)]
@@ -402,6 +756,8 @@ class WeldAnotationTests(unittest.TestCase):
         self.assertAlmostEqual(centro[1], 216.0, delta=0.5)
         self.assertAlmostEqual(canto[1], 16.0, delta=0.5)
         self.assertGreater(canto[1], 4.0)
+        espejo = weld_jpg._en_frente((200.0, 200.0), outline, frente, (216.0, 0.0, 0.0, 432.0))
+        self.assertLess(espejo[0], 20.0)
 
     def test_el_canto_de_la_tapa_queda_arriba_y_el_de_la_base_abajo(self):
         import weld_juntas as juntas
@@ -419,6 +775,138 @@ class WeldAnotationTests(unittest.TestCase):
         self.assertGreater((tapa[1] + tapa[3]) / 2.0, (min(ys) + max(ys)) / 2.0)
         self.assertLess((base[1] + base[3]) / 2.0, (min(ys) + max(ys)) / 2.0)
 
+    def test_el_bastidor_se_queda_en_la_base_y_la_oreja_en_su_segmento(self):
+        import weld_juntas as juntas
+
+        muros = {
+            "SEGM1": juntas.marco_cara((1, 0, 0), [(0, y, z) for y in (0, 2000) for z in (0, 1600)]),
+            "BASE": juntas.marco_cara((0, -1, 0), [(x, 0, z) for x in (0, 800) for z in (0, 1600)]),
+        }
+        bastidor = {
+            "cara": "BASE",
+            "nombre": "Tank-Base",
+            "centro": (20.0, 300.0, 800.0),
+            "caja": ((0.0, 0.0, 200.0), (40.0, 700.0, 1400.0)),
+            "puntos": juntas._esquinas(((0.0, 0.0, 200.0), (40.0, 700.0, 1400.0))),
+        }
+        lejos = {
+            "cara": "SEGM1",
+            "nombre": "Oreja",
+            "centro": (20.0, 1500.0, 450.0),
+            "caja": ((0.0, 1400.0, 400.0), (40.0, 1600.0, 500.0)),
+            "puntos": juntas._esquinas(((0.0, 1400.0, 400.0), (40.0, 1600.0, 500.0))),
+        }
+        halladas = {item["id"]: item for item in juntas.armar_juntas(muros, [bastidor, lejos])}
+        self.assertIn("BASE_Tank-Base", halladas)
+        self.assertNotIn("SEGM1_Tank-Base", halladas)
+        self.assertIn("SEGM1_Oreja", halladas)
+        self.assertNotIn("BASE_Oreja", halladas)
+
+    def test_la_tanda_cercana_entra_y_la_de_atras_no(self):
+        import weld_juntas as juntas
+
+        pegada = ((0.0, 0.0, 0.0), (400.0, 0.0, 0.0))
+        atras = ((0.0, 0.0, 6.0), (400.0, 0.0, 6.0))
+        solo = juntas._banda_de_contacto([pegada, atras], (0.0, 0.0, 0.0), (0.0, 0.0, 1.0))
+        self.assertEqual(solo, [pegada])
+        separada = ((0.0, 0.0, 7.0), (500.0, 0.0, 7.0))
+        self.assertEqual(
+            juntas._banda_de_contacto([separada], (0.0, 0.0, 0.0), (0.0, 0.0, 1.0)),
+            [separada],
+        )
+        self.assertEqual(
+            juntas._banda_de_contacto([((0.0, 0.0, 20.0), (100.0, 0.0, 20.0))], (0.0, 0.0, 0.0), (0.0, 0.0, 1.0)),
+            [],
+        )
+
+    def test_una_barra_ya_en_el_ensamble_no_se_parte(self):
+        import weld_juntas as juntas
+
+        minimo = (0.0, -80.0, -30.0)
+        maximo = (205.0, -30.0, 60.0)
+        matriz = [
+            [1.0, 0.0, 0.0, -65.0],
+            [0.0, 1.0, 0.0, -53.0],
+            [0.0, 0.0, 1.0, -32.0],
+        ]
+        cerca = (20.0, -55.0, 15.0)
+        lejos = (200.0, -32.0, 55.0)
+        self.assertFalse(juntas._conviene_matriz([cerca, lejos], minimo, maximo, matriz))
+        inicio = juntas._mm_ensamble(cerca, None, matriz, False)
+        fin = juntas._mm_ensamble(lejos, None, matriz, False)
+        self.assertAlmostEqual(
+            juntas._largo_vector(juntas._resta(fin, inicio)),
+            10.0 * juntas._largo_vector(juntas._resta(lejos, cerca)),
+            places=3,
+        )
+
+    def test_la_matriz_entra_si_la_pieza_no_esta_en_su_caja(self):
+        import weld_juntas as juntas
+
+        minimo = (100.0, 100.0, 100.0)
+        maximo = (140.0, 110.0, 160.0)
+        matriz = [
+            [1.0, 0.0, 0.0, 120.0],
+            [0.0, 1.0, 0.0, 105.0],
+            [0.0, 0.0, 1.0, 130.0],
+        ]
+        puntos = [(0.0, 0.0, 0.0), (30.0, 5.0, 20.0)]
+        self.assertTrue(juntas._conviene_matriz(puntos, minimo, maximo, matriz))
+
+    def test_la_placa_fuera_de_su_caja_pasa_al_ensamble(self):
+        import referencia_snapshot
+        import weld_anotation
+
+        class Punto:
+            def __init__(self, x, y, z):
+                self.X, self.Y, self.Z = x, y, z
+
+        class Occ:
+            class RangeBox:
+                MinPoint = Punto(100.0, 100.0, 100.0)
+                MaxPoint = Punto(140.0, 110.0, 160.0)
+
+        matriz = [
+            [1.0, 0.0, 0.0, 120.0],
+            [0.0, 1.0, 0.0, 105.0],
+            [0.0, 0.0, 1.0, 130.0],
+        ]
+        original = referencia_snapshot._matriz
+        referencia_snapshot._matriz = lambda _occ: matriz
+        try:
+            puntos, normal = weld_anotation._ubicar(Occ(), [(0.0, 0.0, 0.0), (30.0, 5.0, 20.0)], (0.0, 0.0, 1.0))
+        finally:
+            referencia_snapshot._matriz = original
+        self.assertEqual(puntos[0], (120.0, 105.0, 130.0))
+        self.assertEqual(normal, (0.0, 0.0, 1.0))
+
+    def test_la_placa_que_ya_esta_en_el_ensamble_no_se_mueve(self):
+        import referencia_snapshot
+        import weld_anotation
+
+        class Punto:
+            def __init__(self, x, y, z):
+                self.X, self.Y, self.Z = x, y, z
+
+        class Occ:
+            class RangeBox:
+                MinPoint = Punto(0.0, -80.0, -30.0)
+                MaxPoint = Punto(205.0, -30.0, 60.0)
+
+        matriz = [
+            [1.0, 0.0, 0.0, -65.0],
+            [0.0, 1.0, 0.0, -53.0],
+            [0.0, 0.0, 1.0, -32.0],
+        ]
+        original = referencia_snapshot._matriz
+        referencia_snapshot._matriz = lambda _occ: matriz
+        crudos = [(20.0, -55.0, 15.0), (200.0, -32.0, 55.0)]
+        try:
+            puntos, _normal = weld_anotation._ubicar(Occ(), crudos, (0.0, 1.0, 0.0))
+        finally:
+            referencia_snapshot._matriz = original
+        self.assertEqual(puntos, crudos)
+
     def test_el_trazo_hermetico_sigue_el_canto_alto(self):
         imagen = Image.new("RGB", (216, 432), (255, 255, 255))
         weld_jpg._cota_en_cara(
@@ -429,6 +917,9 @@ class WeldAnotationTests(unittest.TestCase):
         )
         self.assertEqual(imagen.getpixel((40, 16)), weld_jpg._AZUL)
         self.assertEqual(imagen.getpixel((40, 416)), (255, 255, 255))
+        medio = weld_jpg._medio_del_canto([(0.0, 0.0), (200.0, 0.0), (200.0, 400.0), (0.0, 400.0)])
+        self.assertAlmostEqual(medio[0], 200.0, delta=0.1)
+        self.assertAlmostEqual(medio[1], 200.0, delta=0.1)
 
     def test_el_cielo_azulado_sale_blanco_y_el_naranja_se_queda(self):
         cielo = Image.new("RGB", (8, 8), (214, 224, 236))
@@ -527,6 +1018,33 @@ class WeldSolidoTests(unittest.TestCase):
         self.assertTrue(all(cuerpo.Visible for cuerpo in naranja + azul))
         self.assertTrue(all(grupo["occ"].Visible for grupo in cordon._grupos))
 
+    def test_la_hoja_nueva_enciende_el_filete_con_el_nombre_viejo(self):
+        import weld_solido
+
+        class Cuerpo:
+            def __init__(self, nombre: str):
+                self.Name = nombre
+                self.Visible = False
+
+        viejo = Cuerpo("SEGM1_SEGM4")
+        vecino = Cuerpo("SEGM2_SEGM3")
+        accesorio = Cuerpo("SEGM4_Jacking_pad_24")
+        cordon = weld_solido.Cordones.__new__(weld_solido.Cordones)
+        cordon._cuerpos = {
+            viejo.Name: viejo,
+            vecino.Name: vecino,
+            accesorio.Name: accesorio,
+        }
+        cordon.por_junta = {cuerpo.Name: [cuerpo.Name] for cuerpo in (viejo, vecino, accesorio)}
+        cordon._grupos = [{"occ": _Occ([viejo, vecino, accesorio])}]
+        cordon.mostrar("SEGM4_SEGM1")
+        self.assertTrue(viejo.Visible)
+        self.assertFalse(vecino.Visible)
+        self.assertFalse(accesorio.Visible)
+        cordon.mostrar("SEGM4_Jacking_pad_24")
+        self.assertTrue(accesorio.Visible)
+        self.assertFalse(viejo.Visible)
+
 
 class WeldNomenclaturaTests(unittest.TestCase):
     def test_el_preset_de_taller_se_lee_igual_que_el_simbolo(self):
@@ -538,6 +1056,13 @@ class WeldNomenclaturaTests(unittest.TestCase):
         self.assertTrue(spec["dos_lados"])
         self.assertEqual(spec["paso"], "100-300")
         self.assertEqual(nom.formato(spec), "FILLET 6/8 mm 100-300")
+        self.assertEqual(
+            nom.formato(spec, "in"),
+            "FILLET 1/4/5/16 in 3.94-11.81",
+        )
+        hoja_in = nom.presentar_weld({"length": "1753 mm", "leg": "6", "pitch": "", "sides": 1, "typ": True}, "in")
+        self.assertEqual(hoja_in["length"], "69.02 in")
+        self.assertEqual(hoja_in["leg"], "1/4")
         self.assertEqual(nom.formato(nom.leer_texto("FILLET 3 mm 2SIDES TYP")), "FILLET 3 mm 2SIDES TYP")
         hoja = nom.weld_publicado({"length": "1200 mm", "leg": "6"}, spec)
         self.assertEqual(hoja["leg"], "6")
@@ -566,10 +1091,34 @@ class WeldNomenclaturaTests(unittest.TestCase):
                 filas = {item["id"]: item for item in nom.listar("C:/jobs/tanque.iam")["cordones"]}
                 self.assertTrue(filas["SEGM1_BASE"]["editado"])
                 self.assertEqual(filas["SEGM1_BASE"]["clasificacion"], "accesorio")
-                self.assertEqual(filas["SEGM1_BASE"]["texto"], "FILLET 5 mm 2SIDES")
+                self.assertEqual(filas["SEGM1_BASE"]["texto"], "FILLET 3/16 in 2SIDES")
                 self.assertEqual(nom.clasificaciones("C:/otra/tanque.iam"), {"SEGM1_BASE": "accesorio"})
             finally:
                 nom.ARCHIVO = original
+
+    def test_el_tanque_dentro_de_giga_se_escribe_en_pulgadas(self):
+        from acotacion import classify_assembly
+
+        tanque = classify_assembly(
+            "261080_TANK.iam",
+            r"\\server\TANKS\GIGA\GIGABOARD5\261080_TANK\261080_TANK.iam",
+        )
+        self.assertEqual(tanque["tipo"], "TANQUE")
+        self.assertEqual(tanque["unit"], "in")
+        gabinete = classify_assembly("9919 BOARD.iam", r"\\server\ENCLOSURES\9919 BOARD.iam")
+        self.assertEqual(gabinete["unit"], "mm")
+
+    def test_el_verde_de_seleccion_no_se_queda_en_la_vineta(self):
+        from PIL import Image
+
+        from weld_jpg import _quitar_verde
+
+        imagen = Image.new("RGB", (2, 1))
+        imagen.putpixel((0, 0), (120, 190, 110))
+        imagen.putpixel((1, 0), (230, 110, 15))
+        salida = _quitar_verde(imagen)
+        self.assertEqual(salida.getpixel((0, 0)), (140, 140, 140))
+        self.assertEqual(salida.getpixel((1, 0)), (230, 110, 15))
 
     def test_un_cuerpo_elige_su_cordon_y_no_el_grupo_del_mismo_color(self):
         import weld_nomenclatura as nom

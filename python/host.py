@@ -124,6 +124,9 @@ class ToolbarApi:
         report["rules"] = load_rule_catalog()
         return report
 
+    def multibody(self) -> dict:
+        return _inventor_process("multibody")
+
     def awis_run(self, payload: str = "") -> dict:
         try:
             incoming = json.loads(payload or "{}")
@@ -679,7 +682,7 @@ def _inventor_process(command: str, payload: dict | None = None) -> dict:
         12
         if command == "snapshot"
         else 1800
-        if command in {"export", "shapes", "acotacion", "parts", "roles", "blocks", "weld"}
+        if command in {"export", "shapes", "acotacion", "parts", "roles", "blocks", "weld", "multibody"}
         else 180
     )
     env = os.environ.copy()

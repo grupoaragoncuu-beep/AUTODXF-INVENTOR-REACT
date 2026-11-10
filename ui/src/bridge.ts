@@ -73,6 +73,22 @@ export type AwisResult = {
   log: string
 }
 
+export type MultibodyFailure = {
+  name: string
+  message: string
+}
+
+export type MultibodyResult = {
+  ok: boolean
+  message: string
+  folder?: string
+  processed?: string[]
+  failed?: MultibodyFailure[]
+  replaced?: number
+  inventorConnected?: boolean
+  session?: Snapshot
+}
+
 export type SheetRulesResult = {
   ok: boolean
   withFlat: number
@@ -292,6 +308,7 @@ export type WeldNomList = {
   presets?: string[]
   sizes?: string[]
   pitches?: string[]
+  unit?: string
   id?: string
 }
 
@@ -315,6 +332,7 @@ type ToolbarApi = {
   sheet_rules_load: () => Promise<SheetRuleCatalog>
   sheet_rules_save: (payload: string) => Promise<SheetRuleSave>
   sheet_rules: (payload?: string) => Promise<SheetRulesResult>
+  multibody?: () => Promise<MultibodyResult>
   awis_run?: (payload: string) => Promise<AwisResult>
   scan_shapes: () => Promise<ShapeScan>
   start_pick: (mode: string) => Promise<{ ok: boolean; message: string }>

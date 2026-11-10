@@ -229,6 +229,42 @@ def run_weld_anotation(payload: dict) -> dict:
         return fail
 
 
+def _visibles_de(junta: dict, accesorios: list) -> list:
+    """La foto del segmento muestra la placa y todos los accesorios de esa cara.
+
+    El cordón azul también enseña la otra placa. El de al lado no entra.
+    """
+    visibles = []
+    for occ in (junta.get("host"), junta.get("pieza")):
+        if occ is not None and occ not in visibles:
+            visibles.append(occ)
+    if junta.get("kind") == "hermetico" and junta.get("otro") is not None and junta.get("otro") not in visibles:
+        visibles.append(junta["otro"])
+    cara = str(junta.get("cara") or "")
+    for item in accesorios:
+        pieza = item.get("occ")
+        if pieza is None or str(item.get("cara") or "") != cara or pieza in visibles:
+            continue
+        visibles.append(pieza)
+    return visibles
+
+
+def _borrar_cordones(assembly, ruta: str) -> dict:
+    """Saca los filetes del ensamble y la lista. No calcula cordones nuevos."""
+    from weld_nomenclatura import vaciar
+    from weld_solido import _quitar_anteriores
+
+    write_weld_progress(current=0, total=1, piece="Borrando cordones…", phase="borrar")
+    solidos = _quitar_anteriores(assembly)
+    resultado = vaciar(ruta)
+    message = str(resultado.get("message") or "Cordones borrados.")
+    if int(solidos.get("quedan") or 0) > 0:
+        message = f"La lista quedó vacía, pero siguen {solidos['quedan']} sólidos de soldadura en el ensamble."
+    result = {"ok": True, "message": message, "count": 0, "folder": "", "files": [], "warnings": []}
+    write_weld_progress(current=1, total=1, piece="Listo", phase="listo", done=True, result=result, message=message)
+    return result
+
+
 def _generar(payload: dict) -> dict:
     from inventor_session import _active_assembly, _full_name, _inventor, _occ_key, _short
     from roles_inventor import _clave_iam, _leer_sesiones
@@ -239,57 +275,93 @@ def _generar(payload: dict) -> dict:
     if assembly is None:
         raise RuntimeError("Abre el ensamble del tanque en Inventor.")
     ruta = _full_name(assembly)
+    if str(payload.get("fase") or "").strip().lower() == "borrar":
+        return _borrar_cordones(assembly, ruta)
     sesion = _sesion_muros(ruta, _leer_sesiones()["assemblies"], _clave_iam)
     bags = sesion.get("bags") if isinstance(sesion.get("bags"), dict) else {}
     if not bags:
         raise RuntimeError("Confirma los muros en Acotación JPG. Sin esas caras no hay cordón.")
     write_weld_progress(current=0, total=1, piece="Leyendo caras…", phase="geometria")
     indice = _indice_hojas(assembly, _occ_key)
+    ensambles = _ensambles_por_raiz(assembly)
+    usadas: set[str] = set()
     muros = {}
     accesorios = []
     por_cara: dict[str, list] = {}
+
+    def anotar(occ, cara_id: str, nombre: str, miembro: dict) -> None:
+        por_cara.setdefault(cara_id, []).append(occ)
+        if miembro.get("placa_rol") and cara_id not in muros:
+            cara_geo = _cara_de_ocurrencia(occ, marco_cara, marco_derecho)
+            if cara_geo:
+                cara_geo["cara"] = cara_id
+                cara_geo["occ"] = occ
+                muros[cara_id] = cara_geo
+            return
+        if miembro.get("placa_rol"):
+            return
+        caja = _caja_mm(occ)
+        if caja is None:
+            return
+        accesorios.append(
+            {
+                "cara": cara_id,
+                "nombre": nombre,
+                "centro": caja["centro"],
+                "caja": caja["caja"],
+                "puntos": caja["puntos"],
+                "occ": occ,
+            }
+        )
+
+    pendientes = []
     for cara, miembros in bags.items():
         cara_id = str(cara).upper()
         for miembro in miembros or []:
             occ = _buscar_ocurrencia(indice, miembro)
-            if occ is None:
-                continue
-            por_cara.setdefault(cara_id, []).append(occ)
-            if miembro.get("placa_rol") and cara_id not in muros:
-                cara_geo = _cara_de_ocurrencia(occ, marco_cara, marco_derecho)
-                if cara_geo:
-                    cara_geo["cara"] = cara_id
-                    cara_geo["occ"] = occ
-                    muros[cara_id] = cara_geo
+            if occ is not None:
+                anotar(occ, cara_id, str(miembro.get("nombre_ocurrencia") or cara_id), miembro)
                 continue
             if miembro.get("placa_rol"):
                 continue
-            caja = _caja_mm(occ)
-            if caja is None:
+            raiz = _raiz_nombre(str(miembro.get("nombre_ocurrencia") or ""))
+            if raiz:
+                pendientes.append((cara_id, miembro, raiz))
+    from weld_juntas import _largo_de_apoyo
+
+    por_raiz: dict[str, list] = {}
+    for cara_id, miembro, raiz in pendientes:
+        por_raiz.setdefault(raiz, []).append((cara_id, miembro))
+    for raiz, puestos in por_raiz.items():
+        for padre in ensambles.get(raiz) or []:
+            clave = str(_occ_key(padre) or "").replace("\\", "/").lower()
+            if not clave or clave in usadas:
                 continue
-            accesorios.append(
-                {
-                    "cara": cara_id,
-                    "nombre": str(miembro.get("nombre_ocurrencia") or cara_id),
-                    "centro": caja["centro"],
-                    "caja": caja["caja"],
-                    "puntos": caja["puntos"],
-                    "occ": occ,
-                }
-            )
+            mejor = None
+            mayor = 0.0
+            for cara_id, miembro in puestos:
+                muro = muros.get(cara_id)
+                if muro is None:
+                    continue
+                largo = _largo_de_apoyo(padre, muro)
+                if largo > mayor:
+                    mayor = largo
+                    mejor = (cara_id, miembro)
+            if mejor is None or mayor < 8.0:
+                continue
+            usadas.add(clave)
+            anotar(padre, mejor[0], clave, mejor[1])
     from weld_nomenclatura import filtrar_juntas
 
     juntas = filtrar_juntas(ruta, armar_juntas(muros, accesorios, holgura_mm=80.0))
+    from weld_nomenclatura import unidad_de_ruta
+
+    if unidad_de_ruta(ruta) == "in":
+        from weld_juntas import aplicar_pauta_vantran
+
+        aplicar_pauta_vantran(juntas)
     for junta in juntas:
-        cara = str(junta.get("cara") or "").upper()
-        visibles = list(por_cara.get(cara) or [])
-        if junta.get("host") is not None and junta.get("host") not in visibles:
-            visibles.append(junta["host"])
-        if junta.get("pieza") is not None and junta.get("pieza") not in visibles:
-            visibles.append(junta["pieza"])
-        if junta.get("kind") == "hermetico" and junta.get("otro") is not None and junta.get("otro") not in visibles:
-            visibles.append(junta["otro"])
-        junta["visibles"] = visibles
+        junta["visibles"] = _visibles_de(junta, accesorios)
     solo = str(payload.get("only") or "").strip().lower()
     if solo:
         juntas = [junta for junta in juntas if solo in str(junta.get("id") or "").lower() or solo in str(junta.get("title") or "").lower()]
@@ -452,12 +524,13 @@ def _muestra_juntas(juntas: list[dict], limite: int) -> list[dict]:
 def _publicar_fotos(inv, assembly, juntas, dest, cordon, ruta, warnings, borrar: bool = True) -> list[str]:
     """Un JPG por junta: cara, detalle, isométrica y el símbolo de nomenclatura."""
     from weld_jpg import save_weld_jpg
-    from weld_nomenclatura import listar, weld_publicado
+    from weld_nomenclatura import listar, presentar_weld, unidad_de_ruta, weld_publicado
     from weld_vista import VistaSoldadura
 
     if dest.exists() and borrar:
         _clear_jpgs(dest)
     dest.mkdir(parents=True, exist_ok=True)
+    unidad = unidad_de_ruta(ruta)
     tabla = {str(item.get("id")): item for item in listar(ruta).get("cordones") or []}
     vista = VistaSoldadura(inv, assembly, (juntas[0] if juntas else {}).get("centro_tanque"), cordon)
     files: list[str] = []
@@ -479,8 +552,10 @@ def _publicar_fotos(inv, assembly, juntas, dest, cordon, ruta, warnings, borrar:
             if tomas is None:
                 warnings.append(f"{junta.get('title')}: sin foto.")
                 continue
-            frente, detalle, iso = tomas
-            weld = weld_publicado((junta.get("weld") or {}), (tabla.get(str(junta.get("id"))) or {}).get("spec"))
+            frente, detalle, iso, ventana = tomas
+            fila = tabla.get(str(junta.get("id"))) or {}
+            fijado = fila.get("spec") if fila.get("editado") else None
+            weld = presentar_weld(weld_publicado(junta.get("weld") or {}, fijado), unidad)
             nombre = safe_token(str(junta.get("title") or junta.get("id") or "CORDON")) or "CORDON"
             archivo = f"{nombre}.jpg"
             extra = 2
@@ -488,14 +563,20 @@ def _publicar_fotos(inv, assembly, juntas, dest, cordon, ruta, warnings, borrar:
                 archivo = f"{nombre}_{extra}.jpg"
                 extra += 1
             usados.add(archivo)
+            cara_jpg = str(junta.get("cara") or "").upper()
+            if cara_jpg not in {"SEGM1", "SEGM2", "SEGM3", "SEGM4", "BASE", "TOP"}:
+                cara_jpg = "Weld"
+            carpeta = dest / cara_jpg
+            carpeta.mkdir(parents=True, exist_ok=True)
             save_weld_jpg(
-                dest / archivo,
+                carpeta / archivo,
                 title=str(junta.get("title") or ""),
                 outline=list(junta.get("outline") or []),
                 welds=[weld],
                 frontal=frente,
                 detalle=detalle,
                 iso=iso,
+                vista=ventana,
             )
             files.append(archivo)
     finally:
@@ -536,6 +617,68 @@ def _indice_hojas(assembly, occ_key) -> dict:
         if clave:
             indice[clave] = occ
     return indice
+
+
+def _raiz_nombre(nombre: str) -> str:
+    """El nombre pintado y el ensamble que lo reemplazó comparten esta raíz.
+
+    `261080_Tank-Base_Default<As Machined>_21` y
+    `261080_Tank-Base_Default_As_Machined_:1` quedan en `261080tankbase`.
+    Una pieza hija también cae en la misma raíz, así que el empareje es solo
+    contra ensambles.
+    """
+    texto = str(nombre or "").casefold().replace("<", " ").replace(">", " ")
+    texto = re.sub(r":\d+$", "", texto.strip())
+    texto = re.sub(r"[_\s]+\d+$", "", texto)
+    texto = re.sub(r"[_\s]+", " ", texto)
+    for marca in ("as machined", "default"):
+        texto = texto.replace(marca, " ")
+    return re.sub(r"[^a-z0-9]+", "", texto)
+
+
+def _es_ensamble(occ) -> bool:
+    try:
+        return int(occ.DefinitionDocumentType) == 12291
+    except Exception:
+        return False
+
+
+def _ensambles_por_raiz(assembly) -> dict[str, list]:
+    grupos: dict[str, list] = {}
+
+    def walk(occurrences) -> None:
+        try:
+            count = int(occurrences.Count)
+        except Exception:
+            return
+        for index in range(1, count + 1):
+            try:
+                occ = occurrences.Item(index)
+                if bool(occ.Suppressed) or not _es_ensamble(occ):
+                    continue
+                raiz = _raiz_nombre(str(occ.Name))
+            except Exception:
+                continue
+            if raiz:
+                grupos.setdefault(raiz, []).append(occ)
+            try:
+                walk(occ.SubOccurrences)
+            except Exception:
+                continue
+
+    try:
+        walk(assembly.ComponentDefinition.Occurrences)
+    except Exception:
+        return grupos
+    return grupos
+
+
+def _hojas_del_ensamble(indice: dict, padre, occ_key) -> list:
+    prefijo = str(occ_key(padre) or "").replace("\\", "/").lower()
+    if not prefijo:
+        return []
+    prefijo += "/"
+    return [occ for clave, occ in indice.items() if str(clave).startswith(prefijo)]
 
 
 def _buscar_ocurrencia(indice: dict, miembro: dict):
@@ -715,24 +858,17 @@ def _area_lazo(lazo) -> float:
 
 
 def _ubicar(occ, puntos, normal):
-    """Elige coordenadas de pieza o de ensamble, el que caiga en la placa."""
-    try:
-        caja = occ.RangeBox
-        centro = (
-            (float(caja.MinPoint.X) + float(caja.MaxPoint.X)) / 2,
-            (float(caja.MinPoint.Y) + float(caja.MaxPoint.Y)) / 2,
-            (float(caja.MinPoint.Z) + float(caja.MaxPoint.Z)) / 2,
-        )
-    except Exception:
-        return puntos, normal
+    """Pasa el contorno al ensamble solo si todavía está en la pieza.
+
+    Mirar el primer vértice contra el centro partía las placas: SEGM1 y SEGM3
+    se quedaban en el mismo plano y no tocaban la base.
+    """
     from referencia_snapshot import _matriz
+    from weld_juntas import _caja_cm, _conviene_matriz
 
     matriz = _matriz(occ)
-
-    def lejos(punto) -> float:
-        return sum((punto[eje] - centro[eje]) ** 2 for eje in range(3))
-
-    if not matriz or lejos(puntos[0]) <= lejos(_aplicar(matriz, puntos[0])) + 1.0:
+    minimo, maximo = _caja_cm(occ)
+    if not _conviene_matriz(puntos, minimo, maximo, matriz):
         return puntos, normal
     return [_aplicar(matriz, punto) for punto in puntos], _girar(matriz, normal)
 
@@ -1096,11 +1232,14 @@ def _jpg_name(sheet_name: str, index: int, used: set[str]) -> str:
 def _clear_jpgs(dest: Path) -> None:
     if not dest.is_dir():
         return
-    for file in dest.glob("*.jpg"):
-        try:
-            file.unlink()
-        except OSError:
-            pass
+    carpetas = [dest]
+    carpetas.extend(ruta for ruta in dest.iterdir() if ruta.is_dir())
+    for carpeta in carpetas:
+        for file in carpeta.glob("*.jpg"):
+            try:
+                file.unlink()
+            except OSError:
+                pass
 
 
 def _doc_type(doc) -> int:

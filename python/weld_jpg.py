@@ -34,6 +34,7 @@ def save_weld_jpg(
     iso: Image.Image | None = None,
     width: int = 1760,
     height: int = 980,
+    vista: tuple[float, float, float, float] | None = None,
 ) -> str:
     dest = Path(dest)
     dest.parent.mkdir(parents=True, exist_ok=True)
@@ -47,7 +48,7 @@ def save_weld_jpg(
     image.paste(circulo, (1040, 28))
     image.paste(iso_img, (1120, height - 64 - iso_img.height))
     draw = ImageDraw.Draw(image)
-    _cota_en_cara(draw, outline, weld, frente)
+    _cota_en_cara(draw, outline, weld, frente, vista)
     _filete(
         draw,
         1040 + circulo.width + 12,
@@ -57,6 +58,7 @@ def save_weld_jpg(
         both=int(weld.get("sides") or 1) >= 2,
         typ=bool(weld.get("typ")),
         other=str(weld.get("other") or ""),
+        pitch_other=str(weld.get("pitch_other") or ""),
     )
     font = _font(26, bold=True)
     label = title or "Cordón"
@@ -84,9 +86,22 @@ def _nitidez(imagen: Image.Image) -> Image.Image:
     return imagen.filter(ImageFilter.UnsharpMask(radius=1.4, percent=110, threshold=2))
 
 
+def _quitar_verde(imagen: Image.Image) -> Image.Image:
+    """El resalte de selección tiñe la viñeta de verde. El filete naranja y el azul se quedan."""
+    datos = []
+    for rojo, verde, azul in imagen.getdata():
+        if verde > rojo + 18 and verde > azul + 12 and rojo < 210:
+            gris = int((rojo + verde + azul) / 3)
+            datos.append((gris, gris, gris))
+        else:
+            datos.append((rojo, verde, azul))
+    imagen.putdata(datos)
+    return imagen
+
+
 def _limpiar(imagen: Image.Image, suave: bool = False) -> Image.Image:
     """El fondo azul de Inventor pasa a blanco. El gris del material se queda."""
-    imagen = imagen.convert("RGB")
+    imagen = _quitar_verde(imagen.convert("RGB"))
     umbral = 252 if suave else 242
     datos = []
     for rojo, verde, azul in imagen.getdata():
@@ -245,7 +260,7 @@ def _dientes(lado: int, radio: float, pasos: int) -> list[tuple[float, float]]:
     return puntos
 
 
-def _cota_en_cara(draw: ImageDraw.ImageDraw, outline, weld: dict, frente: tuple[int, int, int, int]) -> None:
+def _cota_en_cara(draw: ImageDraw.ImageDraw, outline, weld: dict, frente: tuple[int, int, int, int], vista=None) -> None:
     huella = weld.get("footprint")
     if not isinstance(huella, (list, tuple)) or len(huella) < 4 or len(outline) < 3:
         return
@@ -255,12 +270,11 @@ def _cota_en_cara(draw: ImageDraw.ImageDraw, outline, weld: dict, frente: tuple[
         (float(huella[2]), float(huella[3])),
         (float(huella[0]), float(huella[3])),
     )
-    puntos = [_en_frente(punto, outline, frente) for punto in esquinas]
+    puntos = [_en_frente(punto, outline, frente, vista) for punto in esquinas]
+    cx, cy = _medio_del_canto(puntos)
+    _trazo_cordon(draw, puntos, weld)
     xs = [punto[0] for punto in puntos]
     ys = [punto[1] for punto in puntos]
-    cx = (min(xs) + max(xs)) / 2
-    cy = (min(ys) + max(ys)) / 2
-    _trazo_cordon(draw, puntos, weld)
     radio = max(18.0, min(max(max(xs) - min(xs), max(ys) - min(ys)) * 0.65, 70.0))
     _circulo_guion(draw, cx, cy, radio)
     texto = str(weld.get("length") or "")
@@ -293,10 +307,7 @@ def _circulo_guion(draw: ImageDraw.ImageDraw, cx: float, cy: float, radio: float
         )
 
 
-def _trazo_cordon(draw: ImageDraw.ImageDraw, puntos: list[tuple[float, float]], weld: dict) -> None:
-    """En la cara completa un filete de 6 mm son unos píxeles. El trazo lo deja ver."""
-    if str(weld.get("tone") or "") != "hermetico" or len(puntos) < 2:
-        return
+def _canto_largo(puntos: list[tuple[float, float]]):
     mejor = None
     largo = 0.0
     for indice, origen in enumerate(puntos):
@@ -306,24 +317,54 @@ def _trazo_cordon(draw: ImageDraw.ImageDraw, puntos: list[tuple[float, float]], 
             mejor = (origen, destino)
             largo = tramo
     if mejor is None or largo < 12:
+        return None
+    return mejor
+
+
+def _medio_del_canto(puntos: list[tuple[float, float]]) -> tuple[float, float]:
+    """El círculo va sobre el cordón, no en el centro de la placa."""
+    canto = _canto_largo(puntos)
+    if canto is None:
+        xs = [punto[0] for punto in puntos] or [0.0]
+        ys = [punto[1] for punto in puntos] or [0.0]
+        return (min(xs) + max(xs)) / 2, (min(ys) + max(ys)) / 2
+    origen, destino = canto
+    return (origen[0] + destino[0]) / 2, (origen[1] + destino[1]) / 2
+
+
+def _trazo_cordon(draw: ImageDraw.ImageDraw, puntos: list[tuple[float, float]], weld: dict) -> None:
+    """En la cara completa un filete de 6 mm son unos píxeles. El trazo lo deja ver."""
+    if str(weld.get("tone") or "") != "hermetico" or len(puntos) < 2:
+        return
+    mejor = _canto_largo(puntos)
+    if mejor is None:
         return
     draw.line((mejor[0][0], mejor[0][1], mejor[1][0], mejor[1][1]), fill=_AZUL, width=6)
 
 
-def _en_frente(punto, outline, frente: tuple[int, int, int, int]) -> tuple[float, float]:
+def _en_frente(punto, outline, frente: tuple[int, int, int, int], vista=None) -> tuple[float, float]:
     """El mismo encuadre que la foto: la placa queda al centro, con el margen de la cámara."""
-    xs = [item[0] for item in outline]
-    ys = [item[1] for item in outline]
-    span_x = max(max(xs) - min(xs), 1.0)
-    span_y = max(max(ys) - min(ys), 1.0)
+    if vista and len(vista) >= 4:
+        u0, v0, u1, v1 = (float(vista[0]), float(vista[1]), float(vista[2]), float(vista[3]))
+        span_x = u1 - u0
+        if abs(span_x) < 1.0:
+            span_x = 1.0 if span_x >= 0.0 else -1.0
+        span_y = max(v1 - v0, 1.0)
+        centro_u = (u0 + u1) / 2.0
+        centro_v = (v0 + v1) / 2.0
+    else:
+        xs = [item[0] for item in outline]
+        ys = [item[1] for item in outline]
+        span_x = max(max(xs) - min(xs), 1.0) * MARGEN_FOTO
+        span_y = max(max(ys) - min(ys), 1.0) * MARGEN_FOTO
+        centro_u = (min(xs) + max(xs)) / 2.0
+        centro_v = (min(ys) + max(ys)) / 2.0
     left, top, right, bottom = frente
     ancho = max(right - left, 1.0)
     alto = max(bottom - top, 1.0)
-    escala_x = ancho / (span_x * MARGEN_FOTO)
-    escala_y = alto / (span_y * MARGEN_FOTO)
     return (
-        (left + right) / 2.0 + (float(punto[0]) - (min(xs) + max(xs)) / 2.0) * escala_x,
-        (top + bottom) / 2.0 - (float(punto[1]) - (min(ys) + max(ys)) / 2.0) * escala_y,
+        (left + right) / 2.0 + (float(punto[0]) - centro_u) * ancho / span_x,
+        (top + bottom) / 2.0 - (float(punto[1]) - centro_v) * alto / span_y,
     )
 
 
@@ -337,6 +378,7 @@ def _filete(
     both: bool,
     typ: bool,
     other: str = "",
+    pitch_other: str = "",
 ) -> None:
     font = _font(22)
     draw.line((x, y, x + 150, y), fill=_LINEA, width=2)
@@ -349,8 +391,8 @@ def _filete(
             draw.text((x + 8, y + 8), other or leg, fill=_SIMBOLO, font=font)
     if pitch:
         draw.text((x + 52, y - 32), pitch, fill=_TEXTO, font=font)
-        if both:
-            draw.text((x + 52, y + 8), pitch, fill=_TEXTO, font=font)
+    if both and (pitch_other or pitch):
+        draw.text((x + 52, y + 8), pitch_other or pitch, fill=_TEXTO, font=font)
     if typ:
         draw.text((x + 168, y - 14), "TYP", fill=_TEXTO, font=font)
 

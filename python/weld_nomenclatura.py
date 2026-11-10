@@ -17,8 +17,8 @@ PRIORIDAD = ROOT / "config" / "weld_prioridad.txt"
 
 HERMETICO = "hermetico"
 ACCESORIO = "accesorio"
-TAMANOS = ["3", "5", "6", "8"]
-PASOS = ["", "10-60", "100-300"]
+TAMANOS = ["3", "5", "6", "8", "9.525"]
+PASOS = ["", "10-60", "100-300", "4-20"]
 PRESETS = [
     "FILLET 3 mm 2SIDES TYP",
     "FILLET 5 mm 2SIDES",
@@ -91,21 +91,99 @@ def spec_de_weld(weld: dict) -> dict:
     }
 
 
-def formato(spec: dict) -> str:
+_CATETO_IN = ((3.0, "1/8"), (5.0, "3/16"), (6.0, "1/4"), (8.0, "5/16"), (9.525, "3/8"))
+
+
+def unidad_de_ruta(ruta: str) -> str:
+    """La misma regla que Acotación. Un TANK es pulgadas aunque la carpeta diga GIGA."""
+    try:
+        from acotacion import classify_assembly
+
+        hit = classify_assembly(Path(str(ruta or "")).name, str(ruta or ""))
+        unidad = str(hit.get("unit") or "in").lower()
+    except Exception:
+        unidad = "in"
+    return "mm" if unidad == "mm" else "in"
+
+
+def _cateto_in(valor) -> str:
+    numero = _numero(valor)
+    if numero is None:
+        return ""
+    for mm, fraccion in _CATETO_IN:
+        if abs(numero - mm) < 0.25:
+            return fraccion
+    if numero > 1.5:
+        return f"{numero / 25.4:.2f}"
+    return _corto(numero)
+
+
+def largo_visible(texto: str, unidad: str) -> str:
+    """El largo guardado está en mm. En un tanque la hoja lo escribe en pulgadas."""
+    crudo = str(texto or "").strip()
+    if not crudo or str(unidad).lower() != "in":
+        return crudo
+    bajo = crudo.lower()
+    if bajo.endswith("in") or bajo.endswith('"') or bajo.endswith("in."):
+        return crudo
+    hallado = re.search(r"\d+(?:[.,]\d+)?", crudo)
+    if not hallado:
+        return crudo
+    mm = float(hallado.group(0).replace(",", "."))
+    return f"{mm / 25.4:.2f} in"
+
+
+def paso_visible(paso: str, unidad: str) -> str:
+    if not paso or str(unidad).lower() != "in":
+        return str(paso or "")
+    partes = str(paso).split("-")
+    if len(partes) != 2:
+        return str(paso)
+    try:
+        inicio, fin = float(partes[0]), float(partes[1])
+    except ValueError:
+        return str(paso)
+    if inicio < 30 and fin < 30:
+        return str(paso)
+    return f"{inicio / 25.4:.2f}-{fin / 25.4:.2f}"
+
+
+def presentar_weld(weld: dict, unidad: str) -> dict:
+    """Copia del símbolo para la hoja. El archivo sigue guardando los milímetros de taller."""
+    salida = dict(weld or {})
+    if str(unidad).lower() != "in":
+        return salida
+    salida["length"] = largo_visible(salida.get("length"), "in")
+    if salida.get("leg"):
+        salida["leg"] = _cateto_in(salida.get("leg"))
+    if salida.get("other"):
+        salida["other"] = _cateto_in(salida.get("other"))
+    if salida.get("pitch"):
+        salida["pitch"] = paso_visible(salida.get("pitch"), "in")
+    if salida.get("pitch_other"):
+        salida["pitch_other"] = paso_visible(salida.get("pitch_other"), "in")
+    return salida
+
+
+def formato(spec: dict, unidad: str = "mm") -> str:
     flecha = _numero(spec.get("flecha")) or 6.0
     dos = bool(spec.get("dos_lados"))
     otro = _numero(spec.get("otro")) if dos else 0.0
     if dos and otro <= 0:
         otro = flecha
+    pulgadas = str(unidad).lower() == "in"
+    marca = "in" if pulgadas else "mm"
+    flecha_txt = _cateto_in(flecha) if pulgadas else _corto(flecha)
+    otro_txt = _cateto_in(otro) if pulgadas else _corto(otro)
     if dos and abs(otro - flecha) > 0.05:
-        texto = f"FILLET {_corto(flecha)}/{_corto(otro)} mm"
+        texto = f"FILLET {flecha_txt}/{otro_txt} {marca}"
     elif dos:
-        texto = f"FILLET {_corto(flecha)} mm 2SIDES"
+        texto = f"FILLET {flecha_txt} {marca} 2SIDES"
     else:
-        texto = f"FILLET {_corto(flecha)} mm"
+        texto = f"FILLET {flecha_txt} {marca}"
     paso = str(spec.get("paso") or "")
     if paso:
-        texto += f" {paso}"
+        texto += f" {paso_visible(paso, unidad)}"
     if spec.get("typ"):
         texto += " TYP"
     return texto
@@ -206,6 +284,24 @@ def junta_vetada(junta: dict, ensamble: dict | None = None) -> bool:
 def filtrar_juntas(ruta: str, juntas: list[dict]) -> list[dict]:
     _datos, ensamble = _buscar(ruta)
     return [junta for junta in juntas if not junta_vetada(junta, ensamble)]
+
+
+def vaciar(ruta: str) -> dict:
+    """Quita los renglones de este tanque. No los recuerda como excluidos."""
+    datos, ensamble = _buscar(ruta)
+    if ensamble is None:
+        datos, ensamble = _entrada(ruta, datos)
+    cantidad = len(ensamble.get("cordones") or [])
+    ensamble["cordones"] = []
+    ensamble["assembly"] = ensamble.get("assembly") or ruta
+    _escribir(datos)
+    resultado = listar(ruta)
+    resultado["ok"] = True
+    if cantidad:
+        resultado["message"] = f"Borré {cantidad} cordones. No guardé el archivo."
+    else:
+        resultado["message"] = "No había cordones en la lista. No guardé el archivo."
+    return resultado
 
 
 def excluir(ruta: str, ident: str) -> dict:
@@ -348,10 +444,20 @@ def listar(ruta: str) -> dict:
         mensaje = "Genera los cordones 3D para llenar la tabla."
         if omitidos:
             mensaje = f"Sin cordones en la tabla. Memoria: {omitidos} unión(es) que no se vuelven a proponer."
+    unidad = unidad_de_ruta(str((ensamble or {}).get("assembly") or ruta))
+    if unidad == "in":
+        visibles = []
+        for item in filas:
+            copia = dict(item)
+            copia["largo"] = largo_visible(copia.get("largo"), "in")
+            copia["texto"] = formato(copia.get("spec") or {}, "in")
+            visibles.append(copia)
+        filas = visibles
     return {
         "ok": True,
         "message": mensaje,
         "assembly": ruta,
+        "unit": unidad,
         "cordones": filas,
         "presets": PRESETS,
         "sizes": TAMANOS,

@@ -113,7 +113,11 @@ def marco_cara(normal, puntos: list[tuple[float, float, float]]) -> dict | None:
 
 
 def simbolo(kind: str, largo_mm: float, cara: str = "") -> dict:
-    """Cateto de taller. Hermético: filete a dos caras, 100-300. Base y tapa usan 6/8."""
+    """Cateto de taller, en mm. Hermético: filete a dos caras, 100-300. Base y tapa usan 6/8.
+
+    Un tanque Vantran no usa esta tabla: `aplicar_pauta_vantran` la sustituye
+    por la de los planos (1/4, 5/16, 3/8 y paso 4-20).
+    """
     if kind == "hermetico":
         otro = 8 if str(cara).upper() in {"BASE", "TOP"} else 6
         return {"leg": "6", "other": str(otro), "pitch": "100-300", "sides": 2, "typ": True}
@@ -125,13 +129,49 @@ def simbolo(kind: str, largo_mm: float, cara: str = "") -> dict:
     return {"leg": "6", "other": "", "pitch": "", "sides": 1, "typ": True}
 
 
+def aplicar_pauta_vantran(juntas: list[dict]) -> list[dict]:
+    """Sustituye el cateto de taller por la pauta de los planos Vantran.
+
+    Los dos planos repiten lo mismo: brida, niple y oil boss a 1/4"; unión de
+    paredes y unión de pared con base a 1/4"; cáncamo a 3/8"; tierra a 1/4".
+    El marco de la base va a 5/16" completo por fuera y 5/16" a 4-20 por dentro.
+    Lo que el plano no nombra conserva el cateto de taller.
+    """
+    for junta in juntas:
+        soldadura = junta.get("weld")
+        if not isinstance(soldadura, dict):
+            continue
+        pauta = _pauta_vantran(junta)
+        if pauta:
+            soldadura.update(pauta)
+    return juntas
+
+
+def _pauta_vantran(junta: dict) -> dict:
+    texto = f"{junta.get('title') or ''} {junta.get('id') or ''}".casefold()
+    if junta.get("kind") == "hermetico":
+        return {"leg": "6", "other": "6", "pitch": "", "sides": 2, "typ": True}
+    if any(marca in texto for marca in ("tank-base", "tank_base", "cuadrobase", "cuadro base", "plaquita")):
+        return {"leg": "8", "other": "8", "pitch": "", "pitch_other": "4-20", "sides": 2, "typ": True}
+    if any(marca in texto for marca in ("lifting lug", "lifting_lug", "d3000")):
+        return {"leg": "9.525", "other": "", "pitch": "", "sides": 1, "typ": True}
+    if any(marca in texto for marca in ("cover", " lid", "tapa")) and "cellar" not in texto:
+        return {"leg": "8", "other": "", "pitch": "4-20", "sides": 1, "typ": True}
+    if any(
+        marca in texto
+        for marca in ("flange", "nipple", "oil boss", "oil_boss", "oil gauge", "oil_gauge", "ground", "tierra", "boss")
+    ):
+        return {"leg": "6", "other": "", "pitch": "", "sides": 1, "typ": True}
+    return {}
+
+
 def armar_juntas(muros: dict, accesorios: list[dict], holgura_mm: float = 40.0) -> list[dict]:
     centro_tanque = _centro_de_muros(muros)
     juntas: list[dict] = []
     for izquierda, derecha in PARES:
         a = muros.get(izquierda)
         b = muros.get(derecha)
-        if not a or not b:
+        if not a or not b or not _costura_permitida(izquierda, derecha, muros):
             continue
         junta = _hermetica(a, b, izquierda, derecha, holgura_mm)
         if junta:
@@ -139,15 +179,113 @@ def armar_juntas(muros: dict, accesorios: list[dict], holgura_mm: float = 40.0) 
             junta["placas_tanque"] = [muro.get("occ") for muro in muros.values() if muro.get("occ") is not None]
             juntas.append(junta)
     for item in accesorios:
-        cara = str(item.get("cara") or "").upper()
-        muro = muros.get(cara)
-        if not muro:
-            continue
-        junta = _accesorio(muro, item, holgura_mm)
-        if junta:
-            junta["centro_tanque"] = centro_tanque
-            juntas.append(junta)
+        for cara in _caras_de_apoyo(item, muros):
+            muro = muros.get(cara)
+            if not muro:
+                continue
+            copia = dict(item)
+            copia["cara"] = cara
+            junta = _accesorio(muro, copia, holgura_mm)
+            if junta:
+                junta["centro_tanque"] = centro_tanque
+                juntas.append(junta)
     return juntas
+
+
+def _nombre_placa(muro) -> str:
+    if not muro:
+        return ""
+    occ = muro.get("occ")
+    if occ is not None:
+        try:
+            return str(occ.Name)
+        except Exception:
+            pass
+    return str(muro.get("nombre") or "")
+
+
+def _tapa_sin_cellar(muro) -> bool:
+    """Una tapa o lid sin collar no se suelda al muro. El cellar sí."""
+    texto = _nombre_placa(muro).casefold()
+    if not texto:
+        return False
+    if any(marca in texto for marca in ("cellar", "collar", "cuello")):
+        return False
+    return any(marca in texto for marca in ("lid", "cover", "tapa"))
+
+
+def _costura_permitida(izquierda: str, derecha: str, muros: dict) -> bool:
+    """Una tapa suelta no se suelda. La base sigue cerrando con los cuatro segmentos."""
+    if "TOP" not in {izquierda, derecha}:
+        return True
+    return not _tapa_sin_cellar(muros.get("TOP"))
+
+
+_APOYO_MM = 12.0
+
+
+def _caras_de_apoyo(item: dict, muros: dict) -> list[str]:
+    """Solo el segmento donde va la pieza, y solo si de verdad lo toca.
+
+    Un accesorio no se suelda a otro accesorio ni a un muro de al lado.
+    """
+    asignada = str(item.get("cara") or "").upper()
+    muro = muros.get(asignada)
+    if muro is None or not _apoya_en(item, muro):
+        return []
+    return [asignada]
+
+
+def _largo_de_apoyo(occ, muro: dict) -> float:
+    """Cuánto de la pieza está pegado a esa placa. Sirve para elegir su segmento."""
+    if occ is None or muro is None:
+        return 0.0
+    aristas = _aristas_mm(occ)
+    if not aristas:
+        return 0.0
+    mayor = 0.0
+    for origen, normal in _planos_paralelos(muro.get("occ"), muro.get("normal")):
+        tocadas = _banda_de_contacto(aristas, origen, normal)
+        mayor = max(mayor, sum(_largo_vector(_resta(fin, inicio)) for inicio, fin in tocadas))
+    return mayor
+
+
+def _hay_apoyo(aristas, circulos, planos) -> bool:
+    """La pieza toca la placa por una arista o por el círculo de una brida."""
+    for origen, normal in planos:
+        if aristas and _banda_de_contacto(aristas, origen, normal):
+            return True
+        if _anillos_exteriores(circulos, origen, normal, 12.0):
+            return True
+    return False
+
+
+def _apoya_en(item: dict, muro: dict) -> bool:
+    occ = item.get("occ")
+    host = muro.get("occ")
+    if occ is not None and host is not None:
+        planos = list(_planos_paralelos(host, muro.get("normal")))
+        return _hay_apoyo(_aristas_mm(occ), _circulos_mm(occ), planos)
+    puntos = item.get("puntos") or _esquinas(item.get("caja"))
+    if not _cerca(puntos, muro, _APOYO_MM):
+        return False
+    return _solapa_contorno(puntos, muro) >= 8.0
+
+
+def _solapa_contorno(puntos, muro: dict) -> float:
+    huella = _huella(puntos, muro)
+    outline = muro.get("outline") or []
+    if not huella or len(outline) < 2:
+        return 0.0
+    xs = [float(punto[0]) for punto in outline]
+    ys = [float(punto[1]) for punto in outline]
+    u0 = max(float(huella[0]), min(xs))
+    u1 = min(float(huella[2]), max(xs))
+    v0 = max(float(huella[1]), min(ys))
+    v1 = min(float(huella[3]), max(ys))
+    if u1 - u0 < 8.0 or v1 - v0 < 8.0:
+        return 0.0
+    return max(u1 - u0, v1 - v0)
 
 
 def _centro_de_muros(muros: dict):
@@ -240,21 +378,30 @@ def _accesorio(muro: dict, item: dict, holgura: float) -> dict | None:
 def _cordon_accesorio(junta, frame, huella, cateto, ambos, otro_cateto) -> list[dict]:
     """Un filete por arista de la pieza que de verdad toca la placa.
 
-    En un segmento la pieza apoya en la cara interior. La cara exterior, la más
-    grande, queda a un espesor y no es el cordón.
+    El filete va en la cara donde está la pieza. Si se elige la de atrás, el
+    cordón queda dentro del tanque y la cota no lo ve.
     """
     normal_muro = _norm(_vector(frame.get("normal"))) or (0.0, 0.0, 1.0)
     candidatos = list(_planos_paralelos(junta.get("host"), normal_muro))
     if not candidatos:
         candidatos = [_plano_de_contacto(frame, junta.get("host"), junta.get("centro"))]
-    crudas = _aristas_mm(junta.get("pieza"))
+    grupos = _aristas_por_cuerpo(junta.get("pieza"))
     circulos = _circulos_mm(junta.get("pieza"))
     opciones = []
     for origen, normal in candidatos:
-        aristas = _solo_cordones_largos(_unir_colineales(_cerca_del_plano(crudas, origen, normal, 2.5), normal))
-        anillos = _anillos_exteriores(circulos, origen, normal, 2.5)
+        aristas = []
+        for crudas in grupos:
+            tocadas = _banda_de_contacto(crudas, origen, normal)
+            aristas.extend(_solo_cordones_largos(_unir_colineales(_contorno_exterior(tocadas, normal), normal)))
+        anillos = _anillos_exteriores(circulos, origen, normal, 12.0)
         opciones.append((origen, normal, aristas, anillos))
-    elegido = _mejor_contacto(opciones)
+    if str(junta.get("cara") or "").upper() == "BASE" and _pieza_del_lado_del_tanque(
+        opciones, junta.get("centro"), junta.get("centro_tanque")
+    ):
+        hacia_tanque = _caras_hacia_el_tanque(opciones, junta.get("centro_tanque"))
+        if hacia_tanque:
+            opciones = hacia_tanque
+    elegido = _mejor_contacto(opciones, junta.get("centro"))
     if elegido is None:
         return []
     origen, normal, aristas, anillos = elegido
@@ -749,26 +896,42 @@ def _filetes_de_arista(nombre, color, inicio, fin, normal_placa, centro_pieza, c
 
 
 def _solo_cordones_largos(aristas) -> list[tuple]:
-    """El canto corto de un ángulo (el espesor) no es un cordón."""
+    """El canto corto de un ángulo (el espesor) no es un cordón.
+
+    Un marco cerrado sí conserva sus cuatro lados, aunque uno sea más corto.
+    """
     if len(aristas) < 2:
         return aristas
     largos = [_largo_vector(_resta(fin, inicio)) for inicio, fin in aristas]
+    if len(aristas) >= 4:
+        return [arista for arista, largo in zip(aristas, largos) if largo >= 25.0]
     mayor = max(largos)
     piso = max(25.0, mayor * 0.35)
     return [arista for arista, largo in zip(aristas, largos) if largo >= piso]
 
 
-def _mejor_contacto(opciones):
-    """La cara paralela al muro que concentra el cordón más largo."""
-    mejor = None
-    mejor_largo = 0.0
-    for origen, normal, aristas, anillos in opciones:
-        largo = sum(_largo_vector(_resta(fin, inicio)) for inicio, fin in aristas)
-        largo += sum(2.0 * math.pi * float(anillo["radio"]) for anillo in anillos)
-        if largo > mejor_largo:
-            mejor_largo = largo
-            mejor = (origen, normal, aristas, anillos)
-    return mejor
+def _largo_contacto(opcion) -> float:
+    _origen, _normal, aristas, anillos = opcion
+    largo = sum(_largo_vector(_resta(fin, inicio)) for inicio, fin in aristas)
+    largo += sum(2.0 * math.pi * float(anillo["radio"]) for anillo in anillos)
+    return largo
+
+
+def _mejor_contacto(opciones, centro=None):
+    """La cara que la pieza toca. La de atrás mete el filete dentro del tanque."""
+    candidatos = [opcion for opcion in opciones if _largo_contacto(opcion) > 0.0]
+    if not candidatos:
+        return None
+    centro = _vector(centro)
+    if centro is None:
+        return max(candidatos, key=_largo_contacto)
+
+    def distancia(opcion) -> float:
+        origen, normal, _aristas, _anillos = opcion
+        eje = _norm(_vector(normal)) or (0.0, 0.0, 1.0)
+        return abs(_dot(_resta(centro, origen), eje))
+
+    return min(candidatos, key=lambda opcion: (distancia(opcion), -_largo_contacto(opcion)))
 
 
 def _planos_paralelos(host, normal_muro) -> list[tuple]:
@@ -789,6 +952,7 @@ def _planos_paralelos(host, normal_muro) -> list[tuple]:
         return []
     centro, matriz = _contexto_mm(host)
     grupos = []
+    crudas = []
     try:
         total = int(cuerpos.Count)
     except Exception:
@@ -810,30 +974,37 @@ def _planos_paralelos(host, normal_muro) -> list[tuple]:
                 area = float(cara.Evaluator.Area)
             except Exception:
                 continue
-            crudo = (float(raiz.X), float(raiz.Y), float(raiz.Z))
-            origen = _mm_ensamble(crudo, centro, matriz)
-            normal = (float(vector.X), float(vector.Y), float(vector.Z))
-            if _largo_vector(_resta(origen, (crudo[0] * 10.0, crudo[1] * 10.0, crudo[2] * 10.0))) > 1.0 and matriz:
-                normal = (
-                    matriz[0][0] * normal[0] + matriz[0][1] * normal[1] + matriz[0][2] * normal[2],
-                    matriz[1][0] * normal[0] + matriz[1][1] * normal[1] + matriz[1][2] * normal[2],
-                    matriz[2][0] * normal[0] + matriz[2][1] * normal[1] + matriz[2][2] * normal[2],
+            crudas.append(
+                (
+                    (float(raiz.X), float(raiz.Y), float(raiz.Z)),
+                    (float(vector.X), float(vector.Y), float(vector.Z)),
+                    area,
                 )
-            normal = _norm(normal)
-            if normal is None or abs(_dot(normal, normal_muro)) < 0.97:
-                continue
-            altura = _dot(origen, normal_muro)
-            grupo = None
-            for candidato in grupos:
-                if abs(candidato["altura"] - altura) <= 1.0:
-                    grupo = candidato
-                    break
-            if grupo is None:
-                grupos.append({"altura": altura, "area": area, "origen": origen, "normal": normal})
-            elif area > grupo["area"]:
-                grupo["area"] = area
-                grupo["origen"] = origen
-                grupo["normal"] = normal
+            )
+    aplicar = _usar_matriz(host, [punto for punto, _normal, _area in crudas], matriz)
+    for crudo, normal, area in crudas:
+        origen = _mm_ensamble(crudo, centro, matriz, aplicar)
+        if aplicar and matriz:
+            normal = (
+                matriz[0][0] * normal[0] + matriz[0][1] * normal[1] + matriz[0][2] * normal[2],
+                matriz[1][0] * normal[0] + matriz[1][1] * normal[1] + matriz[1][2] * normal[2],
+                matriz[2][0] * normal[0] + matriz[2][1] * normal[1] + matriz[2][2] * normal[2],
+            )
+        normal = _norm(normal)
+        if normal is None or abs(_dot(normal, normal_muro)) < 0.97:
+            continue
+        altura = _dot(origen, normal_muro)
+        grupo = None
+        for candidato in grupos:
+            if abs(candidato["altura"] - altura) <= 1.0:
+                grupo = candidato
+                break
+        if grupo is None:
+            grupos.append({"altura": altura, "area": area, "origen": origen, "normal": normal})
+        elif area > grupo["area"]:
+            grupo["area"] = area
+            grupo["origen"] = origen
+            grupo["normal"] = normal
     planos = [(grupo["origen"], grupo["normal"]) for grupo in grupos]
     _PLANOS_MURO[clave] = planos
     return planos
@@ -841,6 +1012,7 @@ def _planos_paralelos(host, normal_muro) -> list[tuple]:
 
 _PLANOS_MURO: dict = {}
 _ARISTAS_MM: dict = {}
+_ARISTAS_CUERPO: dict = {}
 
 
 def _plano_de_contacto(frame, host, centro_pieza):
@@ -875,12 +1047,59 @@ def _aristas_sobre_plano(occ, origen, normal, holgura: float) -> list[tuple]:
 
 
 def _aristas_mm(occ) -> list[tuple]:
+    return [arista for grupo in _aristas_por_cuerpo(occ) for arista in grupo]
+
+
+def _es_ensamble_occ(occ) -> bool:
+    try:
+        return int(occ.DefinitionDocumentType) == 12291
+    except Exception:
+        return False
+
+
+def _clave_occ(occ):
+    """Nombre y caja. El envoltorio COM se recicla y su id() mezcla dos piezas."""
+    try:
+        caja = occ.RangeBox
+        return (
+            str(occ.Name),
+            round(float(caja.MinPoint.X), 3),
+            round(float(caja.MinPoint.Y), 3),
+            round(float(caja.MinPoint.Z), 3),
+            round(float(caja.MaxPoint.X), 3),
+            round(float(caja.MaxPoint.Y), 3),
+            round(float(caja.MaxPoint.Z), 3),
+        )
+    except Exception:
+        return None
+
+
+def _aristas_por_cuerpo(occ) -> list[list[tuple]]:
+    """Aristas rectas por sólido. Un ensamble cuenta como una sola pieza."""
     if occ is None:
         return []
-    clave = id(occ)
-    guardado = _ARISTAS_MM.get(clave)
+    clave = _clave_occ(occ)
+    guardado = _ARISTAS_CUERPO.get(clave) if clave is not None else None
     if guardado is not None:
         return guardado
+    if _es_ensamble_occ(occ):
+        grupos = []
+        try:
+            hijos = occ.SubOccurrences
+            total = int(hijos.Count)
+        except Exception:
+            total = 0
+        for indice in range(1, total + 1):
+            try:
+                hijo = hijos.Item(indice)
+                if bool(hijo.Suppressed):
+                    continue
+            except Exception:
+                continue
+            grupos.extend(_aristas_por_cuerpo(hijo))
+        if clave is not None:
+            _ARISTAS_CUERPO[clave] = grupos
+        return grupos
     crudas = []
     cuerpos = _cuerpos(occ)
     if cuerpos is None:
@@ -890,6 +1109,7 @@ def _aristas_mm(occ) -> list[tuple]:
     except Exception:
         return []
     for cuerpo in range(1, total + 1):
+        del_cuerpo = []
         try:
             aristas = cuerpos.Item(cuerpo).Edges
             cantidad = int(aristas.Count)
@@ -905,18 +1125,28 @@ def _aristas_mm(occ) -> list[tuple]:
                 pb = arista.StopVertex.Point
             except Exception:
                 continue
-            crudas.append(((float(pa.X), float(pa.Y), float(pa.Z)), (float(pb.X), float(pb.Y), float(pb.Z))))
+            del_cuerpo.append(((float(pa.X), float(pa.Y), float(pa.Z)), (float(pb.X), float(pb.Y), float(pb.Z))))
+        if del_cuerpo:
+            crudas.append(del_cuerpo)
     if not crudas:
         return []
     centro, matriz = _contexto_mm(occ)
+    puntos = [punto for grupo in crudas for arista in grupo for punto in arista]
+    aplicar = _usar_matriz(occ, puntos, matriz)
     salida = []
-    for crudo_a, crudo_b in crudas:
-        inicio = _mm_ensamble(crudo_a, centro, matriz)
-        fin = _mm_ensamble(crudo_b, centro, matriz)
-        if _largo_vector(_resta(fin, inicio)) < 8.0:
-            continue
-        salida.append((inicio, fin))
-    _ARISTAS_MM[clave] = salida
+    for grupo in crudas:
+        convertido = []
+        for crudo_a, crudo_b in grupo:
+            inicio = _mm_ensamble(crudo_a, centro, matriz, aplicar)
+            fin = _mm_ensamble(crudo_b, centro, matriz, aplicar)
+            if _largo_vector(_resta(fin, inicio)) < 8.0:
+                continue
+            convertido.append((inicio, fin))
+        if convertido:
+            salida.append(convertido)
+    if clave is not None:
+        _ARISTAS_CUERPO[clave] = salida
+        _ARISTAS_MM[clave] = [arista for grupo in salida for arista in grupo]
     return salida
 
 
@@ -935,6 +1165,200 @@ def _es_recta(arista) -> bool:
         return geometria.Direction is not None
     except Exception:
         return False
+
+
+def _banda_de_contacto(aristas, origen, normal, techo: float = 12.0, banda: float = 2.5) -> list[tuple]:
+    """Aristas paralelas a la placa, en la tanda más pegada.
+
+    Un marco puede quedar a un espesor de la cara. 2.5 mm fijos lo dejaba sin
+    filete; la tanda cercana, hasta 12 mm, sí entra. La arista de atrás del
+    perfil, más lejos, no.
+    """
+    normal = _norm(_vector(normal))
+    origen = _vector(origen)
+    if normal is None or origen is None:
+        return []
+    medidas = []
+    for inicio, fin in aristas:
+        lejos = max(
+            abs(_dot(_resta(inicio, origen), normal)),
+            abs(_dot(_resta(fin, origen), normal)),
+        )
+        if lejos > techo:
+            continue
+        medidas.append((lejos, inicio, fin))
+    if not medidas:
+        return []
+    piso = min(item[0] for item in medidas)
+    return [(inicio, fin) for lejos, inicio, fin in medidas if lejos <= piso + banda]
+
+
+def _pieza_del_lado_del_tanque(opciones, centro_pieza, centro_tanque) -> bool:
+    """Una solera colgada bajo la placa toca la cara de abajo. Ahí no se descarta.
+
+    El canto que iría al piso queda fuera por la banda de 12 mm. Una pieza
+    apoyada encima sí sigue usando la cara más cercana al tanque.
+    """
+    pieza = _vector(centro_pieza)
+    tanque = _vector(centro_tanque)
+    if pieza is None or tanque is None:
+        return True
+    pares = []
+    for origen, normal, aristas, anillos in opciones:
+        if not aristas and not anillos:
+            continue
+        raiz = _vector(origen)
+        eje = _norm(_vector(normal))
+        if raiz is None or eje is None:
+            continue
+        pares.append((abs(_dot(_resta(pieza, raiz), eje)), abs(_dot(_resta(tanque, raiz), eje))))
+    if not pares:
+        return True
+    cerca_pieza = min(item[0] for item in pares)
+    cerca_tanque = min(item[1] for item in pares)
+    return any(distancia_pieza <= cerca_pieza + 2.0 and distancia_tanque <= cerca_tanque + 2.0 for distancia_pieza, distancia_tanque in pares)
+
+
+def _caras_hacia_el_tanque(opciones, centro_tanque):
+    """La cara de abajo de la base es el piso. El filete va en la más cercana al tanque."""
+    centro = _vector(centro_tanque)
+    if centro is None:
+        return []
+    medidas = []
+    for origen, normal, aristas, anillos in opciones:
+        if not aristas and not anillos:
+            continue
+        eje = _norm(_vector(normal))
+        raiz = _vector(origen)
+        if eje is None or raiz is None:
+            continue
+        distancia = abs(_dot(_resta(centro, raiz), eje))
+        medidas.append((distancia, (origen, normal, aristas, anillos)))
+    if not medidas:
+        return []
+    cerca = min(item[0] for item in medidas)
+    return [opcion for distancia, opcion in medidas if distancia <= cerca + 2.0]
+
+
+def _contorno_exterior(aristas, normal) -> list[tuple]:
+    """La ranura del cáncamo no se suelda. La solera interna del bastidor sí.
+
+    El casco quita la ranura y la horquilla, que quedan dentro del perímetro.
+    Una barra del entramado también cae dentro, pero es larga y tiene la otra
+    arista de su cara a unos milímetros. Esa pareja se conserva.
+    """
+    if len(aristas) < 3:
+        return aristas
+    eje = _norm(_vector(normal)) or (0.0, 0.0, 1.0)
+    u, v = _ejes_de_plano(eje)
+    if u is None or v is None:
+        return aristas
+    planos = []
+    for inicio, fin in aristas:
+        planos.append((_dot(inicio, u), _dot(inicio, v)))
+        planos.append((_dot(fin, u), _dot(fin, v)))
+    casco = _casco_convexo(planos)
+    if len(casco) < 3:
+        return aristas
+    salida = []
+    interiores = []
+    for inicio, fin in aristas:
+        medio = _escala(_suma_vec(inicio, fin), 0.5)
+        punto = (_dot(medio, u), _dot(medio, v))
+        punta = (_dot(fin, u), _dot(fin, v))
+        if _sobre_el_casco(punto, casco) <= 2.0:
+            salida.append((inicio, fin))
+        else:
+            interiores.append((inicio, fin, punto, punta))
+    salida.extend(_barras_interiores(interiores, casco))
+    return salida or aristas
+
+
+def _barras_interiores(interiores, casco) -> list[tuple]:
+    """La solera que cruza por dentro del marco, no la ranura del cáncamo."""
+    salida = []
+    usadas = set()
+    for indice, (inicio, fin, punto, punta) in enumerate(interiores):
+        if indice in usadas:
+            continue
+        if _largo_vector(_resta(fin, inicio)) < 400.0:
+            continue
+        if _sobre_el_casco(punto, casco) < 40.0:
+            continue
+        direccion = _norm((punta[0] - punto[0], punta[1] - punto[1], 0.0))
+        if direccion is None:
+            continue
+        for otro, (inicio_b, fin_b, punto_b, punta_b) in enumerate(interiores):
+            if otro <= indice or otro in usadas:
+                continue
+            if _largo_vector(_resta(fin_b, inicio_b)) < 400.0:
+                continue
+            if _sobre_el_casco(punto_b, casco) < 40.0:
+                continue
+            otra = _norm((punta_b[0] - punto_b[0], punta_b[1] - punto_b[1], 0.0))
+            if otra is None or abs(direccion[0] * otra[0] + direccion[1] * otra[1]) < 0.985:
+                continue
+            delta = (punto_b[0] - punto[0], punto_b[1] - punto[1])
+            avance = abs(delta[0] * direccion[0] + delta[1] * direccion[1])
+            lateral = abs(delta[0] * direccion[1] - delta[1] * direccion[0])
+            if lateral < 6.0 or lateral > 45.0 or avance > 80.0:
+                continue
+            usadas.add(indice)
+            usadas.add(otro)
+            salida.append((inicio, fin))
+            salida.append((inicio_b, fin_b))
+            break
+    return salida
+
+
+def _ejes_de_plano(normal):
+    guia = (0.0, 0.0, 1.0) if abs(normal[2]) < 0.9 else (0.0, 1.0, 0.0)
+    u = _norm(_cross(guia, normal))
+    v = _norm(_cross(normal, u)) if u is not None else None
+    return u, v
+
+
+def _casco_convexo(puntos) -> list[tuple]:
+    unicos = sorted({(round(punto[0], 2), round(punto[1], 2)) for punto in puntos})
+    if len(unicos) <= 2:
+        return unicos
+
+    def cruz(origen, a, b) -> float:
+        return (a[0] - origen[0]) * (b[1] - origen[1]) - (a[1] - origen[1]) * (b[0] - origen[0])
+
+    inferior = []
+    for punto in unicos:
+        while len(inferior) >= 2 and cruz(inferior[-2], inferior[-1], punto) <= 0:
+            inferior.pop()
+        inferior.append(punto)
+    superior = []
+    for punto in reversed(unicos):
+        while len(superior) >= 2 and cruz(superior[-2], superior[-1], punto) <= 0:
+            superior.pop()
+        superior.append(punto)
+    return inferior[:-1] + superior[:-1]
+
+
+def _sobre_el_casco(punto, casco) -> float:
+    mejor = None
+    total = len(casco)
+    for indice, origen in enumerate(casco):
+        fin = casco[(indice + 1) % total]
+        distancia = _distancia_segmento_2d(punto, origen, fin)
+        if mejor is None or distancia < mejor:
+            mejor = distancia
+    return mejor if mejor is not None else 0.0
+
+
+def _distancia_segmento_2d(punto, inicio, fin) -> float:
+    delta = (fin[0] - inicio[0], fin[1] - inicio[1])
+    largo = delta[0] ** 2 + delta[1] ** 2
+    if largo <= 1e-9:
+        return ((punto[0] - inicio[0]) ** 2 + (punto[1] - inicio[1]) ** 2) ** 0.5
+    avance = ((punto[0] - inicio[0]) * delta[0] + (punto[1] - inicio[1]) * delta[1]) / largo
+    avance = min(1.0, max(0.0, avance))
+    proy = (inicio[0] + delta[0] * avance, inicio[1] + delta[1] * avance)
+    return ((punto[0] - proy[0]) ** 2 + (punto[1] - proy[1]) ** 2) ** 0.5
 
 
 def _cerca_del_plano(aristas, origen, normal, holgura: float) -> list[tuple]:
@@ -986,18 +1410,66 @@ def _contexto_mm(occ):
     return centro, matriz
 
 
-def _mm_ensamble(punto, centro, matriz) -> tuple:
-    """Pasa la arista a milímetros del ensamble. Inventor entrega cm, a veces de la pieza."""
-    elegido = punto
-    if centro is not None and matriz:
-        movido = (
-            matriz[0][0] * punto[0] + matriz[0][1] * punto[1] + matriz[0][2] * punto[2] + matriz[0][3],
-            matriz[1][0] * punto[0] + matriz[1][1] * punto[1] + matriz[1][2] * punto[2] + matriz[1][3],
-            matriz[2][0] * punto[0] + matriz[2][1] * punto[1] + matriz[2][2] * punto[2] + matriz[2][3],
-        )
-        if _largo_vector(_resta(punto, centro)) > _largo_vector(_resta(movido, centro)) + 0.1:
-            elegido = movido
-    return (elegido[0] * 10.0, elegido[1] * 10.0, elegido[2] * 10.0)
+def _aplicar_matriz(punto, matriz) -> tuple:
+    return (
+        matriz[0][0] * punto[0] + matriz[0][1] * punto[1] + matriz[0][2] * punto[2] + matriz[0][3],
+        matriz[1][0] * punto[0] + matriz[1][1] * punto[1] + matriz[1][2] * punto[2] + matriz[1][3],
+        matriz[2][0] * punto[0] + matriz[2][1] * punto[1] + matriz[2][2] * punto[2] + matriz[2][3],
+    )
+
+
+def _conviene_matriz(puntos, minimo, maximo, matriz) -> bool:
+    """True solo si los puntos están en la pieza y la matriz los mete en el ensamble.
+
+    La misma barra se decide entera. Si cada vértice elige por su cuenta, el
+    extremo lejano se traslada y el cercano no: el filete sale de la placa.
+    """
+    if not matriz or not puntos or minimo is None or maximo is None:
+        return False
+
+    def dentro(punto) -> bool:
+        return all(minimo[eje] - 1.0 <= punto[eje] <= maximo[eje] + 1.0 for eje in range(3))
+
+    crudos = sum(1 for punto in puntos if dentro(punto))
+    if crudos * 2 >= len(puntos):
+        return False
+    movidos = sum(1 for punto in puntos if dentro(_aplicar_matriz(punto, matriz)))
+    return movidos > crudos
+
+
+_USAR_MATRIZ: dict = {}
+
+
+def _usar_matriz(occ, puntos, matriz) -> bool:
+    if occ is None:
+        return False
+    clave = _clave_occ(occ)
+    guardado = _USAR_MATRIZ.get(clave) if clave is not None else None
+    if guardado is not None:
+        return guardado
+    minimo, maximo = _caja_cm(occ)
+    flag = _conviene_matriz(puntos, minimo, maximo, matriz)
+    if clave is not None:
+        _USAR_MATRIZ[clave] = flag
+    return flag
+
+
+def _caja_cm(occ):
+    try:
+        caja = occ.RangeBox
+        minimo = (float(caja.MinPoint.X), float(caja.MinPoint.Y), float(caja.MinPoint.Z))
+        maximo = (float(caja.MaxPoint.X), float(caja.MaxPoint.Y), float(caja.MaxPoint.Z))
+    except Exception:
+        return None, None
+    return minimo, maximo
+
+
+def _mm_ensamble(punto, centro, matriz, aplicar: bool = False) -> tuple:
+    """Pasa la arista a milímetros del ensamble. Inventor entrega centímetros."""
+    _ = centro
+    if aplicar and matriz:
+        punto = _aplicar_matriz(punto, matriz)
+    return (punto[0] * 10.0, punto[1] * 10.0, punto[2] * 10.0)
 
 
 def _factor_mm(occ, punto) -> float:
@@ -1092,7 +1564,7 @@ def _centro_contorno(frame, outline):
 
 
 def _anillos_exteriores(circulos, origen, normal, holgura: float) -> list[dict]:
-    """De cada brida, el círculo mayor que está pegado a la placa."""
+    """El círculo que toca la placa. El de la cara de afuera de la brida no se suelda."""
     normal = _norm(_vector(normal))
     origen = _vector(origen)
     if normal is None or origen is None:
@@ -1103,28 +1575,51 @@ def _anillos_exteriores(circulos, origen, normal, holgura: float) -> list[dict]:
         centro = _vector(circulo.get("centro"))
         if eje is None or centro is None or abs(_dot(eje, normal)) < 0.97:
             continue
-        if abs(_dot(_resta(centro, origen), normal)) > holgura:
+        distancia = abs(_dot(_resta(centro, origen), normal))
+        if distancia > holgura:
             continue
         radio = float(circulo.get("radio") or 0)
         if radio < 4.0:
             continue
+        proyeccion = _resta(centro, _escala(normal, _dot(_resta(centro, origen), normal)))
         grupo = None
         for candidato in grupos:
-            if _largo_vector(_resta(centro, candidato["centro"])) <= 2.0:
+            if _largo_vector(_resta(proyeccion, candidato["proyeccion"])) <= 2.0:
                 grupo = candidato
                 break
         if grupo is None:
-            grupos.append({"centro": centro, "radio": radio})
-        elif radio > grupo["radio"]:
-            grupo["centro"] = centro
-            grupo["radio"] = radio
-    return grupos
+            grupos.append({"proyeccion": proyeccion, "items": [(distancia, radio, centro)]})
+        else:
+            grupo["items"].append((distancia, radio, centro))
+    anillos = []
+    for grupo in grupos:
+        cerca = min(item[0] for item in grupo["items"])
+        en_placa = [item for item in grupo["items"] if item[0] <= cerca + 2.5]
+        _distancia, radio, centro = max(en_placa, key=lambda item: item[1])
+        anillos.append({"centro": centro, "radio": radio})
+    return anillos
 
 
 def _circulos_mm(occ) -> list[dict]:
     """Círculos cerrados de la pieza, en milímetros. Un arco de esquina no entra."""
     if occ is None:
         return []
+    if _es_ensamble_occ(occ):
+        circulos = []
+        try:
+            hijos = occ.SubOccurrences
+            total = int(hijos.Count)
+        except Exception:
+            return circulos
+        for indice in range(1, total + 1):
+            try:
+                hijo = hijos.Item(indice)
+                if bool(hijo.Suppressed):
+                    continue
+            except Exception:
+                continue
+            circulos.extend(_circulos_mm(hijo))
+        return circulos
     cuerpos = _cuerpos(occ)
     if cuerpos is None:
         return []
@@ -1133,7 +1628,7 @@ def _circulos_mm(occ) -> list[dict]:
     except Exception:
         return []
     centro_caja, matriz = _contexto_mm(occ)
-    salida = []
+    crudos = []
     for cuerpo in range(1, total + 1):
         try:
             aristas = cuerpos.Item(cuerpo).Edges
@@ -1151,22 +1646,33 @@ def _circulos_mm(occ) -> list[dict]:
                 pb = arista.StopVertex.Point
             except Exception:
                 continue
-            centro = _mm_ensamble((float(crudo.X), float(crudo.Y), float(crudo.Z)), centro_caja, matriz)
-            inicio = _mm_ensamble((float(pa.X), float(pa.Y), float(pa.Z)), centro_caja, matriz)
-            fin = _mm_ensamble((float(pb.X), float(pb.Y), float(pb.Z)), centro_caja, matriz)
-            if _largo_vector(_resta(fin, inicio)) > 1.5:
-                continue
-            normal = (float(vector.X), float(vector.Y), float(vector.Z))
-            if _largo_vector(_resta(centro, (float(crudo.X) * 10.0, float(crudo.Y) * 10.0, float(crudo.Z) * 10.0))) > 1.0 and matriz:
-                normal = (
-                    matriz[0][0] * normal[0] + matriz[0][1] * normal[1] + matriz[0][2] * normal[2],
-                    matriz[1][0] * normal[0] + matriz[1][1] * normal[1] + matriz[1][2] * normal[2],
-                    matriz[2][0] * normal[0] + matriz[2][1] * normal[1] + matriz[2][2] * normal[2],
+            crudos.append(
+                (
+                    (float(crudo.X), float(crudo.Y), float(crudo.Z)),
+                    (float(pa.X), float(pa.Y), float(pa.Z)),
+                    (float(pb.X), float(pb.Y), float(pb.Z)),
+                    (float(vector.X), float(vector.Y), float(vector.Z)),
+                    radio,
                 )
-            normal = _norm(normal)
-            if normal is None:
-                continue
-            salida.append({"centro": centro, "normal": normal, "radio": radio * 10.0})
+            )
+    aplicar = _usar_matriz(occ, [centro for centro, _a, _b, _normal, _radio in crudos], matriz)
+    salida = []
+    for crudo, pa, pb, normal, radio in crudos:
+        centro = _mm_ensamble(crudo, centro_caja, matriz, aplicar)
+        inicio = _mm_ensamble(pa, centro_caja, matriz, aplicar)
+        fin = _mm_ensamble(pb, centro_caja, matriz, aplicar)
+        if _largo_vector(_resta(fin, inicio)) > 1.5:
+            continue
+        if aplicar and matriz:
+            normal = (
+                matriz[0][0] * normal[0] + matriz[0][1] * normal[1] + matriz[0][2] * normal[2],
+                matriz[1][0] * normal[0] + matriz[1][1] * normal[1] + matriz[1][2] * normal[2],
+                matriz[2][0] * normal[0] + matriz[2][1] * normal[1] + matriz[2][2] * normal[2],
+            )
+        normal = _norm(normal)
+        if normal is None:
+            continue
+        salida.append({"centro": centro, "normal": normal, "radio": radio * 10.0})
     return salida
 
 
@@ -1283,6 +1789,15 @@ def _frame(muro: dict) -> dict:
 
 
 def _quien_se_ve(a: str, b: str) -> tuple[str, str]:
+    """La esquina vertical se acota en el segmento 2 o 4. El 1 y el 3 no se la quedan.
+
+    El cordón con la base sigue en su propio segmento.
+    """
+    cabezal = {"SEGM2", "SEGM4"}
+    if a in cabezal and b not in cabezal:
+        return a, b
+    if b in cabezal and a not in cabezal:
+        return b, a
     orden = {nombre: index for index, nombre in enumerate(_VISTA)}
     if orden.get(a, 9) <= orden.get(b, 9):
         return a, b

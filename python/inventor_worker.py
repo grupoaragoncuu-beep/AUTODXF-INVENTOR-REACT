@@ -87,6 +87,10 @@ def main() -> None:
         from weld_nomenclatura import run_inventor
 
         result = run_inventor(payload)
+    elif command == "multibody":
+        from multibody import run_multibody
+
+        result = run_multibody()
     elif command == "export":
         result = export_dxf(
             str(payload.get("exportRoot") or ""),

@@ -12,6 +12,21 @@ _NEGATIVO = 20994
 _APARIENCIA = 2
 _NARANJA = (230, 110, 15)
 _AZUL = (15, 75, 190)
+_MUROS = {"SEGM1", "SEGM2", "SEGM3", "SEGM4", "BASE", "TOP"}
+
+
+def _nombre_invertido(nombre: str) -> str:
+    """El filete de una esquina se creó con el otro muro adelante.
+
+    La hoja ahora se llama SEGM4_SEGM1 y el sólido sigue siendo SEGM1_SEGM4.
+    """
+    partes = str(nombre or "").split("_")
+    if len(partes) != 2:
+        return ""
+    a, b = partes
+    if a in _MUROS and b in _MUROS and a != b:
+        return f"{b}_{a}"
+    return ""
 
 
 class Cordones:
@@ -191,8 +206,13 @@ class Cordones:
 
     def mostrar(self, nombre: str) -> None:
         claves = {str(nombre or "")}
-        for item in self.por_junta.get(str(nombre or "")) or []:
-            claves.add(str(item))
+        invertido = _nombre_invertido(nombre)
+        if invertido:
+            claves.add(invertido)
+        for ident in (str(nombre or ""), invertido):
+            for item in self.por_junta.get(ident) or []:
+                claves.add(str(item))
+        claves.discard("")
 
         def es_de(titulo: str) -> bool:
             return any(titulo == clave or titulo.startswith(clave + "_") for clave in claves if clave)
@@ -329,37 +349,102 @@ def _recorrer(assembly) -> list:
     return salida
 
 
-def _quitar_anteriores(assembly) -> None:
-    """Un pase nuevo reemplaza los filetes de la vez anterior. No toca las piezas del tanque."""
-    try:
-        ocurrencias = assembly.ComponentDefinition.Occurrences
-        total = int(ocurrencias.Count)
-    except Exception:
-        return
-    viejos = []
-    for indice in range(1, total + 1):
+def _ocurrencias_de_cordon(assembly) -> list:
+    """Los dos sólidos de soldadura, naranja y azul, en cualquier nivel del ensamble."""
+    hallados = []
+    vistos: set[int] = set()
+
+    def tomar(occ) -> None:
         try:
-            occ = ocurrencias.Item(indice)
-            nombre = str(getattr(occ, "Name", "") or "")
+            nombre = str(occ.Name or "")
         except Exception:
-            continue
-        if nombre.startswith("WELD_ANOTATION"):
-            viejos.append(occ)
-    for occ in viejos:
-        documento = None
+            return
+        if "WELD_ANOTATION" not in nombre.upper():
+            return
+        marca = id(occ)
+        if marca in vistos:
+            return
+        vistos.add(marca)
+        hallados.append(occ)
+
+    def bajar(ocurrencias) -> None:
         try:
-            documento = occ.Definition.Document
+            total = int(ocurrencias.Count)
         except Exception:
-            documento = None
-        try:
-            occ.Delete()
-        except Exception:
-            continue
-        if documento is not None:
+            return
+        for indice in range(1, total + 1):
             try:
-                documento.Close(True)
+                occ = ocurrencias.Item(indice)
             except Exception:
-                pass
+                continue
+            tomar(occ)
+            try:
+                if int(occ.DefinitionDocumentType) == 12291:
+                    bajar(occ.SubOccurrences)
+            except Exception:
+                continue
+
+    try:
+        bajar(assembly.ComponentDefinition.Occurrences)
+    except Exception:
+        return hallados
+    return hallados
+
+
+def _quitar_anteriores(assembly) -> dict:
+    """Saca naranja y azul juntos. No toca las piezas del tanque."""
+    from inventor_session import _inventor
+
+    viejos = _ocurrencias_de_cordon(assembly)
+    if not viejos:
+        return {"borrados": 0, "quedan": 0}
+    inv = _inventor()
+    pantalla = True
+    try:
+        pantalla = bool(inv.ScreenUpdating)
+        inv.ScreenUpdating = False
+    except Exception:
+        pantalla = True
+    documentos = []
+    for occ in viejos:
+        try:
+            documentos.append(occ.Definition.Document)
+        except Exception:
+            pass
+        try:
+            occ.Grounded = False
+        except Exception:
+            pass
+    try:
+        coleccion = inv.TransientObjects.CreateObjectCollection()
+        for occ in viejos:
+            coleccion.Add(occ)
+        assembly.ComponentDefinition.DeleteObjects(coleccion, False)
+    except Exception:
+        for _ in range(len(viejos)):
+            pendientes = _ocurrencias_de_cordon(assembly)
+            if not pendientes:
+                break
+            try:
+                pendientes[-1].Delete()
+            except Exception:
+                break
+    for documento in documentos:
+        try:
+            documento.Close(True)
+        except Exception:
+            pass
+    try:
+        assembly.Update()
+    except Exception:
+        pass
+    try:
+        inv.ScreenUpdating = pantalla
+        inv.ActiveView.Update()
+    except Exception:
+        pass
+    quedan = len(_ocurrencias_de_cordon(assembly))
+    return {"borrados": max(0, len(viejos) - quedan), "quedan": quedan}
 
 
 def _anillo(inv, definicion, tg, pieza) -> tuple[object | None, str]:
