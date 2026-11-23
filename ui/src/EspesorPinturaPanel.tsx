@@ -94,7 +94,7 @@ export function EspesorPinturaPanel({
       <section className="space-y-2">
         <div className="flex flex-wrap items-center gap-2">
           <Button disabled={locked || !assemblyPath} onClick={() => void correr(false)}>
-            Generar las tres
+            Generar las cuatro
           </Button>
           <Button variant="outline" disabled={locked} onClick={() => void correr(true)}>
             Muestra de 4 segmentos
@@ -112,7 +112,7 @@ export function EspesorPinturaPanel({
           Tanque OTC: en Poliuretano el esquema incluye Zinc. Los puntos no se duplican.
         </label>
         <p className="text-muted-foreground text-xs">
-          Un clic saca las tres señalaciones, cada una en su carpeta: Thermox, Zinc y Macro, y Poliuretano. El JPG es el alzado de esa cara del tanque, con los puntos encima. No entra a la base de datos.
+          Un clic saca las cuatro señalaciones, cada una en su carpeta: Thermox, Zinc y Macro, Poliuretano, y shot blast. Shot blast marca igual que Poliuretano. El JPG es el alzado de esa cara del tanque, con los puntos encima. No entra a la base de datos.
         </p>
       </section>
 

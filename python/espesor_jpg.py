@@ -2,9 +2,12 @@
 
 from __future__ import annotations
 
+import re
 from pathlib import Path
 
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
+
+from espesor_geo import NOMBRE_OCULTA
 
 CM_A_IN = 1 / 2.54
 ROJO = (220, 38, 38)
@@ -13,6 +16,7 @@ TINTA = (23, 23, 23)
 SUAVE = (90, 90, 90)
 LINEA = (40, 40, 40)
 CAJA = (210, 210, 210)
+RADIO = 20
 
 
 def dibujar_trazos(
@@ -24,6 +28,7 @@ def dibujar_trazos(
     ancho: float,
     alto: float,
     puntos: list[dict],
+    radio: int = RADIO,
 ) -> None:
     """Contorno real de las caras (aristas), no la caja del RangeBox."""
     ruta = Path(ruta)
@@ -48,14 +53,11 @@ def dibujar_trazos(
             draw.line(pts, fill=LINEA, width=2)
     for punto in puntos:
         cx, cy = px(float(punto["x"]), float(punto["y"]))
-        _circulo(draw, cx, cy, punto, fuente_sm)
+        _circulo(draw, cx, cy, punto, radio)
     draw.text((margen, 8), titulo, fill=TINTA, font=fuente)
     draw.text((margen, 30), subtitulo, fill=SUAVE, font=fuente_xs)
-    _leyenda(draw, puntos, lienzo_w + margen * 2 + 8, margen, fuente_sm, fuente_xs)
-    pie = (
-        f"{ancho * CM_A_IN:.1f} in × {alto * CM_A_IN:.1f} in"
-        "   ·   Contorno de las caras. Sin escritura en la base de datos."
-    )
+    _leyenda(draw, puntos, lienzo_w + margen * 2 + 8, margen, fuente_sm, fuente_xs, radio)
+    pie = f"{ancho * CM_A_IN:.1f} in × {alto * CM_A_IN:.1f} in"
     draw.text((margen, imagen.height - 22), pie, fill=SUAVE, font=fuente_xs)
     imagen.save(ruta, format="JPEG", quality=92)
 
@@ -226,6 +228,7 @@ def guardar_foto(
     alto: float,
     puntos: list[dict],
     pie: str = "Alzado del ensamble",
+    radio: int = RADIO,
 ) -> None:
     """La foto es el alzado del ensamble. El título no la tapa."""
     ruta = Path(ruta)
@@ -243,12 +246,9 @@ def guardar_foto(
     draw.text((16, 26), subtitulo, fill=SUAVE, font=fuente_xs)
     for punto in puntos:
         cx, cy = px(float(punto["x"]), float(punto["y"]))
-        _circulo(draw, cx, cy + titulo_h, punto, fuente_sm)
-    _leyenda(draw, puntos, lienzo.width + 16, titulo_h, fuente_sm, fuente_xs)
-    pie = (
-        f"{ancho * CM_A_IN:.1f} in × {alto * CM_A_IN:.1f} in"
-        f"   ·   {pie}. Sin escritura en la base de datos."
-    )
+        _circulo(draw, cx, cy + titulo_h, punto, radio)
+    _leyenda(draw, puntos, lienzo.width + 16, titulo_h, fuente_sm, fuente_xs, radio)
+    pie = f"{ancho * CM_A_IN:.1f} in × {alto * CM_A_IN:.1f} in   ·   {pie}"
     draw.text((16, salida.height - 22), pie, fill=SUAVE, font=fuente_xs)
     salida.save(ruta, format="JPEG", quality=92)
 
@@ -263,6 +263,7 @@ def guardar_vista(
     ancho: float,
     alto: float,
     puntos: list[dict],
+    radio: int = RADIO,
 ) -> None:
     """Pega los puntos sobre el alzado ya dibujado del tanque."""
     ruta = Path(ruta)
@@ -280,21 +281,18 @@ def guardar_vista(
     draw.text((16, 28), subtitulo, fill=SUAVE, font=fuente_xs)
     for punto in puntos:
         cx, cy = px(float(punto["x"]), float(punto["y"]))
-        _circulo(draw, cx, cy, punto, fuente_sm)
-    _leyenda(draw, puntos, lienzo.width + 16, 16, fuente_sm, fuente_xs)
-    pie = (
-        f"{ancho * CM_A_IN:.1f} in × {alto * CM_A_IN:.1f} in"
-        "   ·   Prueba local. Estas cotas no se escriben en la base de datos."
-    )
+        _circulo(draw, cx, cy, punto, radio)
+    _leyenda(draw, puntos, lienzo.width + 16, 16, fuente_sm, fuente_xs, radio)
+    pie = f"{ancho * CM_A_IN:.1f} in × {alto * CM_A_IN:.1f} in"
     draw.text((16, lienzo.height - 22), pie, fill=SUAVE, font=fuente_xs)
     salida.save(ruta, format="JPEG", quality=90)
 
 
-def _circulo(draw, cx, cy, punto, fuente) -> None:
-    radio = 13
+def _circulo(draw, cx, cy, punto, radio: int = RADIO) -> None:
     color = AZUL if punto.get("color") == "azul" else ROJO
     draw.ellipse((cx - radio, cy - radio, cx + radio, cy + radio), fill=color, outline=color)
     texto = str(punto.get("numero") or "")
+    fuente = _fuente(round(radio * 1.05))
     caja = draw.textbbox((0, 0), texto, font=fuente)
     draw.text(
         (cx - (caja[2] - caja[0]) / 2, cy - (caja[3] - caja[1]) / 2 - 1),
@@ -313,6 +311,7 @@ def guardar(
     alto: float,
     puntos: list[dict],
     partes: list[dict] | None = None,
+    radio: int = RADIO,
 ) -> None:
     """ancho/alto y coordenadas en cm. La cota impresa va en pulgadas."""
     ruta = Path(ruta)
@@ -343,10 +342,9 @@ def guardar(
     for punto in puntos:
         cx = ox + float(punto["x"]) * escala
         cy = oy + alto_dibujo - float(punto["y"]) * escala
-        _circulo(draw, cx, cy, punto, fuente_sm)
-    _leyenda(draw, puntos, ox + lienzo_ancho + 16, oy, fuente_sm, fuente_xs)
-    pulgadas = f'{ancho * CM_A_IN:.1f} in × {alto * CM_A_IN:.1f} in'
-    pie = f"{pulgadas}   ·   Prueba local. Estas cotas no se escriben en la base de datos."
+        _circulo(draw, cx, cy, punto, radio)
+    _leyenda(draw, puntos, ox + lienzo_ancho + 16, oy, fuente_sm, fuente_xs, radio)
+    pie = f"{ancho * CM_A_IN:.1f} in × {alto * CM_A_IN:.1f} in"
     draw.text((margen_x, oy + alto_dibujo + 10), pie, fill=SUAVE, font=fuente_xs)
     imagen.save(ruta, format="JPEG", quality=90)
 
@@ -362,40 +360,30 @@ def _caja(draw, parte, ox, oy, alto_dibujo, escala, fuente) -> None:
         draw.text((x0 + 2, max(oy, y0 - 14)), nombre[:28], fill=SUAVE, font=fuente)
 
 
-def _punto(draw, punto, ox, oy, alto_dibujo, escala, fuente) -> None:
+def _punto(draw, punto, ox, oy, alto_dibujo, escala, fuente, radio: int = RADIO) -> None:
     cx = ox + float(punto["x"]) * escala
     cy = oy + alto_dibujo - float(punto["y"]) * escala
-    radio = 13
-    color = AZUL if punto.get("color") == "azul" else ROJO
-    draw.ellipse((cx - radio, cy - radio, cx + radio, cy + radio), fill=color, outline=color)
-    texto = str(punto.get("numero") or "")
-    caja = draw.textbbox((0, 0), texto, font=fuente)
-    draw.text(
-        (cx - (caja[2] - caja[0]) / 2, cy - (caja[3] - caja[1]) / 2 - 1),
-        texto,
-        fill="white",
-        font=fuente,
-    )
+    _circulo(draw, cx, cy, punto, radio)
 
 
-def _leyenda(draw, puntos, x, y, fuente, fuente_xs) -> None:
+def _leyenda(draw, puntos, x, y, fuente, fuente_xs, radio: int = RADIO) -> None:
+    marca = round(radio * 0.75)
     draw.text((x, y), "Puntos", fill=TINTA, font=fuente)
     y += 22
     for punto in puntos:
         color = AZUL if punto.get("color") == "azul" else ROJO
-        draw.ellipse((x, y + 2, x + 10, y + 12), fill=color)
-        draw.text((x + 16, y), _linea(punto), fill=TINTA, font=fuente_xs)
-        y += 18
-        aviso = str(punto.get("aviso") or "")
-        if aviso:
-            draw.text((x + 16, y - 4), aviso[:52], fill=SUAVE, font=fuente_xs)
-            y += 16
+        draw.ellipse((x, y + 1, x + marca, y + 1 + marca), fill=color)
+        draw.text((x + marca + 6, y + 1), _linea(punto), fill=TINTA, font=fuente_xs)
+        y += marca + 7
 
 
 def _linea(punto: dict) -> str:
     numero = punto.get("numero")
     if punto.get("grupo") == "oculta":
-        return f"{numero}  debajo de {punto.get('pieza') or punto.get('columna')}"
+        familia = NOMBRE_OCULTA.get(str(punto.get("columna") or ""), "")
+        pieza = re.sub(r"_\d+$", "", str(punto.get("pieza") or ""))
+        texto = f"{numero}  debajo de {familia}" if familia else f"{numero}  debajo de"
+        return f"{texto} · {pieza}" if pieza else texto
     if punto.get("grupo") == "aleatoria":
         return f"{numero}  aleatoria"
     banda = punto.get("banda") or ""

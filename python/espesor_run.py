@@ -26,21 +26,20 @@ from espesor_geo import (
     contenida,
     entra_en_alzado,
     interior_de,
+    con_ocultas,
     lado_vista,
     plan_cara,
+    tamano_bitmap,
 )
 from espesor_jpg import (
     CM_A_IN,
     a_contorno,
     asentar_puntos,
-    contorno_y_solido,
     dibujar_trazos,
     guardar,
     guardar_foto,
     guardar_vista,
     mascara_chapa,
-    trazo_fino,
-    unir_trazos,
 )
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -58,6 +57,10 @@ ESQUEMA_NOMBRE = {
     "thermox": "THERMOX",
     "zinc_macro": "ZINC Y MACRO",
     "poliuretano": "POLIURETANO",
+    "shot_blast": "SHOT BLAST",
+}
+CARPETA_ESQUEMA = {
+    "shot_blast": "shot blast",
 }
 _started = 0.0
 
@@ -122,8 +125,102 @@ def leer_ensamble() -> tuple[list[dict], str]:
             float(cara["ancho"]),
             float(cara["alto"]),
         )
+        cara["placa"] = _placa_principal(piezas, cara)
     _fotografiar(inv, assembly, caras, piezas)
+    for cara in caras:
+        cara["estorbos"] = _estorbos_dentro(piezas, cara)
+        cara["estorbos_fuera"] = _estorbos_fuera(piezas, cara)
     return caras, nombre
+
+
+def _proyeccion(pieza: dict, cara: dict) -> dict | None:
+    caja = pieza.get("caja")
+    if not caja:
+        return None
+    normal, u, v = cara["normal"], cara["u"], cara["v"]
+    u0, v0 = float(cara["u0"]), float(cara["v0"])
+    xs, ys, ds = [], [], []
+    for esquina in _esquinas_de(caja):
+        ds.append(float(_dot(esquina, normal)) - float(cara["plano"]))
+        xs.append(float(_dot(esquina, u)) - u0)
+        ys.append(float(_dot(esquina, v)) - v0)
+    return {
+        "nombre": str(pieza.get("nombre_ocurrencia") or ""),
+        "x0": min(xs),
+        "x1": max(xs),
+        "y0": min(ys),
+        "y1": max(ys),
+        "d0": min(ds),
+        "d1": max(ds),
+    }
+
+
+def _placa_principal(piezas: list[dict], cara: dict) -> dict | None:
+    """La placa del segmento donde se montan los accesorios: la delgada más grande pegada al plano."""
+    ancho, alto = float(cara["ancho"]), float(cara["alto"])
+    mejor = None
+    for pieza in piezas:
+        caja = _proyeccion(pieza, cara)
+        if caja is None or _HW.search(caja["nombre"]):
+            continue
+        if caja["d1"] - caja["d0"] > 40.0 or abs(caja["d1"]) > 10.0:
+            continue
+        x0, x1 = max(caja["x0"], 0.0), min(caja["x1"], ancho)
+        y0, y1 = max(caja["y0"], 0.0), min(caja["y1"], alto)
+        if x1 <= x0 or y1 <= y0:
+            continue
+        area = (x1 - x0) * (y1 - y0)
+        if mejor is None or area > mejor[0]:
+            mejor = (area, {**caja, "x0": x0, "x1": x1, "y0": y0, "y1": y1})
+    if mejor is None or mejor[0] < 0.2 * ancho * alto:
+        return None
+    return mejor[1]
+
+
+def _estorbos_dentro(piezas: list[dict], cara: dict) -> list[dict]:
+    """Lo que se ve desde dentro sobre la placa principal: refuerzos, soportes, bridas."""
+    placa = cara.get("placa")
+    if not placa:
+        return []
+    claro = float(cara.get("claro") or 0.0)
+    fondo = -(claro * 0.5) if claro else -120.0
+    area_placa = (placa["x1"] - placa["x0"]) * (placa["y1"] - placa["y0"])
+    estorbos = []
+    for pieza in piezas:
+        caja = _proyeccion(pieza, cara)
+        if caja is None or _HW.search(caja["nombre"]):
+            continue
+        if caja["nombre"] == placa["nombre"]:
+            continue
+        if caja["d0"] > -0.5 or caja["d1"] < fondo:
+            continue
+        if caja["x1"] < placa["x0"] or caja["x0"] > placa["x1"] or caja["y1"] < placa["y0"] or caja["y0"] > placa["y1"]:
+            continue
+        if (caja["x1"] - caja["x0"]) * (caja["y1"] - caja["y0"]) > 0.6 * area_placa:
+            continue
+        estorbos.append(caja)
+    return estorbos
+
+
+def _estorbos_fuera(piezas: list[dict], cara: dict) -> list[dict]:
+    """Lo montado por fuera de la placa: boquillas, registros, orejas. Zinc se aparta de eso."""
+    placa = cara.get("placa")
+    if not placa:
+        return []
+    area_placa = (placa["x1"] - placa["x0"]) * (placa["y1"] - placa["y0"])
+    estorbos = []
+    for pieza in piezas:
+        caja = _proyeccion(pieza, cara)
+        if caja is None or _HW.search(caja["nombre"]) or caja["nombre"] == placa["nombre"]:
+            continue
+        if caja["d1"] < 3.0 or caja["d0"] < -8.0 or caja["d0"] > 50.0:
+            continue
+        if caja["x1"] < placa["x0"] or caja["x0"] > placa["x1"] or caja["y1"] < placa["y0"] or caja["y0"] > placa["y1"]:
+            continue
+        if (caja["x1"] - caja["x0"]) * (caja["y1"] - caja["y0"]) > 0.6 * area_placa:
+            continue
+        estorbos.append(caja)
+    return estorbos
 
 
 def _fotografiar(inv, assembly, caras: list[dict], piezas: list[dict]) -> None:
@@ -142,12 +239,32 @@ def _fotografiar(inv, assembly, caras: list[dict], piezas: list[dict]) -> None:
     state = _estado_vista(view, cam, display)
     fondo = _fondo_blanco(inv)
     guardadas: list[tuple] = []
+    caido = False
+    try:
+        pantalla = bool(inv.ScreenUpdating)
+    except Exception:
+        pantalla = True
+    try:
+        silencioso = bool(inv.SilentOperation)
+    except Exception:
+        silencioso = False
     try:
         try:
             display.Show3DIndicator = False
         except Exception:
             pass
         _apagar_sombras(view)
+        # La pantalla se queda quieta todo el recorrido. Encenderla en cada cara
+        # obliga a Inventor a reconstruir la vista y fue lo que lo saturó.
+        try:
+            inv.SilentOperation = True
+        except Exception:
+            pass
+        _pantalla(inv, False)
+        try:
+            view.DisplayMode = 8711
+        except Exception:
+            pass
         hojas = assembly.ComponentDefinition.Occurrences.AllLeafOccurrences
         for indice in range(1, int(hojas.Count) + 1):
             try:
@@ -186,36 +303,49 @@ def _fotografiar(inv, assembly, caras: list[dict], piezas: list[dict]) -> None:
                             inv, view, cara, piezas, lado, mostradas, assembly
                         )
                     except Exception as ex:
+                        if _inventor_caido(ex):
+                            caido = True
+                            raise RuntimeError(
+                                f"Inventor se cerró en la foto {titulo} {texto}. "
+                                "Vuelve a abrir el ensamble y no lo uses mientras se generan las fotos."
+                            ) from ex
                         cara[f"foto_error_{lado}"] = str(ex)
                         continue
                     if foto is not None and ventana is not None:
                         cara[f"foto_{lado}"] = foto
                         cara[f"solido_{lado}"] = solido
                         cara[f"ventana_{lado}"] = ventana
-                    if solido is None and foto is not None:
+                    if lado == "fuera" and not cara.get("placa") and solido is None and foto is not None:
                         cara[f"sin_mascara_{lado}"] = True
                 finally:
-                    for occ in mostradas + padres:
-                        try:
-                            occ.Visible = False
-                        except Exception:
-                            continue
+                    if not caido:
+                        for occ in mostradas + padres:
+                            try:
+                                occ.Visible = False
+                            except Exception:
+                                continue
     finally:
-        for occ, visible in reversed(guardadas):
+        if not caido:
+            for occ, visible in reversed(guardadas):
+                try:
+                    if bool(occ.Visible) != visible:
+                        occ.Visible = visible
+                except Exception:
+                    continue
             try:
-                if bool(occ.Visible) != visible:
-                    occ.Visible = visible
-            except Exception:
-                continue
-        _restaurar_fondo(inv, fondo)
-        try:
-            _restaurar_vista(inv, inv.ActiveView, inv.TransientGeometry, display, state)
-        except Exception:
-            try:
-                inv.ActiveView.Update()
+                inv.SilentOperation = silencioso
             except Exception:
                 pass
-        _soltar_seleccion(assembly)
+            _pantalla(inv, pantalla)
+            _restaurar_fondo(inv, fondo)
+            try:
+                _restaurar_vista(inv, inv.ActiveView, inv.TransientGeometry, display, state)
+            except Exception:
+                try:
+                    inv.ActiveView.Update()
+                except Exception:
+                    pass
+            _soltar_seleccion(assembly)
 
 
 def _piezas_en_alzado(piezas: list[dict], cara: dict, lado: str = "fuera") -> list[dict]:
@@ -316,12 +446,10 @@ def _foto_alzado(inv, view, cara: dict, piezas: list[dict], lado: str, mostradas
     tg = inv.TransientGeometry
     cam = view.Camera
     cam.Perspective = False
-    if lado == "dentro":
-        distancia = float(cara.get("retroceso") or _retroceso_interno(piezas, normal, plano))
-        signo = -1.0
-    else:
-        distancia = max(ancho, alto, 10.0) * 2.5
-        signo = 1.0
+    # Misma distancia por los dos lados. El ojo queda fuera del modelo;
+    # en ortográfica la distancia no cambia el encuadre.
+    distancia = max(ancho, alto, 10.0) * 2.5
+    signo = -1.0 if lado == "dentro" else 1.0
     cam.Target = tg.CreatePoint(origen[0], origen[1], origen[2])
     cam.Eye = tg.CreatePoint(
         origen[0] + normal[0] * distancia * signo,
@@ -334,54 +462,34 @@ def _foto_alzado(inv, view, cara: dict, piezas: list[dict], lado: str, mostradas
         cam.UpVector = tg.CreateVector(float(v[0]), float(v[1]), float(v[2]))
     cam.SetExtents(ancho, alto)
     cam.ApplyWithoutTransition()
-    view.Update()
-    cam = view.Camera
-    try:
-        cam.UpVector = tg.CreateUnitVector(float(v[0]), float(v[1]), float(v[2]))
-    except Exception:
-        pass
-    cam.SetExtents(ancho, alto)
     blanco = inv.TransientObjects.CreateColor(255, 255, 255)
     if recorte is not None:
-        px_w = int(min(4200, 2000 * ancho / max(recorte[1] - recorte[0], 1.0)))
+        px_w, px_h = tamano_bitmap(
+            ancho, alto, recorte[1] - recorte[0], lado_max=1600, area_max=2_000_000
+        )
     else:
-        px_w = 1400
-    px_h = max(480, int(round(px_w * alto / max(ancho, 0.1))))
+        px_w, px_h = tamano_bitmap(ancho, alto)
     codigo = cara.get("codigo") or "cara"
-    if lado == "dentro":
-        try:
-            view.DisplayMode = 8711
-        except Exception:
-            pass
-        cam = _reencuadrar(view, ancho, alto)
-        alambre = a_contorno(_bitmap(cam, px_w, px_h, blanco, f"autodxf_espesor_{codigo}_{lado}"))
-        try:
-            view.DisplayMode = 8710
-        except Exception:
-            pass
-        cam = _reencuadrar(view, ancho, alto)
-        cruda = _bitmap(cam, px_w, px_h, blanco, f"autodxf_espesor_{codigo}_{lado}_m")
-        imagen = unir_trazos(alambre, trazo_fino(cruda))
-        _dibujo, solido = contorno_y_solido(cruda)
-    else:
-        try:
-            view.DisplayMode = 8711
-        except Exception:
-            pass
-        cam = _reencuadrar(view, ancho, alto)
-        imagen = a_contorno(_bitmap(cam, px_w, px_h, blanco, f"autodxf_espesor_{codigo}_{lado}"))
+    imagen = a_contorno(_bitmap(cam, px_w, px_h, blanco, f"autodxf_espesor_{codigo}_{lado}"))
+    solido = None
+    # La máscara gris solo hace falta si no hay placa medida. Con placa, pintar
+    # el aspecto de cada pieza y tomar otra foto satura el COM y la tarjeta.
+    if lado == "fuera" and not cara.get("placa"):
         previos = _pintar_mascara(inv, assembly, mostradas)
-        solido = None
         try:
             try:
                 view.DisplayMode = 8709
             except Exception:
                 pass
-            cam = _reencuadrar(view, ancho, alto)
+            cam.ApplyWithoutTransition()
             cruda = _bitmap(cam, px_w, px_h, blanco, f"autodxf_espesor_{codigo}_{lado}_m")
             solido = mascara_chapa(cruda)
         finally:
             _restaurar_material(previos)
+            try:
+                view.DisplayMode = 8711
+            except Exception:
+                pass
     if recorte is not None:
         return _recortar_dentro(imagen, solido, recorte, cu, cv, ancho, alto)
     ventana = (cu - ancho / 2.0, cv - alto / 2.0, cu + ancho / 2.0, cv + alto / 2.0)
@@ -425,12 +533,21 @@ def _retroceso_interno(piezas: list[dict], normal, plano) -> float:
     return min(max(60.0, claro * 0.28), claro * 0.5)
 
 
-def _reencuadrar(view, ancho: float, alto: float):
-    cam = view.Camera
-    cam.SetExtents(ancho, alto)
-    cam.ApplyWithoutTransition()
-    view.Update()
-    return view.Camera
+_RPC_CAIDO = (-2147023174, -2147023170, -2147417848, -2147220995)
+
+
+def _inventor_caido(ex: Exception) -> bool:
+    codigo = getattr(ex, "hresult", None)
+    if codigo is None and getattr(ex, "args", None):
+        codigo = ex.args[0]
+    return codigo in _RPC_CAIDO or "RPC" in str(ex)
+
+
+def _pantalla(inv, encendida: bool) -> None:
+    try:
+        inv.ScreenUpdating = encendida
+    except Exception:
+        pass
 
 
 def _bitmap(cam, px_w: int, px_h: int, blanco, nombre: str):
@@ -571,9 +688,10 @@ def _direcciones(planas: list[dict]) -> list[tuple[str, tuple[float, float, floa
     else:
         frente = (0.0, 0.0, 1.0)
     izquierda = _unit(_cross(frente, (0.0, 1.0, 0.0))) or (1.0, 0.0, 0.0)
+    # En planta el segmento 1 es el muro largo opuesto al de la placa mayor (62285: P14 es el 1, P12 el 3).
     return [
-        ("SEGM1", frente),
-        ("SEGM3", _scale(frente, -1.0)),
+        ("SEGM1", _scale(frente, -1.0)),
+        ("SEGM3", frente),
         ("SEGM2", izquierda),
         ("SEGM4", _scale(izquierda, -1.0)),
         ("TOP", (0.0, 1.0, 0.0)),
@@ -922,7 +1040,7 @@ def _dibujar_todas(caras, raiz: Path, esquemas, otc: bool, nombre: str, muestra:
     for esquema in esquemas:
         parcial = _dibujar(
             caras,
-            raiz / esquema,
+            raiz / CARPETA_ESQUEMA.get(esquema, esquema),
             esquema,
             otc and esquema == "poliuretano",
             nombre,
@@ -998,90 +1116,124 @@ def _dibujar(
         ventana = cara.get(f"ventana_{lado}")
         espejo = lado == "dentro" and foto is not None and ventana is not None
         partes = cara.get("partes")
-        if espejo and partes:
+        en_placa = esquema in ("thermox", "zinc_macro")
+        placa = cara.get("placa") if en_placa else None
+        estorbos = cara.get("estorbos" if lado == "dentro" else "estorbos_fuera") if placa else None
+        radio = 30 if esquema == "thermox" else 20
+        if espejo:
             ancho_cara = float(cara["ancho"])
-            partes = [{**parte, "x0": ancho_cara - parte["x1"], "x1": ancho_cara - parte["x0"]} for parte in partes]
-        puntos, notas = plan_cara(esquema, cara["clase"], cara["ancho"], cara["alto"], partes)
+
+            def reflejar(caja: dict) -> dict:
+                return {**caja, "x0": ancho_cara - caja["x1"], "x1": ancho_cara - caja["x0"]}
+
+            partes = [reflejar(parte) for parte in partes or []]
+            placa = reflejar(placa) if placa else None
+            estorbos = [reflejar(caja) for caja in estorbos or []]
+        puntos, notas = plan_cara(
+            esquema, cara["clase"], cara["ancho"], cara["alto"], partes, placa=placa, estorbos=estorbos
+        )
         for nota in notas:
             texto = nota if nota.startswith("Tapa") else f"{titulo}: {nota}"
             if texto not in avisos:
                 avisos.append(texto)
-        archivo = carpeta / f"{titulo.replace(' ', '_')}.jpg"
-        subtitulo = _subtitulo(esquema, otc, len(puntos), cara.get("codigo") or "")
-        titulo_jpg = f"{titulo}  ·  {ESQUEMA_NOMBRE[esquema]}"
-        if foto is not None and ventana is not None:
+        if foto is None or ventana is None:
+            if cara.get(f"foto_error_{lado}"):
+                avisos.append(
+                    f"{titulo}: no pude tomar el alzado "
+                    f"{'interno' if lado == 'dentro' else 'externo'} ({cara[f'foto_error_{lado}']})."
+                )
+                continue
+        else:
             if espejo:
                 origen_u = -(float(cara.get("u0") or 0.0) + float(cara["ancho"]))
             else:
                 origen_u = float(cara.get("u0") or 0.0)
             origen_v = float(cara.get("v0") or 0.0)
-
-            def px(x: float, y: float, _ventana=ventana, _u=origen_u, _v=origen_v, _foto=foto) -> tuple[float, float]:
-                izquierda, abajo, derecha, arriba = _ventana
-                span_x = derecha - izquierda or 1.0
-                span_y = arriba - abajo or 1.0
-                return (
-                    (float(x) + _u - izquierda) / span_x * _foto.width,
-                    (arriba - (float(y) + _v)) / span_y * _foto.height,
-                )
-
             solido = cara.get(f"solido_{lado}")
-            if solido is not None:
+            if solido is not None and not placa:
                 asentar_puntos(puntos, solido, ventana, origen_u, origen_v, cara=(cara["ancho"], cara["alto"]))
             elif cara.get(f"sin_mascara_{lado}"):
                 texto = f"{titulo}: no separé la chapa del hueco."
                 if texto not in avisos:
                     avisos.append(texto)
-            guardar_foto(
-                archivo,
-                foto,
-                px,
-                titulo=titulo_jpg,
-                subtitulo=subtitulo,
-                ancho=cara["ancho"],
-                alto=cara["alto"],
-                puntos=puntos,
-                pie="Cara interna del ensamble" if lado == "dentro" else "Alzado del ensamble",
-            )
-        elif cara.get(f"foto_error_{lado}"):
-            avisos.append(
-                f"{titulo}: no pude tomar el alzado "
-                f"{'interno' if lado == 'dentro' else 'externo'} ({cara[f'foto_error_{lado}']})."
-            )
-            continue
-        elif cara.get("trazos") and not cara.get("holgura"):
-            dibujar_trazos(
-                archivo,
-                cara["trazos"],
-                titulo=titulo_jpg,
-                subtitulo=subtitulo,
-                ancho=cara["ancho"],
-                alto=cara["alto"],
-                puntos=puntos,
-            )
-        elif cara.get("vista"):
-            vista = cara["vista"]
-            guardar_vista(
-                archivo,
-                vista[0],
-                vista[1],
-                titulo=titulo_jpg,
-                subtitulo=subtitulo,
-                ancho=cara["ancho"],
-                alto=cara["alto"],
-                puntos=puntos,
-            )
-        else:
-            guardar(
-                archivo,
-                titulo=titulo_jpg,
-                subtitulo=subtitulo,
-                ancho=cara["ancho"],
-                alto=cara["alto"],
-                puntos=puntos,
-                partes=cara.get("partes") if esquema == "poliuretano" and cara["clase"] == "muro" else None,
-            )
-        fotos.append(str(archivo))
+        base = titulo.replace(" ", "_")
+        hojas = [(carpeta / f"{base}.jpg", f"{titulo}  ·  {ESQUEMA_NOMBRE[esquema]}", puntos, False)]
+        if con_ocultas(esquema) and cara["clase"] == "muro":
+            rojos = [punto for punto in puntos if punto["color"] != "azul"]
+            azules = [punto for punto in puntos if punto["color"] == "azul"]
+            hojas = [(carpeta / f"{base}.jpg", f"{titulo}  ·  {ESQUEMA_NOMBRE[esquema]}", rojos, False)]
+            if azules:
+                hojas.append(
+                    (
+                        carpeta / f"{base}_PARTES_OCULTAS.jpg",
+                        f"{titulo}  ·  {ESQUEMA_NOMBRE[esquema]}  ·  PARTES OCULTAS",
+                        azules,
+                        True,
+                    )
+                )
+            else:
+                avisos.append(f"{titulo}: sin partes ocultas; no hay hoja de partes ocultas.")
+        for archivo, titulo_jpg, puntos_hoja, oculta in hojas:
+            subtitulo = _subtitulo(esquema, otc, len(puntos_hoja), cara.get("codigo") or "", oculta)
+            if foto is not None and ventana is not None:
+
+                def px(x: float, y: float, _ventana=ventana, _u=origen_u, _v=origen_v, _foto=foto) -> tuple[float, float]:
+                    izquierda, abajo, derecha, arriba = _ventana
+                    span_x = derecha - izquierda or 1.0
+                    span_y = arriba - abajo or 1.0
+                    return (
+                        (float(x) + _u - izquierda) / span_x * _foto.width,
+                        (arriba - (float(y) + _v)) / span_y * _foto.height,
+                    )
+
+                guardar_foto(
+                    archivo,
+                    foto,
+                    px,
+                    titulo=titulo_jpg,
+                    subtitulo=subtitulo,
+                    ancho=cara["ancho"],
+                    alto=cara["alto"],
+                    puntos=puntos_hoja,
+                    pie="Cara interna del ensamble" if lado == "dentro" else "Alzado del ensamble",
+                    radio=radio,
+                )
+            elif cara.get("trazos") and not cara.get("holgura"):
+                dibujar_trazos(
+                    archivo,
+                    cara["trazos"],
+                    titulo=titulo_jpg,
+                    subtitulo=subtitulo,
+                    ancho=cara["ancho"],
+                    alto=cara["alto"],
+                    puntos=puntos_hoja,
+                    radio=radio,
+                )
+            elif cara.get("vista"):
+                vista = cara["vista"]
+                guardar_vista(
+                    archivo,
+                    vista[0],
+                    vista[1],
+                    titulo=titulo_jpg,
+                    subtitulo=subtitulo,
+                    ancho=cara["ancho"],
+                    alto=cara["alto"],
+                    puntos=puntos_hoja,
+                    radio=radio,
+                )
+            else:
+                guardar(
+                    archivo,
+                    titulo=titulo_jpg,
+                    subtitulo=subtitulo,
+                    ancho=cara["ancho"],
+                    alto=cara["alto"],
+                    puntos=puntos_hoja,
+                    partes=cara.get("partes") if oculta else None,
+                    radio=radio,
+                )
+            fotos.append(str(archivo))
         total_puntos += len(puntos)
         detalle.append(
             {
@@ -1159,10 +1311,12 @@ def _publico(punto: dict) -> dict:
     }
 
 
-def _subtitulo(esquema: str, otc: bool, cantidad: int, codigo: str = "") -> str:
+def _subtitulo(esquema: str, otc: bool, cantidad: int, codigo: str = "", oculta: bool = False) -> str:
     extra = ""
     if esquema == "poliuretano":
         extra = "  ·  con Zinc (OTC)" if otc else "  ·  sin Zinc"
+    if oculta:
+        return f"{cantidad} puntos  ·  debajo de Jacking Pad, brace, cartabón y válvula{extra}"
     if lado_vista(esquema) == "dentro":
         return f"{cantidad} puntos  ·  cara interna, alzado desde dentro{extra}"
     return f"{cantidad} puntos  ·  cara externa, alzado desde fuera{extra}"
