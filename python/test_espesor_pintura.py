@@ -25,7 +25,9 @@ class Malla(unittest.TestCase):
         self.assertEqual(OPUESTO["SEGM3"], "SEGM1")
         self.assertEqual(OPUESTO["TOP"], "BASE")
         self.assertEqual(lado_vista("thermox"), "dentro")
-        self.assertEqual(lado_vista("poliuretano"), "dentro")
+        self.assertEqual(lado_vista("poliuretano"), "fuera")
+        poliuretano, _ = plan_cara("poliuretano", "muro", 100, 90)
+        self.assertTrue(all(p["grupo"] == "externa" for p in poliuretano if p["color"] == "rojo"))
         self.assertEqual(lado_vista("zinc_macro"), "fuera")
         self.assertTrue(all(p["grupo"] == "interna" for p in internos))
         self.assertTrue(all(p["grupo"] == "externa" for p in externos))
@@ -185,6 +187,32 @@ class Malla(unittest.TestCase):
         self.assertEqual(media["y"], 53)
         self.assertEqual(inferior["y"], 19)
         self.assertLess(azules[0]["y"], 60)
+
+    def test_las_ocultas_salen_por_la_forma_aunque_el_nombre_sea_part_number(self):
+        from espesor_geo import clasificar_montadas
+
+        ancho, alto = 188.0, 329.0
+        partes = [
+            {"nombre": "62285-1248-P19_304", "x0": 6, "x1": 182, "y0": 85, "y1": 106, "d0": -6, "d1": 6.7},
+            {"nombre": "62285-1248-P19_304", "x0": 6, "x1": 182, "y0": 167, "y1": 187, "d0": -6, "d1": 6.7},
+            {"nombre": "62285-1248-P20_305", "x0": 182, "x1": 183, "y0": 167, "y1": 187, "d0": -6, "d1": 6},
+            {"nombre": "62285-1248-P22_300", "x0": 7, "x1": 10, "y0": 50, "y1": 85, "d0": -4, "d1": 13},
+            {"nombre": "62285-1248-A10_254", "x0": 5, "x1": 25, "y0": 42, "y1": 85, "d0": -6, "d1": 17.8, "grupo": True},
+            {"nombre": "62285-1248-A11_256", "x0": 5, "x1": 25, "y0": 277, "y1": 339, "d0": -6, "d1": 20, "grupo": True},
+            {"nombre": "62285-1248-P67_271", "x0": 48, "x1": 76, "y0": 12, "y1": 40, "d0": -6, "d1": -3.5},
+            {"nombre": "L845.RADVLV-UNITED BRASS_320", "x0": 120, "x1": 150, "y0": 287, "y1": 310, "d0": 10, "d1": 25},
+        ]
+        clasificar_montadas(partes, ancho, alto)
+        clases = [p.get("clase") for p in partes]
+        self.assertEqual(clases[:5], ["brace", "brace", "cartabon", "cartabon", "jacking"])
+        self.assertIsNone(clases[5])
+        self.assertIsNone(clases[6])
+        puntos, avisos = plan_cara("poliuretano", "muro", ancho, alto, partes)
+        azules = {p["columna"]: p for p in puntos if p["color"] == "azul"}
+        self.assertEqual(set(azules), {"jacking", "brace", "cartabon", "valvula"})
+        self.assertEqual(avisos, [])
+        self.assertEqual(azules["cartabon"]["pieza"], "62285-1248-P20_305")
+        self.assertLess(azules["jacking"]["y"], 42)
 
     def test_tapa_de_poliuretano_sigue_el_texto_de_nueve(self):
         puntos, avisos = plan_cara("poliuretano", "top", 100, 70)

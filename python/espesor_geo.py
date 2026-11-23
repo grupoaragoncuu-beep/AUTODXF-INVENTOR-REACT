@@ -1,6 +1,7 @@
 """Puntos de espesor de pintura. Cálculo puro, sin Inventor y sin base de datos.
 
-Thermox y Poliuretano miden la cara interna. Zinc y Macro mide la cara externa.
+Thermox mide la cara interna. Zinc y Macro y Poliuretano miden la cara externa;
+el Word decía "internas" en Poliuretano y la planta lo corrigió: va por fuera.
 El texto del plan manda 9 en tapa y 9 en base para Thermox y Poliuretano.
 La figura de Poliuretano del Word marcaba 4; eso queda como aviso, no como recorte.
 """
@@ -88,10 +89,10 @@ def contenida(xs: list[float], ys: list[float], interior, margen: float = 8.0) -
 
 
 def lado_vista(esquema: str) -> str:
-    """Thermox y Poliuretano: alzado desde dentro. Zinc y Macro: desde fuera."""
-    if esquema == "zinc_macro":
-        return "fuera"
-    return "dentro"
+    """Solo Thermox mide por dentro. Zinc y Macro y Poliuretano miden por fuera."""
+    if esquema == "thermox":
+        return "dentro"
+    return "fuera"
 
 
 def entra_en_alzado(
@@ -129,11 +130,49 @@ def clase_oculta(nombre: str) -> str | None:
         return "jacking"
     if "cartab" in texto or "cartag" in texto or "gusset" in texto:
         return "cartabon"
-    if "valv" in texto:
+    if "valv" in texto or "vlv" in texto or "valve" in texto:
         return "valvula"
     if "brace" in texto:
         return "brace"
     return None
+
+
+def clase_de(parte: dict) -> str | None:
+    """La forma manda; el nombre solo si la forma no dijo nada (los part numbers no dicen qué es)."""
+    return parte.get("clase") or clase_oculta(parte.get("nombre") or "")
+
+
+def clasificar_montadas(partes: list[dict], ancho: float, alto: float) -> None:
+    """Pone `clase` a lo montado por fuera de la cara: brace, cartabón o Jacking Pad.
+
+    Cada parte trae x0..y1 en la cara y d0/d1 = profundidad respecto a la piel (positivo = afuera).
+    Brace: larga y angosta, a lo largo de la cara.
+    Cartabón: placa delgada parada sobre la piel.
+    Jacking Pad: bloque compacto que sobresale, en la parte baja.
+    """
+    ancho = float(ancho)
+    alto = float(alto)
+    for parte in partes:
+        if parte.get("clase") or clase_oculta(parte.get("nombre") or ""):
+            continue
+        if parte.get("d0") is None or parte.get("d1") is None:
+            continue
+        d0, d1 = sorted((float(parte["d0"]), float(parte["d1"])))
+        if d1 < -3.0 or (d0 + d1) / 2.0 < -3.0 or d0 > 40.0:
+            continue
+        sale = d1 - d0
+        lu = abs(float(parte["x1"]) - float(parte["x0"]))
+        lv = abs(float(parte["y1"]) - float(parte["y0"]))
+        cx, cy = _centro(parte)
+        if not (0.0 <= cx <= ancho and 0.0 <= cy <= alto):
+            continue
+        largo = max(lu / ancho if ancho else 0.0, lv / alto if alto else 0.0)
+        if largo >= 0.45 and min(lu, lv) <= 45.0 and sale >= 5.0 and 0.08 * alto <= cy <= 0.92 * alto:
+            parte["clase"] = "brace"
+        elif parte.get("grupo") and 12.0 <= lu <= 80.0 and 12.0 <= lv <= 80.0 and sale >= 10.0 and cy <= 0.4 * alto:
+            parte["clase"] = "jacking"
+        elif not parte.get("grupo") and min(lu, lv) <= 3.5 and max(lu, lv) <= 60.0 and sale >= 5.0:
+            parte["clase"] = "cartabon"
 
 
 def plan_cara(
@@ -172,7 +211,7 @@ def plan_cara(
 
 def ajustar_braces(puntos: list[dict], partes: list[dict], alto: float) -> list[str]:
     """El centro de media e inferior se sienta en el brace de esa banda."""
-    braces = [parte for parte in partes if clase_oculta(parte.get("nombre") or "") == "brace"]
+    braces = [parte for parte in partes if clase_de(parte) == "brace"]
     avisos: list[str] = []
     usados: set[int] = set()
     for punto in puntos:
@@ -205,9 +244,16 @@ def puntos_ocultos(partes: list[dict], ancho: float, alto: float) -> tuple[list[
     """Un punto debajo de cada familia: Jacking Pad, brace, cartabón, válvula."""
     grupos: dict[str, list[dict]] = {clave: [] for clave in OCULTAS}
     for parte in partes:
-        clave = clase_oculta(parte.get("nombre") or "")
+        clave = clase_de(parte)
         if clave:
             grupos[clave].append(parte)
+    if grupos["jacking"] and grupos["cartabon"]:
+        sueltos = [
+            parte
+            for parte in grupos["cartabon"]
+            if not any(_dentro_de(_centro(parte), pad, 2.0) for pad in grupos["jacking"])
+        ]
+        grupos["cartabon"] = sueltos or grupos["cartabon"]
     puntos: list[dict] = []
     faltan: list[str] = []
     for clave in OCULTAS:
@@ -215,7 +261,16 @@ def puntos_ocultos(partes: list[dict], ancho: float, alto: float) -> tuple[list[
         if not opciones:
             faltan.append(f"Sin {NOMBRE_OCULTA[clave]}.")
             continue
-        parte = max(opciones, key=_area)
+        clasificadas = [otra for otra in partes if clase_de(otra)]
+        parte = None
+        for candidata in sorted(opciones, key=_area, reverse=True):
+            debajo = _debajo(candidata, ancho, alto)
+            tapado = any(otra is not candidata and _dentro_de(debajo, otra, 1.0) for otra in clasificadas)
+            if not tapado and not any(abs(p["x"] - debajo[0]) + abs(p["y"] - debajo[1]) < 0.06 * alto for p in puntos):
+                parte = candidata
+                break
+        if parte is None:
+            parte = max(opciones, key=_area)
         x, y = _debajo(parte, ancho, alto)
         puntos.append(
             {
@@ -248,7 +303,7 @@ def _muro(esquema: str, ancho: float, alto: float) -> list[dict]:
                     "banda": banda,
                     "columna": nombre,
                     "color": "rojo",
-                    "grupo": "externa" if esquema == "zinc_macro" else "interna",
+                    "grupo": "interna" if lado_vista(esquema) == "dentro" else "externa",
                     "pieza": "",
                     "aviso": "",
                 }
@@ -306,6 +361,14 @@ def _centro(parte: dict) -> tuple[float, float]:
     return (
         (float(parte["x0"]) + float(parte["x1"])) / 2,
         (float(parte["y0"]) + float(parte["y1"])) / 2,
+    )
+
+
+def _dentro_de(punto: tuple[float, float], parte: dict, margen: float = 0.0) -> bool:
+    x, y = punto
+    return (
+        min(float(parte["x0"]), float(parte["x1"])) - margen <= x <= max(float(parte["x0"]), float(parte["x1"])) + margen
+        and min(float(parte["y0"]), float(parte["y1"])) - margen <= y <= max(float(parte["y0"]), float(parte["y1"])) + margen
     )
 
 

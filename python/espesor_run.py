@@ -22,6 +22,7 @@ from espesor_geo import (
     _scale,
     _unit,
     claro_de,
+    clasificar_montadas,
     contenida,
     entra_en_alzado,
     interior_de,
@@ -109,12 +110,24 @@ def leer_ensamble() -> tuple[list[dict], str]:
         if cara is not None:
             caras.append(cara)
     _ampliar_extremos(caras, piezas, planas)
+    for cara in caras:
+        cara["partes"] = _partes_en_plano(
+            piezas,
+            cara["normal"],
+            float(cara["plano"]),
+            cara["u"],
+            cara["v"],
+            float(cara["u0"]),
+            float(cara["v0"]),
+            float(cara["ancho"]),
+            float(cara["alto"]),
+        )
     _fotografiar(inv, assembly, caras, piezas)
     return caras, nombre
 
 
 def _fotografiar(inv, assembly, caras: list[dict], piezas: list[dict]) -> None:
-    """Dos alzados por cara: desde fuera (Zinc) y desde dentro (Thermox y Poliuretano)."""
+    """Dos alzados por cara: desde fuera (Zinc y Poliuretano) y desde dentro (Thermox)."""
     if not caras:
         return
     from vista_hlr import _apagar_sombras, _estado_vista, _restaurar_vista
@@ -746,7 +759,9 @@ def _muestra_arista(edge, pasos: int = 24) -> list[tuple[float, float, float]]:
 
 
 def _partes_en_plano(piezas, normal, plano, u, v, u0, v0, ancho, alto) -> list[dict]:
+    """Lo montado en la cara, con su profundidad respecto a la piel. Un subensamble compacto cuenta también entero."""
     partes = []
+    grupos: dict[str, list[dict]] = {}
     for pieza in piezas:
         caja = pieza.get("caja")
         if not caja:
@@ -756,10 +771,13 @@ def _partes_en_plano(piezas, normal, plano, u, v, u0, v0, ancho, alto) -> list[d
             continue
         xs: list[float] = []
         ys: list[float] = []
+        ds: list[float] = []
         cerca = False
         for esquina in _esquinas_de(caja):
-            if abs(float(_dot(esquina, normal)) - plano) <= 25.0:
+            profundidad = float(_dot(esquina, normal)) - plano
+            if abs(profundidad) <= 25.0:
                 cerca = True
+            ds.append(profundidad)
             xs.append(float(_dot(esquina, u)) - u0)
             ys.append(float(_dot(esquina, v)) - v0)
         if not cerca or not xs:
@@ -769,7 +787,27 @@ def _partes_en_plano(piezas, normal, plano, u, v, u0, v0, ancho, alto) -> list[d
             continue
         if (x1 - x0) > 0.9 * ancho and (y1 - y0) > 0.9 * alto:
             continue
-        partes.append({"nombre": nombre, "x0": x0, "x1": x1, "y0": y0, "y1": y1})
+        parte = {"nombre": nombre, "x0": x0, "x1": x1, "y0": y0, "y1": y1, "d0": min(ds), "d1": max(ds)}
+        partes.append(parte)
+        ruta = str(pieza.get("ruta_ocurrencia") or "")
+        if "/" in ruta:
+            grupos.setdefault(ruta.rsplit("/", 1)[0], []).append(parte)
+    for ruta, hijos in grupos.items():
+        if len(hijos) < 2:
+            continue
+        unidad = {
+            "nombre": ruta.rsplit("/", 1)[-1],
+            "x0": min(h["x0"] for h in hijos),
+            "x1": max(h["x1"] for h in hijos),
+            "y0": min(h["y0"] for h in hijos),
+            "y1": max(h["y1"] for h in hijos),
+            "d0": min(h["d0"] for h in hijos),
+            "d1": max(h["d1"] for h in hijos),
+            "grupo": True,
+        }
+        if max(unidad["x1"] - unidad["x0"], unidad["y1"] - unidad["y0"], unidad["d1"] - unidad["d0"]) <= 80.0:
+            partes.append(unidad)
+    clasificar_montadas(partes, ancho, alto)
     return partes
 
 
