@@ -151,6 +151,47 @@ def entra_en_alzado(
     return lo <= plano + 35.0
 
 
+def raiz_de(ruta: str) -> str:
+    """Primer nivel de la ruta de ocurrencia: el subensamble que la contiene."""
+    texto = str(ruta or "").replace("\\", "/").strip("/")
+    return texto.split("/", 1)[0] if "/" in texto else ""
+
+
+def internas(
+    cajas: list[dict],
+    claro: float | None,
+    ancho: float,
+    alto: float,
+    toque: float = 6.0,
+    franja_tapa: float = 8.0,
+) -> list[int]:
+    """Índices de lo que se ve por dentro de una cara. d0/d1 relativos a la piel, negativo hacia adentro.
+
+    Se ocultan el segmento contrario con lo montado en su frente y lo pegado a la tapa
+    (t0/t1, profundidad contra la piel del TOP). Muros laterales, base y lo que traen se quedan.
+    """
+    claro = float(claro) if claro else 240.0
+    elegidas: list[int] = []
+    for indice, caja in enumerate(cajas):
+        d0, d1 = sorted((float(caja["d0"]), float(caja["d1"])))
+        if (d0 + d1) / 2.0 > 2.0:
+            continue
+        enfrente = (
+            float(caja["x1"]) > 2.0
+            and float(caja["x0"]) < float(ancho) - 2.0
+            and float(caja["y1"]) > 2.0
+            and float(caja["y0"]) < float(alto) - 2.0
+        )
+        if d1 < -0.5 * claro and enfrente:
+            continue
+        if caja.get("t0") is not None and d1 < -toque:
+            t0 = min(float(caja["t0"]), float(caja["t1"]))
+            if t0 >= -franja_tapa:
+                continue
+        elegidas.append(indice)
+    return elegidas
+
+
 def clase_oculta(nombre: str) -> str | None:
     texto = str(nombre or "").casefold()
     if "jacking" in texto:

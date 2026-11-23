@@ -355,6 +355,60 @@ class Malla(unittest.TestCase):
         self.assertLessEqual(px_h, 3000)
         self.assertEqual(tamano_bitmap(500.0, 250.0), (1400, 700))
 
+    def test_por_dentro_sin_segmento_contrario_ni_lo_pegado_a_la_tapa(self):
+        from espesor_geo import internas
+
+        claro = 300.0
+        cajas = [
+            {"nombre": "placa", "x0": 0, "x1": 300, "y0": 0, "y1": 300, "d0": -0.8, "d1": 0, "t0": -300, "t1": 0},
+            {"nombre": "brace", "x0": 10, "x1": 290, "y0": 140, "y1": 160, "d0": -16, "d1": -0.8, "t0": -160, "t1": -140},
+            {"nombre": "cartabon", "x0": 290, "x1": 300, "y0": 140, "y1": 160, "d0": -25, "d1": -15.5, "t0": -160, "t1": -140},
+            {"nombre": "muro lateral", "x0": 299, "x1": 300, "y0": 0, "y1": 300, "d0": -300, "d1": 0, "t0": -300, "t1": 0},
+            {"nombre": "oreja del muro lateral", "x0": 300, "x1": 330, "y0": 120, "y1": 140, "d0": -250, "d1": -230, "t0": -180, "t1": -160},
+            {"nombre": "base", "x0": 0, "x1": 300, "y0": -1, "y1": 0, "d0": -300, "d1": 0, "t0": -301, "t1": -300},
+            {"nombre": "muro contrario", "x0": 0, "x1": 300, "y0": 0, "y1": 300, "d0": -300, "d1": -299, "t0": -300, "t1": 0},
+            {"nombre": "brace contrario", "x0": 10, "x1": 290, "y0": 140, "y1": 160, "d0": -299, "d1": -284, "t0": -160, "t1": -140},
+            {"nombre": "boquilla del contrario", "x0": 100, "x1": 130, "y0": 200, "y1": 230, "d0": -330, "d1": -300, "t0": -100, "t1": -70},
+            {"nombre": "marco de la tapa", "x0": 0, "x1": 300, "y0": 296, "y1": 300, "d0": -250, "d1": -50, "t0": -4, "t1": 0},
+            {"nombre": "boquilla afuera", "x0": 50, "x1": 70, "y0": 50, "y1": 70, "d0": -1, "d1": 20, "t0": -70, "t1": -50},
+        ]
+        vistas = {cajas[i]["nombre"] for i in internas(cajas, claro, 300, 300)}
+        self.assertEqual(
+            vistas,
+            {"placa", "brace", "cartabon", "muro lateral", "oreja del muro lateral", "base"},
+        )
+
+    def test_la_tapa_sale_sola_y_los_demas_la_ocultan(self):
+        from espesor_geo import raiz_de
+        from espesor_run import _del_lado, _marcar_tapa
+
+        self.assertEqual(raiz_de("62285-1247-A01:1/62285-1247-P01:1"), "62285-1247-A01:1")
+        self.assertEqual(raiz_de("62285-1247-P01:1"), "")
+        caras = [
+            {"codigo": "TOP", "placa": {"ruta": "62285-1247-A01:1/62285-1247-P01:1"}},
+            {"codigo": "SEGM1", "placa": {"ruta": "62285-1248-A01:1/62285-1248-P14:1"}},
+            {"codigo": "BASE", "placa": {"ruta": "62285-1248-A01:1/62285-1248-P01:1"}},
+        ]
+        _marcar_tapa(caras)
+        tapa = {"ruta": "62285-1247-A01:1/62285-1247-P05:2"}
+        brace = {"ruta": "62285-1248-A01:1/62285-1248-P16:1"}
+        self.assertTrue(_del_lado(tapa, caras[0]))
+        self.assertFalse(_del_lado(brace, caras[0]))
+        self.assertFalse(_del_lado(tapa, caras[1]))
+        self.assertTrue(_del_lado(brace, caras[1]))
+        self.assertFalse(_del_lado(tapa, caras[2]))
+
+    def test_sin_subensamble_propio_la_tapa_no_se_separa(self):
+        from espesor_run import _marcar_tapa
+
+        caras = [
+            {"codigo": "TOP", "placa": {"ruta": "TANQUE:1/P01:1"}},
+            {"codigo": "SEGM1", "placa": {"ruta": "TANQUE:1/P14:1"}},
+        ]
+        _marcar_tapa(caras)
+        self.assertNotIn("solo_raiz", caras[0])
+        self.assertNotIn("sin_raiz", caras[1])
+
     def test_la_foto_interna_pide_una_captura_chica(self):
         px_w, px_h = tamano_bitmap(868.0, 347.0, 321.0, lado_max=1600, area_max=2_000_000)
         self.assertLessEqual(max(px_w, px_h), 1600)

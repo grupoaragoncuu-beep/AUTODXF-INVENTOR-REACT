@@ -26,6 +26,8 @@ from espesor_geo import (
     contenida,
     entra_en_alzado,
     interior_de,
+    internas,
+    raiz_de,
     con_ocultas,
     lado_vista,
     plan_cara,
@@ -126,6 +128,7 @@ def leer_ensamble() -> tuple[list[dict], str]:
             float(cara["alto"]),
         )
         cara["placa"] = _placa_principal(piezas, cara)
+    _marcar_tapa(caras)
     _fotografiar(inv, assembly, caras, piezas)
     for cara in caras:
         cara["estorbos"] = _estorbos_dentro(piezas, cara)
@@ -146,6 +149,7 @@ def _proyeccion(pieza: dict, cara: dict) -> dict | None:
         ys.append(float(_dot(esquina, v)) - v0)
     return {
         "nombre": str(pieza.get("nombre_ocurrencia") or ""),
+        "ruta": str(pieza.get("ruta_ocurrencia") or ""),
         "x0": min(xs),
         "x1": max(xs),
         "y0": min(ys),
@@ -153,6 +157,36 @@ def _proyeccion(pieza: dict, cara: dict) -> dict | None:
         "d0": min(ds),
         "d1": max(ds),
     }
+
+
+def _marcar_tapa(caras: list[dict]) -> None:
+    """El top cover va atornillado, no soldado: por dentro sale solo y los demás lo ocultan.
+
+    Solo aplica si la placa del TOP vive en su propio subensamble (62285-1247-A01).
+    """
+    top = next((cara for cara in caras if cara.get("codigo") == "TOP"), None)
+    raiz = raiz_de((top or {}).get("placa", {}).get("ruta") if top and top.get("placa") else "")
+    if not raiz:
+        return
+    otras = {raiz_de(cara["placa"].get("ruta")) for cara in caras if cara is not top and cara.get("placa")}
+    if raiz in otras:
+        return
+    for cara in caras:
+        if cara is top:
+            cara["solo_raiz"] = raiz
+        else:
+            cara["sin_raiz"] = raiz
+            if top.get("normal") is not None and top.get("plano") is not None:
+                cara["piel_tapa"] = (top["normal"], float(top["plano"]))
+
+
+def _del_lado(caja: dict, cara: dict) -> bool:
+    raiz = raiz_de(caja.get("ruta"))
+    if cara.get("solo_raiz"):
+        return raiz == cara["solo_raiz"]
+    if cara.get("sin_raiz"):
+        return raiz != cara["sin_raiz"]
+    return True
 
 
 def _placa_principal(piezas: list[dict], cara: dict) -> dict | None:
@@ -190,7 +224,7 @@ def _estorbos_dentro(piezas: list[dict], cara: dict) -> list[dict]:
         caja = _proyeccion(pieza, cara)
         if caja is None or _HW.search(caja["nombre"]):
             continue
-        if caja["nombre"] == placa["nombre"]:
+        if caja["nombre"] == placa["nombre"] or not _del_lado(caja, cara):
             continue
         if caja["d0"] > -0.5 or caja["d1"] < fondo:
             continue
@@ -350,6 +384,8 @@ def _fotografiar(inv, assembly, caras: list[dict], piezas: list[dict]) -> None:
 
 def _piezas_en_alzado(piezas: list[dict], cara: dict, lado: str = "fuera") -> list[dict]:
     """Por fuera: la piel y lo montado afuera. Por dentro: la piel y lo que da al interior."""
+    if lado == "dentro":
+        return _piezas_internas(piezas, cara)
     normal = cara.get("normal")
     u = cara.get("u")
     v = cara.get("v")
@@ -398,6 +434,33 @@ def _piezas_en_alzado(piezas: list[dict], cara: dict, lado: str = "fuera") -> li
     return elegidas
 
 
+def _piezas_internas(piezas: list[dict], cara: dict) -> list[dict]:
+    """El TOP sale solo con su subensamble. Muros y base: sin top cover, sin muro contrario,
+    solo lo pegado a la piel y lo soldado a eso."""
+    if cara.get("normal") is None or cara.get("plano") is None:
+        return []
+    ancho, alto = float(cara["ancho"]), float(cara["alto"])
+    candidatas: list[dict] = []
+    cajas: list[dict] = []
+    for pieza in piezas:
+        if pieza.get("occ") is None:
+            continue
+        caja = _proyeccion(pieza, cara)
+        if caja is None or _HW.search(caja["nombre"]) or not _del_lado(caja, cara):
+            continue
+        if caja["x1"] < -60 or caja["x0"] > ancho + 60 or caja["y1"] < -60 or caja["y0"] > alto + 60:
+            continue
+        if cara.get("piel_tapa"):
+            normal_tapa, plano_tapa = cara["piel_tapa"]
+            ts = [float(_dot(e, normal_tapa)) - plano_tapa for e in _esquinas_de(pieza["caja"])]
+            caja["t0"], caja["t1"] = min(ts), max(ts)
+        candidatas.append(pieza)
+        cajas.append(caja)
+    if cara.get("solo_raiz"):
+        return candidatas
+    return [candidatas[i] for i in internas(cajas, cara.get("claro"), ancho, alto)]
+
+
 def _foto_alzado(inv, view, cara: dict, piezas: list[dict], lado: str, mostradas: list, assembly):
     from weld_vista import _ajustar_aspecto, _restaurar_material
 
@@ -416,7 +479,18 @@ def _foto_alzado(inv, view, cara: dict, piezas: list[dict], lado: str, mostradas
             float(cara["v0"]),
             float(cara["v0"]) + float(cara["alto"]),
         )
-        holgura = max(8.0, 0.03 * max(b - a, d - c))
+        esquinas = [e for p in _piezas_internas(piezas, cara) for e in _esquinas_de(p.get("caja"))]
+        if esquinas:
+            xs = [float(_dot(e, u)) for e in esquinas]
+            ys = [float(_dot(e, v)) for e in esquinas]
+            if cara.get("solo_raiz"):
+                a, b, c, d = min(xs), max(xs), min(ys), max(ys)
+            else:
+                # Lo montado por fuera de los muros laterales entra, con tope del 15 %.
+                tope = 0.15 * max(b - a, d - c)
+                a, b = max(min(xs), a - tope), min(max(xs), b + tope)
+                c, d = max(min(ys), c - tope), min(max(ys), d + tope)
+        holgura = max(4.0, 0.015 * max(b - a, d - c))
         recorte = (a - holgura, b + holgura, c - holgura, d + holgura)
         us = [recorte[0], recorte[1]]
         vs = [recorte[2], recorte[3]]
