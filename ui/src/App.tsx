@@ -26,8 +26,10 @@ import {
   type SheetRuleCatalog,
   type SheetRulesResult,
   type Snapshot,
+  type VsmJob,
 } from "@/bridge"
 import { AcotacionJpgPanel } from "@/AcotacionJpgPanel"
+import { EspesorPinturaPanel } from "@/EspesorPinturaPanel"
 import { AwisPanel } from "@/AwisPanel"
 import { DossierPicker } from "@/DossierPicker"
 import { WeldAnotationPanel } from "@/WeldAnotationPanel"
@@ -71,12 +73,15 @@ export default function App() {
   const [multibodyErrors, setMultibodyErrors] = useState<{ name: string; message: string }[]>([])
   const [ruleCatalog, setRuleCatalog] = useState<SheetRuleCatalog>(defaultRuleCatalog)
   const [rulesOpen, setRulesOpen] = useState(false)
-  const [view, setView] = useState<"dxf" | "lengths" | "accessories" | "cotas" | "weld" | "awis">("dxf")
+  const [view, setView] = useState<"dxf" | "lengths" | "accessories" | "cotas" | "espesor" | "weld" | "awis">("dxf")
   const [shapesBusy, setShapesBusy] = useState(false)
   const [offMaterials, setOffMaterials] = useState<string[]>([])
   const [offCalibres, setOffCalibres] = useState<string[]>([])
   const [overrides, setOverrides] = useState<Record<string, string>>({})
   const [excludedKeys, setExcludedKeys] = useState<string[]>([])
+  const [vsmJobs, setVsmJobs] = useState<VsmJob[]>([])
+  const [vsmId, setVsmId] = useState("")
+  const [destinoManual, setDestinoManual] = useState(false)
   const [jobName, setJobName] = useState("")
   const [producto, setProducto] = useState("")
   const [cliente, setCliente] = useState("")
@@ -138,6 +143,27 @@ export default function App() {
     setMultibodyErrors([])
   }, [snapshot.assemblyPath])
 
+  async function cargarJobsVsm() {
+    const api = toolbarApi()
+    if (!api?.vsm_jobs) {
+      setLog("Abre la barra con Iniciar AutoDXF.bat para leer los jobs de Ingeniería.")
+      return
+    }
+    try {
+      const res = await api.vsm_jobs()
+      const jobs = Array.isArray(res.jobs) ? res.jobs : []
+      setVsmJobs(jobs)
+      const guardado = localStorage.getItem("autodxf-vsm-job") || ""
+      const elegido = jobs.find((job) => job.job_number === guardado)
+      setVsmId(elegido ? String(elegido.id) : "")
+      setLog(res.message || (res.ok ? "Jobs de Ingeniería listos." : "No se leyeron los jobs de Ingeniería."))
+    } catch (error) {
+      setVsmJobs([])
+      setVsmId("")
+      setLog(error instanceof Error ? error.message : "No se leyeron los jobs de Ingeniería.")
+    }
+  }
+
   useEffect(() => {
     const connect = () => {
       const api = toolbarApi()
@@ -148,6 +174,7 @@ export default function App() {
         setDossierOpen(true)
       }
       void refresh()
+      void cargarJobsVsm()
       void api.sheet_rules_load().then((catalog) => {
         if (catalog?.rules) setRuleCatalog(catalog)
       })
@@ -174,14 +201,20 @@ export default function App() {
     }
   }
 
-  async function chooseFolder() {
+  async function chooseFolder(manual = false) {
     const api = toolbarApi()
     if (!api) {
       setLog("La carpeta se elige desde la ventana de AutoDXF, no desde el navegador.")
       return
     }
     const folder = await api.pick_folder()
-    if (folder) setExportRoot(folder)
+    if (folder) {
+      setExportRoot(folder)
+      if (manual) {
+        setDestinoManual(true)
+        setLog(`Carpeta suelta, sin mapear: ${folder}`)
+      }
+    }
     return folder || ""
   }
 
@@ -285,9 +318,9 @@ export default function App() {
       setLog("Inicia la barra con Iniciar AutoDXF.bat. Esta vista no exporta sola.")
       return
     }
-    if (!jobName.trim()) {
-      setDossierOpen(true)
-      setLog("Elige el job del dossier antes de exportar.")
+    const suelto = destinoManual && !!exportRoot
+    if (!suelto && !vsmElegido) {
+      setLog("Elige el job de Ingeniería o una carpeta suelta.")
       return
     }
     if (selected.length === 0) {
@@ -298,13 +331,14 @@ export default function App() {
     try {
       const result: ExportResult = await api.export_dxf(
         JSON.stringify({
-          exportRoot,
+          exportRoot: suelto ? exportRoot : vsmElegido!.autodxf,
           setASide,
           writeCsv,
           closeOpened,
           usePartPlan: true,
           board: boardCode(board),
-          job: jobName,
+          job: suelto ? jobName : vsmElegido!.job_number,
+          vsm: !suelto,
           parts: selected.map((part) => {
             const material = effectiveMaterial(part, overrides)
             return {
@@ -357,7 +391,9 @@ export default function App() {
   const visibleKeys = visible.map((part) => partKey(part))
   const allVisibleChecked = visibleKeys.length > 0 && visibleKeys.every((key) => !excludedKeys.includes(key))
   const someVisibleChecked = visibleKeys.some((key) => !excludedKeys.includes(key))
-  const missing = !exportRoot || !snapshot.assemblyName
+  const vsmElegido = vsmJobs.find((job) => String(job.id) === vsmId) || null
+  const suelto = destinoManual && !!exportRoot
+  const missing = !snapshot.assemblyName || (!suelto && !vsmElegido)
   const nothingVisible = sheetParts.length > 0 && visible.length === 0
   const nothingSelected = visible.length > 0 && selected.length === 0
   const exporting = busy === "export"
@@ -438,6 +474,7 @@ export default function App() {
             ["lengths", "Lista de largos"],
             ["accessories", "Clasificación por bloques"],
             ["cotas", "Acotación JPG"],
+            ["espesor", "Espesor pintura"],
             ["weld", "Weld Anotation"],
             ["awis", "AWIS"],
           ] as const
@@ -506,7 +543,31 @@ export default function App() {
         >
           {busy === "refresh" ? <Spinner /> : <RefreshCwIcon />}
         </Button>
-        <Button variant="outline" disabled={busy !== null} onClick={() => void chooseFolder()}>
+        <select
+          aria-label="Job de Ingeniería en proceso"
+          className="border-border bg-background h-8 min-w-64 max-w-xl flex-1 truncate rounded-md border px-2 text-sm"
+          value={vsmId}
+          disabled={busy !== null}
+          onChange={(event) => {
+            const job = vsmJobs.find((item) => String(item.id) === event.target.value)
+            setVsmId(job ? String(job.id) : "")
+            if (job) {
+              setDestinoManual(false)
+              localStorage.setItem("autodxf-vsm-job", job.job_number)
+            }
+          }}
+        >
+          <option value="">{vsmJobs.length ? "Job de Ingeniería" : "Sin jobs en proceso"}</option>
+          {vsmJobs.map((job) => (
+            <option key={job.id} value={job.id}>
+              {job.job_number} · {job.client} / {job.product} · QTY {job.quantity} · {job.dxf_count} DXF
+            </option>
+          ))}
+        </select>
+        <Button variant="outline" disabled={busy !== null} onClick={() => void cargarJobsVsm()}>
+          Jobs
+        </Button>
+        <Button variant="outline" disabled={busy !== null} onClick={() => void chooseFolder(true)}>
           <FolderOpenIcon />
           Carpeta
         </Button>
@@ -517,7 +578,7 @@ export default function App() {
           </Button>
         ) : missing || nothingVisible || nothingSelected ? (
           <Button aria-invalid="true" onClick={() => void runExport()}>
-            {nothingVisible ? "Nada con estos filtros" : nothingSelected ? "Nada seleccionado" : "Falta ensamble o carpeta"}
+            {nothingVisible ? "Nada con estos filtros" : nothingSelected ? "Nada seleccionado" : "Falta ensamble o destino"}
           </Button>
         ) : (
           <Button
@@ -534,8 +595,10 @@ export default function App() {
             </span>
           </Button>
         )}
-        <p className="text-muted-foreground min-w-0 flex-1 truncate text-xs">
-          {exportRoot || "Sin carpeta destino"}
+        <p className="text-muted-foreground min-w-0 basis-full truncate text-xs">
+          {suelto
+            ? `Sin mapear: ${exportRoot}`
+            : vsmElegido?.autodxf || "Elige el job de Ingeniería o una carpeta"}
         </p>
       </section>
 
@@ -700,6 +763,15 @@ export default function App() {
         </FramePanel>
       </Frame>
       </>
+      ) : view === "espesor" ? (
+        <EspesorPinturaPanel
+          disabled={busy !== null || shapesBusy}
+          assemblyName={snapshot.assemblyName}
+          assemblyPath={snapshot.assemblyPath}
+          jobName={jobName}
+          onLog={setLog}
+          onBusy={setShapesBusy}
+        />
       ) : view === "cotas" ? (
         <AcotacionJpgPanel
           disabled={busy !== null || shapesBusy}

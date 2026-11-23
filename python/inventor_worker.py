@@ -83,6 +83,10 @@ def main() -> None:
         from weld_anotation import run_weld_anotation
 
         result = run_weld_anotation(payload)
+    elif command == "espesor":
+        from espesor_run import generar
+
+        result = generar(payload)
     elif command == "weld_nom":
         from weld_nomenclatura import run_inventor
 
@@ -130,6 +134,19 @@ if __name__ == "__main__":
                 from weld_anotation import write_weld_progress
 
                 write_weld_progress(
+                    current=1,
+                    total=1,
+                    piece="Error",
+                    phase="listo",
+                    done=True,
+                    result=fail,
+                    message=str(ex),
+                )
+            elif command == "espesor":
+                from espesor_run import write_progress as write_espesor
+
+                fail["bd"] = False
+                write_espesor(
                     current=1,
                     total=1,
                     piece="Error",

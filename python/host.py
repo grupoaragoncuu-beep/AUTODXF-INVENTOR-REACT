@@ -32,6 +32,7 @@ from weld_anotation import read_weld_progress, reset_weld_progress, scan_weld_dr
 from colorimetria import load_colorimetria, save_colorimetria
 from sheet_rules import load_rule_catalog, run_sheet_rules, save_rule_catalog
 from awis_run import run_awis
+from vsm_jobs import asegurar_autodxf, listar_en_proceso, publicar_dxf_en_raiz
 
 
 class ToolbarApi:
@@ -41,6 +42,7 @@ class ToolbarApi:
         self._pick = None
         self._acotacion = None
         self._weld = None
+        self._espesor = None
 
     def attach(self, window) -> None:
         self._window = window
@@ -69,6 +71,9 @@ class ToolbarApi:
             str(incoming.get("assemblyName") or ""),
         )
 
+    def vsm_jobs(self) -> dict:
+        return listar_en_proceso()
+
     def pick_folder(self) -> str:
         if self._window is None:
             return ""
@@ -86,7 +91,22 @@ class ToolbarApi:
         except json.JSONDecodeError:
             options = {}
         _safe_catalog()
+        if options.get("vsm"):
+            listo = asegurar_autodxf(str(options.get("exportRoot") or ""))
+            if not listo.get("ok"):
+                return {
+                    "ok": False,
+                    "exported": 0,
+                    "csvPath": "",
+                    "message": str(listo.get("message") or "No se pudo preparar AutoDXF."),
+                }
         result = _inventor_process("export", options)
+        if options.get("vsm") and result.get("ok"):
+            publicados = publicar_dxf_en_raiz(str(options.get("exportRoot") or ""))
+            result["publicados"] = int(publicados.get("movidos") or 0)
+            if publicados.get("ok"):
+                nota = f" DXF en la raíz de AutoDXF: {result['publicados']}."
+                result["message"] = (str(result.get("message") or "").rstrip() + nota).strip()
         result["catalog"] = _safe_catalog()
         if "session" not in result:
             result["session"] = _inventor_process("snapshot")
@@ -573,6 +593,79 @@ class ToolbarApi:
         except Exception as ex:
             return {"ok": False, "message": f"No se abrió Nomenclatura: {ex}"}
         return {"ok": True, "message": "Nomenclatura abierta."}
+
+    def espesor_run(self, payload: str) -> dict:
+        incoming = _json_dict(payload)
+        if incoming.get("muestra"):
+            from espesor_run import generar
+
+            result = generar(incoming)
+            result["started"] = False
+            return result
+        if self._espesor is not None and self._espesor.poll() is None:
+            return {"ok": False, "started": False, "bd": False, "message": "Ya hay una prueba de espesor en curso."}
+        from espesor_run import reset_progress
+
+        reset_progress(0, "Leyendo el ensamble…")
+        worker = Path(__file__).with_name("inventor_worker.py")
+        env = os.environ.copy()
+        env["PYTHONIOENCODING"] = "utf-8"
+        self._espesor = subprocess.Popen(
+            [sys.executable, str(worker), "espesor"],
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            env=env,
+            creationflags=0x08000000,
+        )
+        assert self._espesor.stdin is not None
+        self._espesor.stdin.write(json.dumps(incoming).encode("utf-8"))
+        self._espesor.stdin.close()
+        return {"ok": True, "started": True, "bd": False, "message": "Midiendo espesor de pintura…"}
+
+    def espesor_progress(self) -> dict:
+        from espesor_run import read_progress
+
+        status = read_progress()
+        proc = self._espesor
+        running = proc is not None and proc.poll() is None
+        if status.get("done"):
+            status["running"] = False
+        else:
+            status["running"] = running
+        if proc is not None and not running:
+            try:
+                out, err = proc.communicate(timeout=2)
+            except subprocess.TimeoutExpired:
+                out, err = b"", b""
+            self._espesor = None
+            if not status.get("done"):
+                raw = _decode_output(out).strip()
+                detail = " ".join(_decode_output(err).split())[:300]
+                try:
+                    parsed = json.loads(raw) if raw else {}
+                except json.JSONDecodeError:
+                    parsed = {}
+                result = parsed if isinstance(parsed, dict) and parsed else {
+                    "ok": False,
+                    "bd": False,
+                    "message": detail or "La prueba de espesor se detuvo.",
+                }
+                status["done"] = True
+                status["running"] = False
+                status["result"] = result
+                status["message"] = str(result.get("message") or detail)
+        return status
+
+    def espesor_open(self, folder: str = "") -> dict:
+        target = str(folder or "").strip()
+        if not target:
+            return {"ok": False, "message": "Todavía no hay carpeta de la prueba."}
+        try:
+            os.startfile(target)
+        except OSError as ex:
+            return {"ok": False, "message": str(ex), "folder": target}
+        return {"ok": True, "message": target, "folder": target}
 
     def export_shapes(self, payload: str) -> dict:
         try:

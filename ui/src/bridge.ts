@@ -113,6 +113,24 @@ export type ExportOptions = {
   setASide: boolean
   writeCsv: boolean
   closeOpened: boolean
+  job?: string
+  vsm?: boolean
+}
+
+export type VsmJob = {
+  id: number
+  job_number: string
+  client: string
+  product: string
+  quantity: number
+  dxf_count: number
+  autodxf: string
+}
+
+export type VsmJobsResult = {
+  ok: boolean
+  message: string
+  jobs?: VsmJob[]
 }
 
 export type ShapeRow = {
@@ -269,7 +287,7 @@ export type AcotacionProgress = {
   eta?: number
   percent?: number
   message?: string
-  result?: { ok?: boolean; message?: string; folder?: string; count?: number; files?: string[] }
+  result?: { ok?: boolean; message?: string; folder?: string; count?: number; files?: string[]; avisos?: string[] }
 }
 
 export type WeldScan = {
@@ -327,6 +345,7 @@ type ToolbarApi = {
   snapshot: () => Promise<Snapshot>
   parts: () => Promise<Snapshot>
   job_save: (payload: string) => Promise<{ ok: boolean; job?: string; message: string }>
+  vsm_jobs?: () => Promise<VsmJobsResult>
   pick_folder: () => Promise<string>
   export_dxf: (payload: string) => Promise<ExportResult>
   sheet_rules_load: () => Promise<SheetRuleCatalog>
@@ -351,6 +370,9 @@ type ToolbarApi = {
   acotacion_run: (payload: string) => Promise<{ ok: boolean; started?: boolean; message: string; folder?: string; count?: number }>
   acotacion_progress: () => Promise<AcotacionProgress>
   acotacion_open: (folder?: string) => Promise<{ ok: boolean; message: string; folder?: string }>
+  espesor_run: (payload: string) => Promise<{ ok: boolean; started?: boolean; message: string; folder?: string; count?: number; avisos?: string[] }>
+  espesor_progress: () => Promise<AcotacionProgress>
+  espesor_open: (folder?: string) => Promise<{ ok: boolean; message: string; folder?: string }>
   weld_scan: (payload: string) => Promise<WeldScan>
   weld_run: (payload: string) => Promise<{ ok: boolean; started?: boolean; message: string; folder?: string; count?: number }>
   weld_progress: () => Promise<AcotacionProgress>
