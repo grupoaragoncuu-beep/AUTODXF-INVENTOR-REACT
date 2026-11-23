@@ -117,6 +117,135 @@ def alimentar_weld(carpeta: str, *, job: str, completo: bool = False) -> dict:
     }
 
 
+CLASIFICACION_ESPESOR = {
+    "thermox": "Thermox",
+    "zinc_macro": "Zinc y Macro",
+    "poliuretano": "Poliuretano",
+    "shot blast": "Shot Blast",
+    "shot_blast": "Shot Blast",
+}
+CARPETA_ESPESOR = "Espesor pintura"
+
+
+def evidencias_espesor(carpeta: str, *, job: str, cliente: str, producto: str) -> list[dict]:
+    """Una fila de cotas_dossier por JPG de espesor ya publicado en JPGS\\Espesor pintura."""
+    root = Path(str(carpeta or ""))
+    if not root.is_dir():
+        return []
+    filas = []
+    for src in sorted(root.rglob("*")):
+        if not src.is_file() or src.suffix.lower() not in {".jpg", ".jpeg"}:
+            continue
+        clase = _clase_espesor(src, root)
+        filas.append(
+            {
+                "cliente": cliente or "SIN_CLIENTE",
+                "producto": producto or "",
+                "job": job,
+                "type": "TYP",
+                "cantidad_spoteos": 1,
+                "nombre_archivo": src.name,
+                "ruta": _canon_unc(str(src)),
+                "clasificacion": clase,
+                "seleccionadas": "si",
+                "valores": "",
+            }
+        )
+    return filas
+
+
+def alimentar_espesor(carpeta: str, *, job: str) -> dict:
+    """Copia los JPG al dossier del job y hace INSERT/UPDATE. Quita los que ya no están."""
+    job = str(job or "").strip()
+    local = Path(str(carpeta or "").strip())
+    if not job or not local.is_dir():
+        return {"ok": False, "count": 0, "message": "BD: sin carpeta de espesor o job."}
+    from dossier_arbol import cargar_eleccion, ruta_jpgs
+
+    eleccion = cargar_eleccion()
+    mismo = isinstance(eleccion, dict) and str(eleccion.get("job") or "").casefold() == job.casefold()
+    if not mismo:
+        return {
+            "ok": False,
+            "count": 0,
+            "message": "BD: elige el job del dossier. Los JPG quedan en la carpeta local.",
+        }
+    cliente = str(eleccion.get("cliente") or "") or "SIN_CLIENTE"
+    producto = str(eleccion.get("producto") or "")
+    base = ruta_jpgs(producto, str(eleccion.get("cliente") or ""), job, raiz=str(eleccion.get("raiz") or ""))
+    if not base:
+        return {
+            "ok": False,
+            "count": 0,
+            "message": "BD: elige el job del dossier. Los JPG quedan en la carpeta local.",
+        }
+    share = Path(base) / CARPETA_ESPESOR
+    try:
+        _copiar_espesor(local, share)
+    except OSError as ex:
+        return {"ok": False, "count": 0, "message": f"BD: no copié al dossier. {ex}"}
+    filas = evidencias_espesor(str(share), job=job, cliente=cliente, producto=producto)
+    try:
+        import psycopg2
+    except ImportError:
+        return {"ok": False, "count": 0, "message": "BD: falta psycopg2."}
+    target = _db_target()
+    if not target:
+        return {"ok": False, "count": 0, "message": "BD: sin conexión NestingPro."}
+    rutas = [fila["ruta"] for fila in filas]
+    clases = sorted({fila["clasificacion"] for fila in filas})
+    marca = _canon_unc(str(share))
+    n = 0
+    try:
+        with psycopg2.connect(**target) as conn:
+            with conn.cursor() as cur:
+                for fila in filas:
+                    if _guardar_evidencia(cur, fila):
+                        n += 1
+                if clases and rutas:
+                    cur.execute(
+                        """
+                        DELETE FROM public.cotas_dossier
+                        WHERE job = %s
+                          AND clasificacion = ANY(%s)
+                          AND strpos(replace(ruta, '/', '\\'), %s) > 0
+                          AND NOT (ruta = ANY(%s))
+                        """,
+                        (job, clases, marca, rutas),
+                    )
+            conn.commit()
+    except Exception as ex:
+        return {"ok": False, "count": n, "message": f"BD: {ex}"}
+    return {
+        "ok": True,
+        "count": n,
+        "message": f"BD cotas_dossier: {n} evidencias de espesor. {share}",
+    }
+
+
+def _clase_espesor(src: Path, root: Path) -> str:
+    try:
+        rel = src.relative_to(root)
+    except ValueError:
+        rel = Path(src.name)
+    carpeta = rel.parts[0] if len(rel.parts) > 1 else root.name
+    return CLASIFICACION_ESPESOR.get(carpeta.casefold(), "Espesor pintura")
+
+
+def _copiar_espesor(local: Path, share: Path) -> None:
+    for src in local.rglob("*"):
+        if not src.is_file() or src.suffix.lower() not in {".jpg", ".jpeg"}:
+            continue
+        rel = src.relative_to(local)
+        if len(rel.parts) == 1:
+            carpeta = "shot blast" if local.name.casefold() in {"shot_blast", "shot blast"} else local.name
+            destino = share / carpeta / rel.name
+        else:
+            destino = share / rel
+        destino.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(src, destino)
+
+
 def _guardar_evidencia(cur, fila: dict) -> bool:
     cur.execute(
         """

@@ -104,7 +104,7 @@ export function EspesorPinturaPanel({
             Abrir JPG
           </Button>
           <Badge variant="outline" size="sm">
-            Sin base de datos
+            Cotas dossier
           </Badge>
         </div>
         <label className="flex items-center gap-2 text-xs">
@@ -112,7 +112,7 @@ export function EspesorPinturaPanel({
           Tanque OTC: en Poliuretano el esquema incluye Zinc. Los puntos no se duplican.
         </label>
         <p className="text-muted-foreground text-xs">
-          Un clic saca las cuatro señalaciones, cada una en su carpeta: Thermox, Zinc y Macro, Poliuretano, y shot blast. Shot blast marca igual que Poliuretano. El JPG es el alzado de esa cara del tanque, con los puntos encima. No entra a la base de datos.
+          Un clic saca las cuatro señalaciones, cada una en su carpeta: Thermox, Zinc y Macro, Poliuretano, y shot blast. Shot blast marca igual que Poliuretano. Con el job del dossier elegido, los JPG se copian a DOSSIER FILES\JPGS\Espesor pintura y entran a cotas_dossier.
         </p>
       </section>
 

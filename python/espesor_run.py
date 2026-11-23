@@ -1,7 +1,8 @@
 """Prueba de espesor de pintura.
 
 Lee el ensamble abierto, dibuja un JPG por cara y lo deja en JPG\\ESPESOR_PINTURA.
-No importa cotas_dossier, no abre Postgres y no copia nada al share del dossier.
+La corrida real copia esos JPG a DOSSIER FILES\\JPGS\\Espesor pintura y los registra
+en cotas_dossier. La muestra no escribe la base.
 """
 
 from __future__ import annotations
@@ -88,10 +89,42 @@ def generar(payload: dict | None = None) -> dict:
             return _error("No encontré segmentos, tapa ni base en el ensamble abierto.")
         raiz = _destino(payload, nombre, esquema if solo else "")
         if solo:
-            return _dibujar(caras, raiz, esquema, otc and esquema == "poliuretano", nombre, muestra)
-        return _dibujar_todas(caras, raiz, esquemas, otc, nombre, muestra)
+            result = _dibujar(caras, raiz, esquema, otc and esquema == "poliuretano", nombre, muestra)
+        else:
+            result = _dibujar_todas(caras, raiz, esquemas, otc, nombre, muestra)
+        if result.get("ok") and not muestra:
+            result = _registrar_bd(result, raiz, payload)
+        return result
     except Exception as ex:
         return _error(str(ex))
+
+
+def _registrar_bd(result: dict, raiz: Path, payload: dict) -> dict:
+    """Publica los JPG del job y reescribe el avance. Si la base falla, los JPG locales quedan."""
+    from cotas_dossier import alimentar_espesor
+    from dossier_arbol import cargar_eleccion
+
+    eleccion = cargar_eleccion()
+    job = str(payload.get("job") or eleccion.get("job") or "").strip()
+    try:
+        bd = alimentar_espesor(str(raiz), job=job)
+    except Exception as ex:
+        bd = {"ok": False, "count": 0, "message": f"BD: {ex}"}
+    texto = str(result.get("message") or "").replace(" Sin escritura en la base de datos.", "")
+    result["bd"] = bool(bd.get("ok"))
+    result["bd_count"] = int(bd.get("count") or 0)
+    result["message"] = (texto + " " + str(bd.get("message") or "")).strip()
+    write_progress(
+        current=1,
+        total=1,
+        piece="Listo",
+        photos=int(result.get("fotos") or 0),
+        phase="listo",
+        done=True,
+        result=result,
+        message=result["message"],
+    )
+    return result
 
 
 def leer_ensamble() -> tuple[list[dict], str]:

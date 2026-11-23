@@ -419,9 +419,8 @@ class Malla(unittest.TestCase):
 class PruebaLocal(unittest.TestCase):
     def test_la_muestra_escribe_jpg_y_no_la_base(self):
         fuente = Path(__file__).with_name("espesor_run.py").read_text(encoding="utf-8")
-        self.assertNotIn("import cotas_dossier", fuente)
         self.assertNotIn("psycopg", fuente)
-        self.assertNotIn("alimentar_bd", fuente)
+        self.assertIn("alimentar_espesor", fuente)
         with tempfile.TemporaryDirectory() as tmp:
             result = generar({"esquema": "poliuretano", "otc": True, "muestra": True, "solo": True, "carpeta": tmp})
             self.assertTrue(result["ok"], result.get("message"))
@@ -477,6 +476,25 @@ class PruebaLocal(unittest.TestCase):
             self.assertEqual(manifiesto["esquema"], "shot_blast")
             self.assertFalse(manifiesto["zinc"])
             self.assertEqual(manifiesto["puntos"], 70)
+
+    def test_los_jpg_de_espesor_entran_a_cotas_dossier(self):
+        from cotas_dossier import evidencias_espesor
+
+        with tempfile.TemporaryDirectory() as tmp:
+            raiz = Path(tmp) / "DOSSIER FILES" / "JPGS" / "Espesor pintura"
+            (raiz / "thermox").mkdir(parents=True)
+            (raiz / "shot blast").mkdir()
+            (raiz / "thermox" / "TOP_COVER.jpg").write_bytes(b"x")
+            (raiz / "shot blast" / "SEGMENT_1.jpg").write_bytes(b"x")
+            (raiz / "shot blast" / "SEGMENT_1_PARTES_OCULTAS.jpg").write_bytes(b"x")
+            (raiz / "manifiesto.json").write_text("{}", encoding="utf-8")
+            filas = evidencias_espesor(str(raiz), job="JOB", cliente="CLI", producto="TANKS")
+        clases = {fila["nombre_archivo"]: fila["clasificacion"] for fila in filas}
+        self.assertEqual(clases["TOP_COVER.jpg"], "Thermox")
+        self.assertEqual(clases["SEGMENT_1.jpg"], "Shot Blast")
+        self.assertEqual(clases["SEGMENT_1_PARTES_OCULTAS.jpg"], "Shot Blast")
+        self.assertTrue(all(fila["seleccionadas"] == "si" for fila in filas))
+        self.assertTrue(all("JPGS\\Espesor pintura\\" in fila["ruta"].replace("/", "\\") for fila in filas))
 
 
 if __name__ == "__main__":
